@@ -27,6 +27,7 @@
         <designVm:DesignMainWindowViewModel/>
     </Design.DataContext>
 
+    <Grid>
     <SplitView DisplayMode="CompactInline"
                IsPaneOpen="{Binding IsPaneOpen}"
                OpenPaneLength="200"
@@ -329,5 +330,28 @@
         </SplitView.Content>
 
     </SplitView>
+
+    <!-- Edge/corner resize hot zones. WindowDecorations="None" removes the system resize
+         frame, so resizing is driven manually via Window.BeginResizeDrag. Disabled while
+         maximized/fullscreen (see MainWindow code-behind). -->
+    <Grid x:Name="ResizeHotZones">
+        <Border x:Name="ResizeTop" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="6"
+                Background="Transparent" Cursor="SizeNorthSouth" Tag="North" PointerPressed="OnResizeGripPressed"/>
+        <Border x:Name="ResizeBottom" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="6"
+                Background="Transparent" Cursor="SizeNorthSouth" Tag="South" PointerPressed="OnResizeGripPressed"/>
+        <Border x:Name="ResizeLeft" VerticalAlignment="Stretch" HorizontalAlignment="Left" Width="6"
+                Background="Transparent" Cursor="SizeWestEast" Tag="West" PointerPressed="OnResizeGripPressed"/>
+        <Border x:Name="ResizeRight" VerticalAlignment="Stretch" HorizontalAlignment="Right" Width="6"
+                Background="Transparent" Cursor="SizeWestEast" Tag="East" PointerPressed="OnResizeGripPressed"/>
+        <Border x:Name="ResizeTopLeft" HorizontalAlignment="Left" VerticalAlignment="Top" Width="8" Height="8"
+                Background="Transparent" Cursor="TopLeftCorner" Tag="NorthWest" PointerPressed="OnResizeGripPressed"/>
+        <Border x:Name="ResizeTopRight" HorizontalAlignment="Right" VerticalAlignment="Top" Width="8" Height="8"
+                Background="Transparent" Cursor="TopRightCorner" Tag="NorthEast" PointerPressed="OnResizeGripPressed"/>
+        <Border x:Name="ResizeBottomLeft" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="8" Height="8"
+                Background="Transparent" Cursor="BottomLeftCorner" Tag="SouthWest" PointerPressed="OnResizeGripPressed"/>
+        <Border x:Name="ResizeBottomRight" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="8" Height="8"
+                Background="Transparent" Cursor="BottomRightCorner" Tag="SouthEast" PointerPressed="OnResizeGripPressed"/>
+    </Grid>
+    </Grid>
 
 </Window>

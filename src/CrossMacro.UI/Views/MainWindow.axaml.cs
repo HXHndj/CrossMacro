@@ -17,11 +17,13 @@ public partial class MainWindow : Window
         InitializeComponent();
         AddHandler(TextBox.CopyingToClipboardEvent, OnTextBoxCopyingToClipboard, RoutingStrategies.Bubble);
         AddHandler(TextBox.CuttingToClipboardEvent, OnTextBoxCuttingToClipboard, RoutingStrategies.Bubble);
+        PropertyChanged += OnWindowPropertyChanged;
     }
 
     private void OnWindowOpened(object? sender, EventArgs e)
     {
         ApplyRoundedWindowCornersIfSupported();
+        UpdateResizeHotZonesHitTestability();
         Dispatcher.UIThread.Post(
             static state =>
             {
@@ -30,6 +32,32 @@ public partial class MainWindow : Window
             },
             this,
             DispatcherPriority.Render);
+    }
+
+    private void OnWindowPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == Window.WindowStateProperty)
+        {
+            UpdateResizeHotZonesHitTestability();
+        }
+    }
+
+    private void UpdateResizeHotZonesHitTestability()
+    {
+        ResizeHotZones.IsHitTestVisible = WindowState == WindowState.Normal;
+    }
+
+    private void OnResizeGripPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (WindowState != WindowState.Normal
+            || sender is not Border { Tag: string edgeName }
+            || !Enum.TryParse<WindowEdge>(edgeName, out var edge)
+            || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            return;
+        }
+
+        BeginResizeDrag(edge, e);
     }
 
     private void ApplyRoundedWindowCornersIfSupported()
