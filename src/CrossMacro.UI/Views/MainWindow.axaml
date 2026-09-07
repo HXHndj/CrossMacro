@@ -105,7 +105,7 @@
                 <!-- Navigation List (Bottom/Settings) -->
                 <ListBox Grid.Row="2" 
                          Name="BottomNavListBox"
-                         Classes="nav-list"
+                         Classes="nav-list nav-bottom"
                          ItemsSource="{Binding BottomNavigationItems}" 
                          SelectedItem="{Binding SelectedBottomItem}"
                          Background="Transparent"

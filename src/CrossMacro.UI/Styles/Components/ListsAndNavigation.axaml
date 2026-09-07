@@ -125,6 +125,12 @@
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
     </Style>
 
+    <!-- Bottom nav (设置) is the sidebar card's last row: drop the 2px bottom margin so the
+         selection box sits flush at the card edge with a straight cut (no gap, no rounding). -->
+    <Style Selector="ListBox.nav-bottom ListBoxItem">
+        <Setter Property="Margin" Value="0,2,0,0"/>
+    </Style>
+
     <Style Selector="ListBox.loaded-macro-list">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
