@@ -1,10 +1,17 @@
 
+using System.Runtime.InteropServices;
 using Avalonia.Layout;
 
 namespace CrossMacro.UI.Views;
 
 public partial class MainWindow : Window
 {
+    private const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
+    private const int DWMWCP_ROUND = 2;
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(nint hwnd, int attribute, ref int value, int size);
+
     public MainWindow()
     {
         InitializeComponent();
@@ -14,6 +21,7 @@ public partial class MainWindow : Window
 
     private void OnWindowOpened(object? sender, EventArgs e)
     {
+        ApplyRoundedWindowCornersIfSupported();
         Dispatcher.UIThread.Post(
             static state =>
             {
@@ -22,6 +30,30 @@ public partial class MainWindow : Window
             },
             this,
             DispatcherPriority.Render);
+    }
+
+    private void ApplyRoundedWindowCornersIfSupported()
+    {
+        if (!OperatingSystem.IsWindows() || !OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000))
+        {
+            return;
+        }
+
+        try
+        {
+            var hwnd = TryGetPlatformHandle()?.Handle ?? nint.Zero;
+            if (hwnd == nint.Zero)
+            {
+                return;
+            }
+
+            var preference = DWMWCP_ROUND;
+            _ = DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, ref preference, sizeof(int));
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "[MainWindow] Rounded window corners are unavailable");
+        }
     }
 
     internal static void RefreshContentLayout(Layoutable content)

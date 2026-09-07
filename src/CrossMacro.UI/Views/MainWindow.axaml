@@ -32,34 +32,42 @@
                OpenPaneLength="200"
                CompactPaneLength="76"
                Background="{DynamicResource BackgroundBrush}"
-               PaneBackground="{DynamicResource SurfaceBrush}">
-        
+               PaneBackground="Transparent">
+
         <SplitView.Pane>
+            <Border Margin="6"
+                    CornerRadius="12"
+                    Background="{DynamicResource SurfaceBrush}"
+                    ClipToBounds="True">
             <Grid RowDefinitions="Auto,*,Auto">
-                <!-- Header Row with Toggle and Title -->
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,16,0,8">
-                    <ToggleButton IsChecked="{Binding IsPaneOpen}"
+                <!-- Header Row with Toggle and Title.
+                     Fixed 64px icon column (= CompactPaneLength 76 - pane card margins 12)
+                     keeps the toggle on the collapsed rail's center axis at all times,
+                     so it never moves when the pane expands or collapses. -->
+                <Grid Grid.Row="0" Margin="0,16,0,8" ColumnDefinitions="64,*">
+                    <ToggleButton Grid.Column="0"
+                                  IsChecked="{Binding IsPaneOpen}"
                                   Classes="pane-toggle"
                                   Background="Transparent"
                                   Width="32" Height="32"
                                   CornerRadius="6"
                                   Padding="4"
-                                  Margin="22,0,0,0"
-                                  HorizontalAlignment="Left">
+                                  HorizontalAlignment="Center">
                         <PathIcon Data="{icons:AppIcon Menu}"
                                    Foreground="{DynamicResource TextPrimaryBrush}"
                                    Width="24" Height="24"/>
                     </ToggleButton>
-                    
+
                     <!-- CrossMacro Title (visible when pane is open) -->
-                    <TextBlock Text="{localization:Loc App_Title}"
+                    <TextBlock Grid.Column="1"
+                               Text="{localization:Loc App_Title}"
                                FontSize="16"
                                FontWeight="Bold"
                                Foreground="{DynamicResource TextPrimaryBrush}"
                                VerticalAlignment="Center"
                                Margin="12,0,0,0"
                                IsVisible="{Binding IsPaneOpen}"/>
-                </StackPanel>
+                </Grid>
                 
                 <!-- Navigation List (Top) -->
                 <ListBox Grid.Row="1" 
@@ -73,28 +81,23 @@
                          Margin="0,0">
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="models:NavigationItem">
-                            <Grid ToolTip.Tip="{Binding Label}"
-                                  ToolTip.ShowDelay="400">
-                                <!-- Collapsed pane: icon alone, centered in the rail -->
+                            <!-- Icon uses a fixed left margin so its center sits on the collapsed
+                                 rail's center axis (content 58 - icon 24)/2 = 17, +3px item border
+                                 = 32 = card center. Identical in both pane states: no twitch. -->
+                            <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center"
+                                        ToolTip.Tip="{Binding Label}"
+                                        ToolTip.ShowDelay="400">
                                 <PathIcon Data="{Binding Icon, Converter={x:Static icons:AppIconGeometryConverter.Instance}}"
                                           Classes="nav-icon"
                                           Width="24" Height="24"
-                                          HorizontalAlignment="Center"
-                                          IsVisible="{Binding !$parent[SplitView].IsPaneOpen}"/>
-                                <!-- Expanded pane: icon + label -->
-                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center"
-                                            HorizontalAlignment="Left"
-                                            IsVisible="{Binding $parent[SplitView].IsPaneOpen}">
-                                    <PathIcon Data="{Binding Icon, Converter={x:Static icons:AppIconGeometryConverter.Instance}}"
-                                              Classes="nav-icon"
-                                              Width="24" Height="24"/>
-                                    <TextBlock Text="{Binding Label}"
-                                               VerticalAlignment="Center"
-                                               FontWeight="SemiBold"
-                                               FontSize="14"
-                                               TextTrimming="CharacterEllipsis"/>
-                                </StackPanel>
-                            </Grid>
+                                          Margin="17,0,0,0"/>
+                                <TextBlock Text="{Binding Label}"
+                                           VerticalAlignment="Center"
+                                           FontWeight="SemiBold"
+                                           FontSize="14"
+                                           TextTrimming="CharacterEllipsis"
+                                           IsVisible="{Binding $parent[SplitView].IsPaneOpen}"/>
+                            </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
@@ -111,32 +114,28 @@
                          Margin="0">
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="models:NavigationItem">
-                            <Grid ToolTip.Tip="{Binding Label}"
-                                  ToolTip.ShowDelay="400">
-                                <!-- Collapsed pane: icon alone, centered in the rail -->
+                            <!-- Icon uses a fixed left margin so its center sits on the collapsed
+                                 rail's center axis (content 58 - icon 24)/2 = 17, +3px item border
+                                 = 32 = card center. Identical in both pane states: no twitch. -->
+                            <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center"
+                                        ToolTip.Tip="{Binding Label}"
+                                        ToolTip.ShowDelay="400">
                                 <PathIcon Data="{Binding Icon, Converter={x:Static icons:AppIconGeometryConverter.Instance}}"
                                           Classes="nav-icon"
                                           Width="24" Height="24"
-                                          HorizontalAlignment="Center"
-                                          IsVisible="{Binding !$parent[SplitView].IsPaneOpen}"/>
-                                <!-- Expanded pane: icon + label -->
-                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center"
-                                            HorizontalAlignment="Left"
-                                            IsVisible="{Binding $parent[SplitView].IsPaneOpen}">
-                                    <PathIcon Data="{Binding Icon, Converter={x:Static icons:AppIconGeometryConverter.Instance}}"
-                                              Classes="nav-icon"
-                                              Width="24" Height="24"/>
-                                    <TextBlock Text="{Binding Label}"
-                                               VerticalAlignment="Center"
-                                               FontWeight="SemiBold"
-                                               FontSize="14"
-                                               TextTrimming="CharacterEllipsis"/>
-                                </StackPanel>
-                            </Grid>
+                                          Margin="17,0,0,0"/>
+                                <TextBlock Text="{Binding Label}"
+                                           VerticalAlignment="Center"
+                                           FontWeight="SemiBold"
+                                           FontSize="14"
+                                           TextTrimming="CharacterEllipsis"
+                                           IsVisible="{Binding $parent[SplitView].IsPaneOpen}"/>
+                            </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
             </Grid>
+            </Border>
         </SplitView.Pane>
 
         <SplitView.Content>

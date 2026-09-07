@@ -84,8 +84,14 @@
         <Setter Property="BorderThickness" Value="0"/>
     </Style>
 
+    <!-- Zero out list padding so nav icon centering math (see MainWindow.axaml item template)
+         depends only on the ListBoxItem border, not theme defaults. -->
+    <Style Selector="ListBox.nav-list">
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+
     <Style Selector="ListBox.nav-list ListBoxItem">
-        <Setter Property="Padding" Value="16,12"/>
+        <Setter Property="Padding" Value="0,12"/>
         <Setter Property="CornerRadius" Value="0"/>
         <Setter Property="Margin" Value="0,2,0,2"/>
         <Setter Property="Cursor" Value="Hand"/>
