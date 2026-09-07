@@ -100,7 +100,7 @@
                                                 CommandParameter="{Binding}"
                                                 Cursor="Hand"
                                                 ToolTip.Tip="{localization:Loc Schedule_EditTask}">
-                                            <icons:EmojiAppIcon Icon="Edit" Width="14" Height="14"/>
+                                            <PathIcon Data="{icons:AppIcon Edit}" Width="14" Height="14"/>
                                         </Button>
 
                                         <!-- Delete Button -->
@@ -112,7 +112,7 @@
                                                 CommandParameter="{Binding}"
                                                 Cursor="Hand"
                                                 ToolTip.Tip="{localization:Loc Schedule_DeleteTask}">
-                                            <icons:EmojiAppIcon Icon="Delete" Width="14" Height="14" Opacity="0.85"/>
+                                            <PathIcon Data="{icons:AppIcon Delete}" Width="14" Height="14" Opacity="0.85"/>
                                         </Button>
                                     </Grid>
                                 </Border>
@@ -174,7 +174,7 @@
                             <Button Grid.Column="1"
                                    Command="{Binding BrowseMacroCommand}">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <icons:EmojiAppIcon Icon="FolderOpen" Width="16" Height="16"/>
+                                    <PathIcon Data="{icons:AppIcon FolderOpen}" Width="16" Height="16"/>
                                     <TextBlock Text="{localization:Loc Schedule_Browse}"/>
                                 </StackPanel>
                             </Button>
@@ -188,21 +188,21 @@
                             <RadioButton IsChecked="{Binding IsIntervalSelected, Mode=TwoWay}"
                                         GroupName="ScheduleType">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <icons:EmojiAppIcon Icon="Timer" Width="16" Height="16"/>
+                                    <PathIcon Data="{icons:AppIcon Timer}" Width="16" Height="16"/>
                                     <TextBlock Text="{localization:Loc Schedule_TypeInterval}"/>
                                 </StackPanel>
                             </RadioButton>
                             <RadioButton IsChecked="{Binding IsDateTimeSelected, Mode=TwoWay}"
                                         GroupName="ScheduleType">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <icons:EmojiAppIcon Icon="Calendar" Width="16" Height="16"/>
+                                    <PathIcon Data="{icons:AppIcon Calendar}" Width="16" Height="16"/>
                                     <TextBlock Text="{localization:Loc Schedule_TypeDateTime}"/>
                                 </StackPanel>
                             </RadioButton>
                             <RadioButton IsChecked="{Binding IsWeeklySelected, Mode=TwoWay}"
                                         GroupName="ScheduleType">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <icons:EmojiAppIcon Icon="Clock" Width="16" Height="16"/>
+                                    <PathIcon Data="{icons:AppIcon Clock}" Width="16" Height="16"/>
                                     <TextBlock Text="{localization:Loc Schedule_TypeWeekly}"/>
                                 </StackPanel>
                             </RadioButton>
@@ -292,7 +292,7 @@
                                    HorizontalAlignment="Stretch"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="4">
-                        <icons:EmojiAppIcon Icon="Tip" Width="11" Height="11" Opacity="0.85"/>
+                        <PathIcon Data="{icons:AppIcon Tip}" Width="11" Height="11" Opacity="0.85"/>
                         <TextBlock Text="{localization:Loc Schedule_RunOnceTip}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
                 </StackPanel>
@@ -351,7 +351,7 @@
                                     HorizontalAlignment="Stretch"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="4">
-                        <icons:EmojiAppIcon Icon="Tip" Width="11" Height="11" Opacity="0.85"/>
+                        <PathIcon Data="{icons:AppIcon Tip}" Width="11" Height="11" Opacity="0.85"/>
                         <TextBlock Text="{localization:Loc Schedule_WeeklyTip}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
                 </StackPanel>
@@ -392,7 +392,7 @@
                    HorizontalAlignment="Right"
                    IsVisible="{Binding HasSelectedTask}">
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                    <icons:EmojiAppIcon Icon="Save" Width="16" Height="16"/>
+                    <PathIcon Data="{icons:AppIcon Save}" Width="16" Height="16"/>
                     <TextBlock Text="{localization:Loc Schedule_SaveAllTasks}"/>
                 </StackPanel>
             </Button>
@@ -403,7 +403,7 @@
                     Padding="32"
                     IsVisible="{Binding !HasSelectedTask}">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
-                    <icons:EmojiAppIcon Icon="Clock" Width="48" Height="48" Opacity="0.8" HorizontalAlignment="Center"/>
+                    <PathIcon Data="{icons:AppIcon Clock}" Width="48" Height="48" Opacity="0.8" HorizontalAlignment="Center"/>
                     <TextBlock Text="{localization:Loc Schedule_NoTaskSelected}"
                               FontSize="16"
                               FontWeight="Medium"

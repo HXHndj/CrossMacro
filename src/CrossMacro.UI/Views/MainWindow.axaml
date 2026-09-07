@@ -44,11 +44,11 @@
                                   Width="32" Height="32"
                                   CornerRadius="6"
                                   Padding="4"
-                                  Margin="19,0,0,0"
+                                  Margin="22,0,0,0"
                                   HorizontalAlignment="Left">
                         <PathIcon Data="{icons:AppIcon Menu}"
                                    Foreground="{DynamicResource TextPrimaryBrush}"
-                                   Width="16" Height="16"/>
+                                   Width="24" Height="24"/>
                     </ToggleButton>
                     
                     <!-- CrossMacro Title (visible when pane is open) -->
@@ -73,20 +73,28 @@
                          Margin="0,0">
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="models:NavigationItem">
-                            <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center"
-                                        ToolTip.Tip="{Binding Label}"
-                                        ToolTip.ShowDelay="400">
-                                 <Border Width="32" Height="32" Background="Transparent">
-                                      <icons:EmojiAppIcon Icon="{Binding Icon}"
-                                                          Classes="nav-colored-icon"/>
-                                 </Border>
-                                <TextBlock Text="{Binding Label}" 
-                                           VerticalAlignment="Center" 
-                                           FontWeight="SemiBold"
-                                           FontSize="14"
-                                           TextTrimming="CharacterEllipsis"
-                                           IsVisible="{Binding $parent[SplitView].IsPaneOpen}"/>
-                            </StackPanel>
+                            <Grid ToolTip.Tip="{Binding Label}"
+                                  ToolTip.ShowDelay="400">
+                                <!-- Collapsed pane: icon alone, centered in the rail -->
+                                <PathIcon Data="{Binding Icon, Converter={x:Static icons:AppIconGeometryConverter.Instance}}"
+                                          Classes="nav-icon"
+                                          Width="24" Height="24"
+                                          HorizontalAlignment="Center"
+                                          IsVisible="{Binding !$parent[SplitView].IsPaneOpen}"/>
+                                <!-- Expanded pane: icon + label -->
+                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center"
+                                            HorizontalAlignment="Left"
+                                            IsVisible="{Binding $parent[SplitView].IsPaneOpen}">
+                                    <PathIcon Data="{Binding Icon, Converter={x:Static icons:AppIconGeometryConverter.Instance}}"
+                                              Classes="nav-icon"
+                                              Width="24" Height="24"/>
+                                    <TextBlock Text="{Binding Label}"
+                                               VerticalAlignment="Center"
+                                               FontWeight="SemiBold"
+                                               FontSize="14"
+                                               TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                            </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
@@ -103,20 +111,28 @@
                          Margin="0">
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="models:NavigationItem">
-                            <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center"
-                                        ToolTip.Tip="{Binding Label}"
-                                        ToolTip.ShowDelay="400">
-                                 <Border Width="32" Height="32" Background="Transparent">
-                                      <icons:EmojiAppIcon Icon="{Binding Icon}"
-                                                          Classes="nav-colored-icon"/>
-                                 </Border>
-                                <TextBlock Text="{Binding Label}" 
-                                           VerticalAlignment="Center" 
-                                           FontWeight="SemiBold"
-                                           FontSize="14"
-                                           TextTrimming="CharacterEllipsis"
-                                           IsVisible="{Binding $parent[SplitView].IsPaneOpen}"/>
-                            </StackPanel>
+                            <Grid ToolTip.Tip="{Binding Label}"
+                                  ToolTip.ShowDelay="400">
+                                <!-- Collapsed pane: icon alone, centered in the rail -->
+                                <PathIcon Data="{Binding Icon, Converter={x:Static icons:AppIconGeometryConverter.Instance}}"
+                                          Classes="nav-icon"
+                                          Width="24" Height="24"
+                                          HorizontalAlignment="Center"
+                                          IsVisible="{Binding !$parent[SplitView].IsPaneOpen}"/>
+                                <!-- Expanded pane: icon + label -->
+                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center"
+                                            HorizontalAlignment="Left"
+                                            IsVisible="{Binding $parent[SplitView].IsPaneOpen}">
+                                    <PathIcon Data="{Binding Icon, Converter={x:Static icons:AppIconGeometryConverter.Instance}}"
+                                              Classes="nav-icon"
+                                              Width="24" Height="24"/>
+                                    <TextBlock Text="{Binding Label}"
+                                               VerticalAlignment="Center"
+                                               FontWeight="SemiBold"
+                                               FontSize="14"
+                                               TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                            </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
@@ -165,11 +181,12 @@
                         IsVisible="{Binding HasExtensionWarning}"
                         Margin="16,0,16,10">
                     <Grid ColumnDefinitions="Auto,*">
-                        <icons:EmojiAppIcon Grid.Column="0"
-                                            Icon="Warning"
-                                            Width="18"
-                                            Height="18"
-                                            Margin="0,0,10,0"/>
+                        <PathIcon Grid.Column="0"
+                                  Data="{icons:AppIcon Warning}"
+                                  Classes="notice-icon warning"
+                                  Width="18"
+                                  Height="18"
+                                  Margin="0,0,10,0"/>
                         <StackPanel Grid.Column="1" Spacing="2">
                             <TextBlock Text="{localization:Loc MainWindow_GnomeExtensionTitle}"
                                        Classes="notice-title"/>
@@ -196,9 +213,9 @@
                 <!-- Footer (Version / Status) -->
                 <Grid Grid.Row="3" ColumnDefinitions="Auto,*,Auto" Margin="24,0,24,20" VerticalAlignment="Bottom">
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <icons:EmojiAppIcon Icon="Mouse"
-                                            Classes="caption-colored-icon"
-                                            Margin="0,0,4,0"/>
+                        <PathIcon Data="{icons:AppIcon Mouse}"
+                                  Classes="caption-icon"
+                                  Margin="0,0,4,0"/>
                         <TextBlock FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}">
                             <Run Text="CrossMacro "/><Run Text="{Binding AppVersion}"/>
                         </TextBlock>
@@ -279,11 +296,15 @@
                         MaxWidth="360"
                         IsVisible="{Binding IsAppNotificationVisible}">
                     <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
-                        <icons:EmojiAppIcon Grid.Column="0"
-                                            Icon="{Binding AppNotificationIcon}"
-                                            Width="18"
-                                            Height="18"
-                                            VerticalAlignment="Top"/>
+                        <PathIcon Grid.Column="0"
+                                  Data="{Binding AppNotificationIcon, Converter={x:Static icons:AppIconGeometryConverter.Instance}}"
+                                  Classes="notice-icon"
+                                  Classes.success="{Binding IsAppNotificationSuccess}"
+                                  Classes.warning="{Binding IsAppNotificationWarning}"
+                                  Classes.error="{Binding IsAppNotificationError}"
+                                  Width="18"
+                                  Height="18"
+                                  VerticalAlignment="Top"/>
                         <StackPanel Grid.Column="1" Spacing="3">
                             <TextBlock Text="{Binding AppNotificationTitle}"
                                        Classes="notice-title"/>

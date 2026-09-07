@@ -112,7 +112,7 @@
                                                 CommandParameter="{Binding}"
                                                 Cursor="Hand"
                                                 ToolTip.Tip="{localization:Loc Trigger_EditTooltip}">
-                                            <icons:EmojiAppIcon Icon="Edit" Width="14" Height="14"/>
+                                            <PathIcon Data="{icons:AppIcon Edit}" Width="14" Height="14"/>
                                         </Button>
 
                                         <!-- Delete Button -->
@@ -124,7 +124,7 @@
                                                 CommandParameter="{Binding}"
                                                 Cursor="Hand"
                                                 ToolTip.Tip="{localization:Loc Trigger_DeleteTooltip}">
-                                            <icons:EmojiAppIcon Icon="Delete" Width="14" Height="14" Opacity="0.85"/>
+                                            <PathIcon Data="{icons:AppIcon Delete}" Width="14" Height="14" Opacity="0.85"/>
                                         </Button>
                                     </Grid>
                                 </Border>
@@ -297,7 +297,7 @@
                     HorizontalAlignment="Right"
                     IsVisible="{Binding HasSelectedTask}">
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                    <icons:EmojiAppIcon Icon="Save" Width="16" Height="16"/>
+                    <PathIcon Data="{icons:AppIcon Save}" Width="16" Height="16"/>
                     <TextBlock Text="{localization:Loc Trigger_SaveAll}"/>
                 </StackPanel>
             </Button>
@@ -308,7 +308,7 @@
                     Padding="32"
                     IsVisible="{Binding !HasSelectedTask}">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
-                    <icons:EmojiAppIcon Icon="Keyboard" Width="48" Height="48" Opacity="0.8" HorizontalAlignment="Center"/>
+                    <PathIcon Data="{icons:AppIcon Keyboard}" Width="48" Height="48" Opacity="0.8" HorizontalAlignment="Center"/>
                     <TextBlock Text="{localization:Loc Trigger_NoSelected}"
                                FontSize="16"
                                FontWeight="Medium"

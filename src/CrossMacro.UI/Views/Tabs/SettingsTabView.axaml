@@ -336,11 +336,12 @@
             </Border.Transitions>
             
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" MaxWidth="320">
-                <icons:EmojiAppIcon Grid.Column="0"
-                                    Icon="Warning"
-                                    Width="18"
-                                    Height="18"
-                                    VerticalAlignment="Top"/>
+                <PathIcon Grid.Column="0"
+                                  Data="{icons:AppIcon Warning}"
+                                  Classes="notice-icon warning"
+                                  Width="18"
+                                  Height="18"
+                                  VerticalAlignment="Top"/>
                 <StackPanel Grid.Column="1" Spacing="4">
                     <TextBlock x:Name="ToastTitle"
                                 Text="{localization:Loc Settings_HotkeyAlreadyAssignedTitle}"

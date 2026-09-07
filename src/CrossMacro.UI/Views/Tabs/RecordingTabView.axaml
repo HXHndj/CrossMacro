@@ -49,7 +49,7 @@
                        VerticalAlignment="Stretch">
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Spacing="4">
-                            <icons:EmojiAppIcon Icon="Mouse" Width="14" Height="14"/>
+                            <PathIcon Data="{icons:AppIcon Mouse}" Width="14" Height="14"/>
                             <TextBlock Text="{Binding MouseEventCount}" 
                                       FontWeight="Medium"
                                       FontSize="16"
@@ -57,7 +57,7 @@
                                       VerticalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="4">
-                            <icons:EmojiAppIcon Icon="Keyboard" Width="14" Height="14"/>
+                            <PathIcon Data="{icons:AppIcon Keyboard}" Width="14" Height="14"/>
                             <TextBlock Text="{Binding KeyboardEventCount}" 
                                       FontWeight="Medium"
                                       FontSize="16"
@@ -76,13 +76,13 @@
                        VerticalAlignment="Stretch">
                     <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
                         <!-- Recording indicator when recording -->
-                        <icons:EmojiAppIcon Icon="Record"
+                        <PathIcon Data="{icons:AppIcon Record}"
                                             Width="24"
                                             Height="24"
                                             IsVisible="{Binding IsRecording}"
                                             ToolTip.Tip="{localization:Loc Recording_TooltipRecording}"/>
                         <!-- Ready indicator when not recording -->
-                        <icons:EmojiAppIcon Icon="Success"
+                        <PathIcon Data="{icons:AppIcon Success}"
                                             Width="24"
                                             Height="24"
                                             IsVisible="{Binding !IsRecording}"
@@ -108,7 +108,7 @@
                                 Margin="0,0,6,0">
                             <Grid ColumnDefinitions="*,Auto">
                                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <icons:EmojiAppIcon Icon="Mouse" Width="16" Height="16"/>
+                                    <PathIcon Data="{icons:AppIcon Mouse}" Width="16" Height="16"/>
                                     <TextBlock Text="{localization:Loc Recording_Mouse}" FontWeight="Medium" VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <ToggleSwitch Grid.Column="1" 
@@ -125,7 +125,7 @@
                                 Margin="6,0,0,0">
                             <Grid ColumnDefinitions="*,Auto">
                                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <icons:EmojiAppIcon Icon="Keyboard" Width="16" Height="16"/>
+                                    <PathIcon Data="{icons:AppIcon Keyboard}" Width="16" Height="16"/>
                                     <TextBlock Text="{localization:Loc Recording_Keyboard}" FontWeight="Medium" VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <ToggleSwitch Grid.Column="1" 
@@ -144,7 +144,7 @@
                                 IsVisible="{Binding IsForceRelativeSupported}">
                             <Grid ColumnDefinitions="*,Auto,Auto">
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <icons:EmojiAppIcon Icon="Location" Width="16" Height="16"/>
+                                    <PathIcon Data="{icons:AppIcon Location}" Width="16" Height="16"/>
                                     <StackPanel Spacing="2">
                                         <TextBlock Text="{localization:Loc Recording_ForceRelativeCoordinates}" FontWeight="Medium" VerticalAlignment="Center"/>
                                         <TextBlock Text="{localization:Loc Recording_ForceRelativeCoordinatesDescription}" 
@@ -184,7 +184,7 @@
                                 IsVisible="{Binding ShowLogicalRelativeCoordinatesOption}">
                             <Grid ColumnDefinitions="*,Auto,Auto">
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <icons:EmojiAppIcon Icon="Location" Width="16" Height="16"/>
+                                    <PathIcon Data="{icons:AppIcon Location}" Width="16" Height="16"/>
                                     <StackPanel Spacing="2">
                                         <TextBlock Text="{localization:Loc Recording_LogicalRelativeCoordinates}" FontWeight="Medium" VerticalAlignment="Center"/>
                                         <TextBlock Text="{localization:Loc Recording_LogicalRelativeCoordinatesDescription}"
@@ -225,7 +225,7 @@
                                 IsVisible="{Binding ShowSkipZeroZeroOption}">
                             <Grid ColumnDefinitions="*,Auto">
                                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <icons:EmojiAppIcon Icon="ArrowNorthEast" Width="16" Height="16"/>
+                                    <PathIcon Data="{icons:AppIcon ArrowNorthEast}" Width="16" Height="16"/>
                                     <StackPanel Spacing="2">
                                         <TextBlock Text="{localization:Loc Recording_SkipInitialZeroZero}" FontWeight="Medium" VerticalAlignment="Center"/>
                                         <TextBlock Text="{localization:Loc Recording_SkipInitialZeroZeroDescription}" 
@@ -251,11 +251,11 @@
                            HorizontalContentAlignment="Center">
                         <Panel>
                             <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding !IsRecording}">
-                                <icons:EmojiAppIcon Icon="Play" Width="16" Height="16"/>
+                                <PathIcon Data="{icons:AppIcon Play}" Width="16" Height="16"/>
                                 <TextBlock Text="{localization:Loc Recording_StartRecording}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsRecording}">
-                                <icons:EmojiAppIcon Icon="Stop" Width="16" Height="16"/>
+                                <PathIcon Data="{icons:AppIcon Stop}" Width="16" Height="16"/>
                                 <TextBlock Text="{localization:Loc Recording_StopRecording}"/>
                             </StackPanel>
                         </Panel>
@@ -264,7 +264,7 @@
             </Border>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
-                <icons:EmojiAppIcon Icon="Tip" Width="14" Height="14" Opacity="0.9"/>
+                <PathIcon Data="{icons:AppIcon Tip}" Width="14" Height="14" Opacity="0.9"/>
                 <TextBlock Text="{localization:Loc Recording_Tip}" Classes="caption"/>
             </StackPanel>
         </StackPanel>

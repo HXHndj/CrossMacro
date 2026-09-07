@@ -138,7 +138,7 @@
                                 Classes="secondary compact editor-toolbar-action"
                                 IsEnabled="{Binding CanDuplicateSelectedActions}"
                                 ToolTip.Tip="{localization:Loc Editor_DuplicateTooltip}">
-                            <icons:EmojiAppIcon Icon="Clipboard" Width="16" Height="16"/>
+                            <PathIcon Data="{icons:AppIcon Clipboard}" Width="16" Height="16"/>
                         </Button>
                     </WrapPanel>
                 </Grid>
@@ -250,7 +250,7 @@
                                         HorizontalAlignment="Stretch"
                                         HorizontalContentAlignment="Center">
                                     <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                                        <icons:EmojiAppIcon Icon="Location" Width="16" Height="16"/>
+                                        <PathIcon Data="{icons:AppIcon Location}" Width="16" Height="16"/>
                                         <TextBlock Text="{localization:Loc Editor_CapturePosition}"/>
                                     </StackPanel>
                                 </Button>
@@ -260,7 +260,7 @@
                                         HorizontalAlignment="Stretch"
                                         HorizontalContentAlignment="Center">
                                     <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                                        <icons:EmojiAppIcon Icon="Cancel" Width="16" Height="16"/>
+                                        <PathIcon Data="{icons:AppIcon Cancel}" Width="16" Height="16"/>
                                         <TextBlock Text="{localization:Loc Editor_CancelCapture}"/>
                                     </StackPanel>
                                 </Button>
@@ -333,7 +333,7 @@
                                         HorizontalAlignment="Stretch"
                                         HorizontalContentAlignment="Center">
                                     <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                                        <icons:EmojiAppIcon Icon="Keyboard" Width="16" Height="16"/>
+                                        <PathIcon Data="{icons:AppIcon Keyboard}" Width="16" Height="16"/>
                                         <TextBlock Text="{localization:Loc Editor_CaptureKey}"/>
                                     </StackPanel>
                                 </Button>
@@ -343,7 +343,7 @@
                                         HorizontalAlignment="Stretch"
                                         HorizontalContentAlignment="Center">
                                     <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                                        <icons:EmojiAppIcon Icon="Cancel" Width="16" Height="16"/>
+                                        <PathIcon Data="{icons:AppIcon Cancel}" Width="16" Height="16"/>
                                         <TextBlock Text="{localization:Loc Editor_CancelCapture}"/>
                                     </StackPanel>
                                 </Button>
@@ -549,7 +549,7 @@
                                             Command="{Binding BrowseScreenshotOutputPathAsync}"
                                             Classes="secondary compact">
                                         <StackPanel Orientation="Horizontal" Spacing="6">
-                                            <icons:EmojiAppIcon Icon="FolderOpen" Width="16" Height="16"/>
+                                            <PathIcon Data="{icons:AppIcon FolderOpen}" Width="16" Height="16"/>
                                             <TextBlock Text="{localization:Loc Editor_ScreenshotBrowse}"/>
                                         </StackPanel>
                                     </Button>
@@ -603,7 +603,7 @@
                                                 HorizontalAlignment="Stretch"
                                                 HorizontalContentAlignment="Center">
                                             <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                                                <icons:EmojiAppIcon Icon="Location" Width="16" Height="16"/>
+                                                <PathIcon Data="{icons:AppIcon Location}" Width="16" Height="16"/>
                                                 <TextBlock Text="{localization:Loc Editor_CaptureRegionTopLeft}"/>
                                             </StackPanel>
                                         </Button>
@@ -613,7 +613,7 @@
                                                 HorizontalAlignment="Stretch"
                                                 HorizontalContentAlignment="Center">
                                             <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                                                <icons:EmojiAppIcon Icon="Cancel" Width="16" Height="16"/>
+                                                <PathIcon Data="{icons:AppIcon Cancel}" Width="16" Height="16"/>
                                                 <TextBlock Text="{localization:Loc Editor_CancelCapture}"/>
                                             </StackPanel>
                                         </Button>
@@ -624,7 +624,7 @@
                                                 HorizontalAlignment="Stretch"
                                                 HorizontalContentAlignment="Center">
                                             <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                                                <icons:EmojiAppIcon Icon="Location" Width="16" Height="16"/>
+                                                <PathIcon Data="{icons:AppIcon Location}" Width="16" Height="16"/>
                                                 <TextBlock Text="{localization:Loc Editor_CaptureRegionBottomRight}"/>
                                             </StackPanel>
                                         </Button>
@@ -635,7 +635,7 @@
                                                 HorizontalAlignment="Stretch"
                                                 HorizontalContentAlignment="Center">
                                             <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                                                <icons:EmojiAppIcon Icon="Cancel" Width="16" Height="16"/>
+                                                <PathIcon Data="{icons:AppIcon Cancel}" Width="16" Height="16"/>
                                                 <TextBlock Text="{localization:Loc Editor_CancelCapture}"/>
                                             </StackPanel>
                                         </Button>
@@ -1017,7 +1017,7 @@
                                                 IsVisible="{Binding ShowConditionLeftColorPicker}"
                                                 ToolTip.Tip="{localization:Loc Editor_CaptureTargetColor}"
                                                 HorizontalContentAlignment="Center">
-                                            <icons:EmojiAppIcon Icon="Location" Width="16" Height="16"/>
+                                            <PathIcon Data="{icons:AppIcon Location}" Width="16" Height="16"/>
                                         </Button>
                                         <Button Grid.Column="2"
                                                 Command="{Binding CancelCapture}"
@@ -1025,7 +1025,7 @@
                                                 IsVisible="{Binding IsCapturingConditionLeftColor}"
                                                 ToolTip.Tip="{localization:Loc Editor_CancelCapture}"
                                                 HorizontalContentAlignment="Center">
-                                            <icons:EmojiAppIcon Icon="Cancel" Width="16" Height="16"/>
+                                            <PathIcon Data="{icons:AppIcon Cancel}" Width="16" Height="16"/>
                                         </Button>
                                     </Grid>
                                     <ComboBox Grid.Column="2"
@@ -1141,7 +1141,7 @@
                                                 IsVisible="{Binding ShowConditionRightColorPicker}"
                                                 ToolTip.Tip="{localization:Loc Editor_CaptureTargetColor}"
                                                 HorizontalContentAlignment="Center">
-                                            <icons:EmojiAppIcon Icon="Location" Width="16" Height="16"/>
+                                            <PathIcon Data="{icons:AppIcon Location}" Width="16" Height="16"/>
                                         </Button>
                                         <Button Grid.Column="2"
                                                 Command="{Binding CancelCapture}"
@@ -1149,7 +1149,7 @@
                                                 IsVisible="{Binding IsCapturingConditionRightColor}"
                                                 ToolTip.Tip="{localization:Loc Editor_CancelCapture}"
                                                 HorizontalContentAlignment="Center">
-                                            <icons:EmojiAppIcon Icon="Cancel" Width="16" Height="16"/>
+                                            <PathIcon Data="{icons:AppIcon Cancel}" Width="16" Height="16"/>
                                         </Button>
                                     </Grid>
                                     <ComboBox Grid.Column="2"
@@ -1585,7 +1585,7 @@
                                 IsEnabled="{Binding HasActions}"
                                 ToolTip.Tip="{localization:Loc Editor_ClearAllTooltip}">
                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                <icons:EmojiAppIcon Icon="Delete" Width="16" Height="16"/>
+                                <PathIcon Data="{icons:AppIcon Delete}" Width="16" Height="16"/>
                                 <TextBlock Text="{localization:Loc Editor_Clear}"/>
                             </StackPanel>
                         </Button>
@@ -1598,14 +1598,14 @@
                                 Classes.danger="{Binding IsRunningTest}"
                                 IsEnabled="{Binding HasActions}">
                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                <icons:EmojiAppIcon Icon="{Binding RunIcon}" Width="16" Height="16"/>
+                                <PathIcon Data="{Binding RunIcon, Converter={x:Static icons:AppIconGeometryConverter.Instance}}" Width="16" Height="16"/>
                                 <TextBlock Text="{Binding RunText}"/>
                             </StackPanel>
                         </Button>
                         <Button Command="{Binding LoadMacroAsync}"
                                 Classes="secondary compact">
                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                <icons:EmojiAppIcon Icon="FolderOpen" Width="16" Height="16"/>
+                                <PathIcon Data="{icons:AppIcon FolderOpen}" Width="16" Height="16"/>
                                 <TextBlock Text="{localization:Loc Editor_Load}"/>
                             </StackPanel>
                         </Button>
@@ -1613,7 +1613,7 @@
                                 Classes="primary compact"
                                 IsEnabled="{Binding HasActions}">
                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                <icons:EmojiAppIcon Icon="Save" Width="16" Height="16"/>
+                                <PathIcon Data="{icons:AppIcon Save}" Width="16" Height="16"/>
                                 <TextBlock Text="{localization:Loc Editor_Save}"/>
                             </StackPanel>
                         </Button>

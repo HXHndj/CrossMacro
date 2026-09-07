@@ -35,7 +35,6 @@ global using CrossMacro.Platform.Abstractions.Diagnostics;
 global using CrossMacro.Platform.Abstractions;
 global using CrossMacro.UI.Controls;
 global using CrossMacro.UI.DependencyInjection;
-global using CrossMacro.UI.Icons.Generated;
 global using CrossMacro.UI.Icons;
 global using CrossMacro.UI.Localization;
 global using CrossMacro.UI.Models;

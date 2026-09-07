@@ -112,7 +112,7 @@
                                                 CommandParameter="{Binding}"
                                                 Cursor="Hand"
                                                 ToolTip.Tip="{localization:Loc Shortcut_EditTooltip}">
-                                            <icons:EmojiAppIcon Icon="Edit" Width="14" Height="14"/>
+                                            <PathIcon Data="{icons:AppIcon Edit}" Width="14" Height="14"/>
                                         </Button>
                                         
                                         <!-- Delete Button -->
@@ -124,7 +124,7 @@
                                                 CommandParameter="{Binding}"
                                                 Cursor="Hand"
                                                 ToolTip.Tip="{localization:Loc Shortcut_DeleteTooltip}">
-                                            <icons:EmojiAppIcon Icon="Delete" Width="14" Height="14" Opacity="0.85"/>
+                                            <PathIcon Data="{icons:AppIcon Delete}" Width="14" Height="14" Opacity="0.85"/>
                                         </Button>
                                     </Grid>
                                 </Border>
@@ -224,7 +224,7 @@
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4" Margin="0,4,0,0"
                                         IsVisible="{Binding SelectedTask?.LoopEnabled}">
-                                <icons:EmojiAppIcon Icon="Tip" Classes="caption-colored-icon"/>
+                                <PathIcon Data="{icons:AppIcon Tip}" Classes="caption-icon"/>
                                 <TextBlock Text="{localization:Loc Shortcut_LoopTip}" Classes="caption"/>
                             </StackPanel>
                         </StackPanel>
@@ -247,7 +247,7 @@
                             <Button Grid.Column="1" 
                                    Command="{Binding BrowseMacroCommand}">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <icons:EmojiAppIcon Icon="FolderOpen" Width="16" Height="16"/>
+                                    <PathIcon Data="{icons:AppIcon FolderOpen}" Width="16" Height="16"/>
                                     <TextBlock Text="{localization:Loc Shortcut_Browse}"/>
                                 </StackPanel>
                             </Button>
@@ -305,7 +305,7 @@
                                                 Command="{Binding #ShortcutListBorder.((vm:ShortcutViewModel)DataContext).RemoveWindowRuleCommand}"
                                                 CommandParameter="{Binding}"
                                                 ToolTip.Tip="{localization:Loc Shortcut_RemoveWindowRule}">
-                                            <icons:EmojiAppIcon Icon="Delete" Width="14" Height="14" Opacity="0.85"/>
+                                            <PathIcon Data="{icons:AppIcon Delete}" Width="14" Height="14" Opacity="0.85"/>
                                         </Button>
                                     </Grid>
                                 </DataTemplate>
@@ -345,7 +345,7 @@
                    HorizontalAlignment="Right"
                    IsVisible="{Binding HasSelectedTask}">
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                    <icons:EmojiAppIcon Icon="Save" Width="16" Height="16"/>
+                    <PathIcon Data="{icons:AppIcon Save}" Width="16" Height="16"/>
                     <TextBlock Text="{localization:Loc Shortcut_SaveAll}"/>
                 </StackPanel>
             </Button>
@@ -356,7 +356,7 @@
                     Padding="32"
                     IsVisible="{Binding !HasSelectedTask}">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
-                    <icons:EmojiAppIcon Icon="Keyboard" Width="48" Height="48" Opacity="0.8" HorizontalAlignment="Center"/>
+                    <PathIcon Data="{icons:AppIcon Keyboard}" Width="48" Height="48" Opacity="0.8" HorizontalAlignment="Center"/>
                     <TextBlock Text="{localization:Loc Shortcut_NoSelected}" 
                               FontSize="16" 
                               FontWeight="Medium"

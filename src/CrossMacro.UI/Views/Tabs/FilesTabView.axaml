@@ -68,7 +68,7 @@
                                                 CommandParameter="{Binding}"
                                                 Cursor="Hand"
                                                 ToolTip.Tip="{localization:Loc Files_RemoveLoadedMacroTooltip}">
-                                            <icons:EmojiAppIcon Icon="Delete"
+                                            <PathIcon Data="{icons:AppIcon Delete}"
                                                                 Width="14"
                                                                 Height="14"
                                                                 Opacity="0.85"/>
@@ -86,7 +86,7 @@
                                 HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Center">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <icons:EmojiAppIcon Icon="FolderOpen" Width="16" Height="16"/>
+                                <PathIcon Data="{icons:AppIcon FolderOpen}" Width="16" Height="16"/>
                                 <TextBlock Text="{localization:Loc Files_LoadMacro}"/>
                             </StackPanel>
                         </Button>
@@ -98,7 +98,7 @@
                                 HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Center">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <icons:EmojiAppIcon Icon="Save" Width="16" Height="16"/>
+                                <PathIcon Data="{icons:AppIcon Save}" Width="16" Height="16"/>
                                 <TextBlock Text="{localization:Loc Files_SaveMacro}"/>
                             </StackPanel>
                         </Button>

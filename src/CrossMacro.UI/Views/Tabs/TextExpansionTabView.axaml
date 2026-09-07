@@ -221,7 +221,7 @@
                                                     Command="{Binding #Root.((vm:TextExpansionViewModel)DataContext)?.RemoveExpansionCommand}"
                                                     CommandParameter="{Binding}"
                                                     Cursor="Hand">
-                                                <icons:EmojiAppIcon Icon="Delete"
+                                                <PathIcon Data="{icons:AppIcon Delete}"
                                                                     Width="14"
                                                                     Height="14"
                                                                     Opacity="0.85"/>
@@ -236,7 +236,7 @@
 
                 <!-- Footer Info -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
-                    <icons:EmojiAppIcon Icon="Tip" Classes="caption-colored-icon"/>
+                    <PathIcon Data="{icons:AppIcon Tip}" Classes="caption-icon"/>
                     <TextBlock Text="{localization:Loc TextExpansion_EnableInSettingsTip}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                 </StackPanel>
 
