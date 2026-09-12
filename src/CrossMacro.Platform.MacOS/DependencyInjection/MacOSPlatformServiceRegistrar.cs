@@ -38,6 +38,12 @@ public sealed class MacOSPlatformServiceRegistrar : IPlatformServiceRegistrar
             return () => new MacOSInputCapture(MacOSPermissionRequestDelegates.RequestListenEventAccess(permissionChecker));
         });
 
+        _ = services.AddSingleton<InputCaptureSessionFactory>(sp =>
+        {
+            var permissionChecker = sp.GetRequiredService<IPermissionChecker>();
+            return () => new MacOSInputCapture(MacOSPermissionRequestDelegates.RequestListenEventAccess(permissionChecker));
+        });
+
         _ = services.AddSingleton<ICoordinateStrategyFactory>(sp =>
             new MacOSCoordinateStrategyFactory(sp.GetRequiredService<IMousePositionProvider>()));
         _ = services.AddSingleton<IDisplaySessionService, GenericDisplaySessionService>();

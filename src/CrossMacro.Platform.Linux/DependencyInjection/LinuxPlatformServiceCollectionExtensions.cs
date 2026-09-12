@@ -245,6 +245,12 @@ internal static class LinuxPlatformServiceCollectionExtensions
             var factory = sp.GetRequiredService<LinuxCaptureFactory>();
             return () => factory.Create();
         });
+
+        _ = services.AddSingleton<InputCaptureSessionFactory>(sp =>
+        {
+            var factory = sp.GetRequiredService<LinuxCaptureFactory>();
+            return factory.Create;
+        });
     }
 
     internal static void AddLinuxStrategySelectors(this IServiceCollection services)

@@ -44,6 +44,7 @@ public sealed class WindowsPlatformServiceRegistrar : IPlatformServiceRegistrar
 
         _ = services.AddTransient<Func<IInputSimulator>>(sp => () => new WindowsInputSimulator());
         _ = services.AddTransient<Func<IInputCapture>>(sp => () => new WindowsInputCapture());
+        _ = services.AddSingleton<InputCaptureSessionFactory>(() => new WindowsInputCapture());
         _ = services.AddSingleton<ICoarseDelayStrategy, WindowsWaitableTimerDelayStrategy>();
 
         _ = services.AddSingleton<ICoordinateStrategyFactory, WindowsCoordinateStrategyFactory>();
