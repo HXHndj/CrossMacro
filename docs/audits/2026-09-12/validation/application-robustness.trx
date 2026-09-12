@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="8acce618-4c97-47ba-8366-8f4dd11e59c5" name="W@DESKTOP-QNA3DP1 2026-09-12 15:51:15" runUser="DESKTOP-QNA3DP1\CodexSandboxOffline" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-09-12T15:51:15.9179104+08:00" queuing="2026-09-12T15:51:15.9179110+08:00" start="2026-09-12T15:51:11.2185733+08:00" finish="2026-09-12T15:51:16.0241450+08:00" />
+  <TestSettings name="default" id="beaaa6ef-72c5-44b6-b625-735ba43120af">
+    <Deployment runDeploymentRoot="W_DESKTOP-QNA3DP1_2026-09-12_15_51_15" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="28dee3f6-4a9a-46b6-9347-65d0142ba93e" testId="a3e2c926-a082-1bba-1fb6-6db06033a807" testName="CrossMacro.Application.Tests.Automation.ManageTaskWorkflowCancellationTests.ManageTrigger_WhenLoadCancels_DoesNotMutateOrSave" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0071513" startTime="2026-09-12T15:51:15.9497726+08:00" endTime="2026-09-12T15:51:15.9564521+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="28dee3f6-4a9a-46b6-9347-65d0142ba93e" />
+    <UnitTestResult executionId="61b48fac-4391-4b77-aa57-b14d4a043e0a" testId="f10870d3-ed3f-d850-813b-5583851e13aa" testName="CrossMacro.Application.Tests.Runtime.RuntimeLifecycleTests.FailedStartRollsBackCompletedSteps" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0009715" startTime="2026-09-12T15:51:15.8924237+08:00" endTime="2026-09-12T15:51:15.8924929+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="61b48fac-4391-4b77-aa57-b14d4a043e0a" />
+    <UnitTestResult executionId="e689aa25-aeba-44ba-8f5e-5cde8c06af02" testId="52752b81-7c98-0202-507a-7547eca9416b" testName="CrossMacro.Application.Tests.Runtime.RuntimeLifecycleTests.DisposeAsync_IsIdempotent" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0031679" startTime="2026-09-12T15:51:15.8909897+08:00" endTime="2026-09-12T15:51:15.8910876+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e689aa25-aeba-44ba-8f5e-5cde8c06af02" />
+    <UnitTestResult executionId="9c03c4b8-c037-4484-89bb-7c3196d484ad" testId="8e49441a-8b42-9578-db42-e85839be37a9" testName="CrossMacro.Application.Tests.Automation.ManageTaskSnapshotTests.ManageTrigger_ListReturnsStableReadOnlySnapshot" computerName="DESKTOP-QNA3DP1" duration="00:00:00.5109313" startTime="2026-09-12T15:51:15.4220457+08:00" endTime="2026-09-12T15:51:15.9375339+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9c03c4b8-c037-4484-89bb-7c3196d484ad" />
+    <UnitTestResult executionId="fab285cb-599b-490b-a058-bf5021a99f1e" testId="63a606fe-9036-6f92-e84c-1a7c421f1391" testName="CrossMacro.Application.Tests.Runtime.RuntimeLifecycleTests.CancelledStartRollsBackCompletedStepsWithoutStartingLaterSteps" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0031251" startTime="2026-09-12T15:51:15.8920746+08:00" endTime="2026-09-12T15:51:15.8921195+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="fab285cb-599b-490b-a058-bf5021a99f1e" />
+    <UnitTestResult executionId="437d1dca-b58f-4f43-b1be-03e4176fba27" testId="b78a8c41-435a-b3a0-11d5-7c0a03378c71" testName="CrossMacro.Application.Tests.Automation.ManageTaskWorkflowCancellationTests.ManageShortcut_WhenLoadCancels_DoesNotMutateOrSave" computerName="DESKTOP-QNA3DP1" duration="00:00:00.5226784" startTime="2026-09-12T15:51:15.4232858+08:00" endTime="2026-09-12T15:51:15.9492558+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="437d1dca-b58f-4f43-b1be-03e4176fba27" />
+    <UnitTestResult executionId="95619aac-6d87-4b6f-8541-f75c3750ae01" testId="19ebebe7-1731-702d-1685-e0abe081bf95" testName="CrossMacro.Application.Tests.Automation.ManageTaskSnapshotTests.ManageShortcut_ListReturnsStableReadOnlySnapshot" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0037282" startTime="2026-09-12T15:51:15.9379076+08:00" endTime="2026-09-12T15:51:15.9413157+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="95619aac-6d87-4b6f-8541-f75c3750ae01" />
+    <UnitTestResult executionId="fc2e6319-0224-4806-9351-4ad0aa996f41" testId="33eea741-1451-a362-bf7a-9b560050728f" testName="CrossMacro.Application.Tests.Automation.ManageTaskWorkflowCancellationTests.ManageSchedule_WhenLoadCancels_DoesNotMutateOrSave" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0063641" startTime="2026-09-12T15:51:15.9572579+08:00" endTime="2026-09-12T15:51:15.9629193+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="fc2e6319-0224-4806-9351-4ad0aa996f41" />
+    <UnitTestResult executionId="7e04d957-d6e3-437c-8dd7-601a761cd72d" testId="a1da6948-e0d2-1937-4784-4a39f640c8f6" testName="CrossMacro.Application.Tests.Runtime.RuntimeLifecycleTests.StartAndStopAreIdempotentAndStopInReverseOrder" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0006870" startTime="2026-09-12T15:51:15.8922610+08:00" endTime="2026-09-12T15:51:15.8923060+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7e04d957-d6e3-437c-8dd7-601a761cd72d" />
+    <UnitTestResult executionId="984cc933-dd7a-4f21-8f05-71f2ffddef25" testId="d5a4c8f0-c10e-c675-f65b-ee74ebb348a2" testName="CrossMacro.Application.Tests.Automation.ManageTaskSnapshotTests.ManageSchedule_ListReturnsStableReadOnlySnapshot" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0091049" startTime="2026-09-12T15:51:15.9415271+08:00" endTime="2026-09-12T15:51:15.9505394+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="984cc933-dd7a-4f21-8f05-71f2ffddef25" />
+    <UnitTestResult executionId="1c94d0bc-4935-4edb-a029-4ec4f7042724" testId="1ba2c87f-3238-1f5b-2c3e-589fee17477c" testName="CrossMacro.Application.Tests.Runtime.RuntimeLifecycleTests.StopAggregatesCleanupErrorsAndStillAttemptsEveryStartedStep" computerName="DESKTOP-QNA3DP1" duration="00:00:00.4375630" startTime="2026-09-12T15:51:15.4233263+08:00" endTime="2026-09-12T15:51:15.8666716+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1c94d0bc-4935-4edb-a029-4ec4f7042724" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="CrossMacro.Application.Tests.Runtime.RuntimeLifecycleTests.DisposeAsync_IsIdempotent" storage="d:\desktop\网页设计\mouse\tests\crossmacro.application.tests\bin\debug\net10.0\crossmacro.application.tests.dll" id="52752b81-7c98-0202-507a-7547eca9416b">
+      <Execution id="e689aa25-aeba-44ba-8f5e-5cde8c06af02" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.Application.Tests\bin\Debug\net10.0\CrossMacro.Application.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.Application.Tests.Runtime.RuntimeLifecycleTests" name="DisposeAsync_IsIdempotent" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.Application.Tests.Runtime.RuntimeLifecycleTests.StartAndStopAreIdempotentAndStopInReverseOrder" storage="d:\desktop\网页设计\mouse\tests\crossmacro.application.tests\bin\debug\net10.0\crossmacro.application.tests.dll" id="a1da6948-e0d2-1937-4784-4a39f640c8f6">
+      <Execution id="7e04d957-d6e3-437c-8dd7-601a761cd72d" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.Application.Tests\bin\Debug\net10.0\CrossMacro.Application.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.Application.Tests.Runtime.RuntimeLifecycleTests" name="StartAndStopAreIdempotentAndStopInReverseOrder" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.Application.Tests.Automation.ManageTaskSnapshotTests.ManageSchedule_ListReturnsStableReadOnlySnapshot" storage="d:\desktop\网页设计\mouse\tests\crossmacro.application.tests\bin\debug\net10.0\crossmacro.application.tests.dll" id="d5a4c8f0-c10e-c675-f65b-ee74ebb348a2">
+      <Execution id="984cc933-dd7a-4f21-8f05-71f2ffddef25" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.Application.Tests\bin\Debug\net10.0\CrossMacro.Application.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.Application.Tests.Automation.ManageTaskSnapshotTests" name="ManageSchedule_ListReturnsStableReadOnlySnapshot" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.Application.Tests.Automation.ManageTaskWorkflowCancellationTests.ManageTrigger_WhenLoadCancels_DoesNotMutateOrSave" storage="d:\desktop\网页设计\mouse\tests\crossmacro.application.tests\bin\debug\net10.0\crossmacro.application.tests.dll" id="a3e2c926-a082-1bba-1fb6-6db06033a807">
+      <Execution id="28dee3f6-4a9a-46b6-9347-65d0142ba93e" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.Application.Tests\bin\Debug\net10.0\CrossMacro.Application.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.Application.Tests.Automation.ManageTaskWorkflowCancellationTests" name="ManageTrigger_WhenLoadCancels_DoesNotMutateOrSave" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.Application.Tests.Runtime.RuntimeLifecycleTests.StopAggregatesCleanupErrorsAndStillAttemptsEveryStartedStep" storage="d:\desktop\网页设计\mouse\tests\crossmacro.application.tests\bin\debug\net10.0\crossmacro.application.tests.dll" id="1ba2c87f-3238-1f5b-2c3e-589fee17477c">
+      <Execution id="1c94d0bc-4935-4edb-a029-4ec4f7042724" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.Application.Tests\bin\Debug\net10.0\CrossMacro.Application.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.Application.Tests.Runtime.RuntimeLifecycleTests" name="StopAggregatesCleanupErrorsAndStillAttemptsEveryStartedStep" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.Application.Tests.Automation.ManageTaskWorkflowCancellationTests.ManageShortcut_WhenLoadCancels_DoesNotMutateOrSave" storage="d:\desktop\网页设计\mouse\tests\crossmacro.application.tests\bin\debug\net10.0\crossmacro.application.tests.dll" id="b78a8c41-435a-b3a0-11d5-7c0a03378c71">
+      <Execution id="437d1dca-b58f-4f43-b1be-03e4176fba27" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.Application.Tests\bin\Debug\net10.0\CrossMacro.Application.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.Application.Tests.Automation.ManageTaskWorkflowCancellationTests" name="ManageShortcut_WhenLoadCancels_DoesNotMutateOrSave" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.Application.Tests.Automation.ManageTaskSnapshotTests.ManageShortcut_ListReturnsStableReadOnlySnapshot" storage="d:\desktop\网页设计\mouse\tests\crossmacro.application.tests\bin\debug\net10.0\crossmacro.application.tests.dll" id="19ebebe7-1731-702d-1685-e0abe081bf95">
+      <Execution id="95619aac-6d87-4b6f-8541-f75c3750ae01" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.Application.Tests\bin\Debug\net10.0\CrossMacro.Application.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.Application.Tests.Automation.ManageTaskSnapshotTests" name="ManageShortcut_ListReturnsStableReadOnlySnapshot" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.Application.Tests.Automation.ManageTaskWorkflowCancellationTests.ManageSchedule_WhenLoadCancels_DoesNotMutateOrSave" storage="d:\desktop\网页设计\mouse\tests\crossmacro.application.tests\bin\debug\net10.0\crossmacro.application.tests.dll" id="33eea741-1451-a362-bf7a-9b560050728f">
+      <Execution id="fc2e6319-0224-4806-9351-4ad0aa996f41" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.Application.Tests\bin\Debug\net10.0\CrossMacro.Application.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.Application.Tests.Automation.ManageTaskWorkflowCancellationTests" name="ManageSchedule_WhenLoadCancels_DoesNotMutateOrSave" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.Application.Tests.Runtime.RuntimeLifecycleTests.FailedStartRollsBackCompletedSteps" storage="d:\desktop\网页设计\mouse\tests\crossmacro.application.tests\bin\debug\net10.0\crossmacro.application.tests.dll" id="f10870d3-ed3f-d850-813b-5583851e13aa">
+      <Execution id="61b48fac-4391-4b77-aa57-b14d4a043e0a" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.Application.Tests\bin\Debug\net10.0\CrossMacro.Application.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.Application.Tests.Runtime.RuntimeLifecycleTests" name="FailedStartRollsBackCompletedSteps" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.Application.Tests.Runtime.RuntimeLifecycleTests.CancelledStartRollsBackCompletedStepsWithoutStartingLaterSteps" storage="d:\desktop\网页设计\mouse\tests\crossmacro.application.tests\bin\debug\net10.0\crossmacro.application.tests.dll" id="63a606fe-9036-6f92-e84c-1a7c421f1391">
+      <Execution id="fab285cb-599b-490b-a058-bf5021a99f1e" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.Application.Tests\bin\Debug\net10.0\CrossMacro.Application.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.Application.Tests.Runtime.RuntimeLifecycleTests" name="CancelledStartRollsBackCompletedStepsWithoutStartingLaterSteps" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.Application.Tests.Automation.ManageTaskSnapshotTests.ManageTrigger_ListReturnsStableReadOnlySnapshot" storage="d:\desktop\网页设计\mouse\tests\crossmacro.application.tests\bin\debug\net10.0\crossmacro.application.tests.dll" id="8e49441a-8b42-9578-db42-e85839be37a9">
+      <Execution id="9c03c4b8-c037-4484-89bb-7c3196d484ad" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.Application.Tests\bin\Debug\net10.0\CrossMacro.Application.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.Application.Tests.Automation.ManageTaskSnapshotTests" name="ManageTrigger_ListReturnsStableReadOnlySnapshot" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="a3e2c926-a082-1bba-1fb6-6db06033a807" executionId="28dee3f6-4a9a-46b6-9347-65d0142ba93e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f10870d3-ed3f-d850-813b-5583851e13aa" executionId="61b48fac-4391-4b77-aa57-b14d4a043e0a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="52752b81-7c98-0202-507a-7547eca9416b" executionId="e689aa25-aeba-44ba-8f5e-5cde8c06af02" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8e49441a-8b42-9578-db42-e85839be37a9" executionId="9c03c4b8-c037-4484-89bb-7c3196d484ad" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="63a606fe-9036-6f92-e84c-1a7c421f1391" executionId="fab285cb-599b-490b-a058-bf5021a99f1e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b78a8c41-435a-b3a0-11d5-7c0a03378c71" executionId="437d1dca-b58f-4f43-b1be-03e4176fba27" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="19ebebe7-1731-702d-1685-e0abe081bf95" executionId="95619aac-6d87-4b6f-8541-f75c3750ae01" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="33eea741-1451-a362-bf7a-9b560050728f" executionId="fc2e6319-0224-4806-9351-4ad0aa996f41" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a1da6948-e0d2-1937-4784-4a39f640c8f6" executionId="7e04d957-d6e3-437c-8dd7-601a761cd72d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d5a4c8f0-c10e-c675-f65b-ee74ebb348a2" executionId="984cc933-dd7a-4f21-8f05-71f2ffddef25" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1ba2c87f-3238-1f5b-2c3e-589fee17477c" executionId="1c94d0bc-4935-4edb-a029-4ec4f7042724" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="11" executed="11" passed="11" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.11)&#xD;
+[xUnit.net 00:00:00.89]   Discovering: CrossMacro.Application.Tests&#xD;
+[xUnit.net 00:00:00.92]   Discovered:  CrossMacro.Application.Tests&#xD;
+[xUnit.net 00:00:00.95]   Starting:    CrossMacro.Application.Tests&#xD;
+[xUnit.net 00:00:01.52]   Finished:    CrossMacro.Application.Tests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

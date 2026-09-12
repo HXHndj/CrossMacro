@@ -1,0 +1,179 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="5913d960-28e3-4a5d-9b31-5cb474460d2e" name="W@DESKTOP-QNA3DP1 2026-09-12 15:51:58" runUser="DESKTOP-QNA3DP1\CodexSandboxOffline" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-09-12T15:51:58.1088269+08:00" queuing="2026-09-12T15:51:58.1088273+08:00" start="2026-09-12T15:51:50.4290666+08:00" finish="2026-09-12T15:51:58.1676322+08:00" />
+  <TestSettings name="default" id="f70696bd-cd82-421b-b9f3-761aff2c1171">
+    <Deployment runDeploymentRoot="W_DESKTOP-QNA3DP1_2026-09-12_15_51_58" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="9afe4b81-9375-4faf-84c3-20b1f3548c06" testId="dbe6564d-88da-6ce2-94dc-aa069f67928f" testName="CrossMacro.UI.Tests.Services.LoadedMacroSessionTests.UpdateSelectedMacro_WhenPayloadChanges_RaisesSelectedMacroUpdatedOnly" computerName="DESKTOP-QNA3DP1" duration="00:00:00.6844497" startTime="2026-09-12T15:51:57.3523014+08:00" endTime="2026-09-12T15:51:58.0357405+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9afe4b81-9375-4faf-84c3-20b1f3548c06" />
+    <UnitTestResult executionId="1e6451aa-8461-46a8-8320-fa10d3b29278" testId="927365f6-c81a-b4fe-d8a5-241379fe6194" testName="CrossMacro.UI.Tests.Services.LoadedMacroSessionTests.RestoreSnapshot_WhenPlaybackModeIsUnknown_UsesSelectedOnly" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0021097" startTime="2026-09-12T15:51:58.0359357+08:00" endTime="2026-09-12T15:51:58.0378448+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1e6451aa-8461-46a8-8320-fa10d3b29278" />
+    <UnitTestResult executionId="dd53d6b3-4a66-42ef-ae16-4e25a2c80d8b" testId="080cc504-c0fe-bc42-b036-3fd2542dde41" testName="CrossMacro.UI.Tests.Services.ProfileLoadedMacroSessionPersistenceServiceTests.FlushAsync_DoesNotOverwriteAnExternallyLoadedMacroFile" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0038162" startTime="2026-09-12T15:51:58.1069789+08:00" endTime="2026-09-12T15:51:58.1110632+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="dd53d6b3-4a66-42ef-ae16-4e25a2c80d8b" />
+    <UnitTestResult executionId="48a051cf-e5b4-48ee-aaff-65931cd3734c" testId="119887b7-d6ee-48b8-2d78-d0761b77b37e" testName="CrossMacro.UI.Tests.Services.ProfileLoadedMacroSessionPersistenceServiceTests.ReloadAsync_PersistsAnEditMadeWhileTheTargetProfileLoads" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0092387" startTime="2026-09-12T15:51:58.0968740+08:00" endTime="2026-09-12T15:51:58.1058131+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="48a051cf-e5b4-48ee-aaff-65931cd3734c" />
+    <UnitTestResult executionId="1585093c-012c-4e4b-8eb8-fb8a5ef8a5e0" testId="1b3d9ddf-d01e-978f-2460-77732636ec4e" testName="CrossMacro.UI.Tests.Services.LoadedMacroSessionTests.CreateAndRestoreSnapshot_PreservesSessionItemsSelectionAndPlaybackMode" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0610434" startTime="2026-09-12T15:51:58.0525796+08:00" endTime="2026-09-12T15:51:58.1134735+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1585093c-012c-4e4b-8eb8-fb8a5ef8a5e0" />
+    <UnitTestResult executionId="89f0129e-deef-4afb-b66b-f9f39c62ac5a" testId="09b92571-f839-ca41-0bad-4ebbdd21a22b" testName="CrossMacro.UI.Tests.Services.TextBoxClipboardHandlerTests.TryCopyAsync_WhenClipboardThrows_DoesNotPropagate" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0024842" startTime="2026-09-12T15:51:58.1030607+08:00" endTime="2026-09-12T15:51:58.1052575+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="89f0129e-deef-4afb-b66b-f9f39c62ac5a" />
+    <UnitTestResult executionId="a2fe60e9-a3f2-4da2-acf5-05cff58f5551" testId="c9b64174-f025-26e3-b85b-ea107a402ad8" testName="CrossMacro.UI.Tests.Services.ProfileLoadedMacroSessionPersistenceServiceTests.FlushAsync_WritesAProfileMacroFileForAnUnsavedSessionMacro" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0018163" startTime="2026-09-12T15:51:58.1111810+08:00" endTime="2026-09-12T15:51:58.1129579+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a2fe60e9-a3f2-4da2-acf5-05cff58f5551" />
+    <UnitTestResult executionId="ea3bf8bd-deb1-435d-a7f7-00c590dbd6ae" testId="81a05ebb-aaa7-a7fc-1daa-c6abe1a2bbc7" testName="CrossMacro.UI.Tests.Services.TextBoxClipboardHandlerTests.TryCopyAsync_WhenSelectionExists_CopiesSelectedText" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0005271" startTime="2026-09-12T15:51:58.1060304+08:00" endTime="2026-09-12T15:51:58.1064778+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ea3bf8bd-deb1-435d-a7f7-00c590dbd6ae" />
+    <UnitTestResult executionId="11c0e9ec-d12d-491c-aa54-be7c860f4fd5" testId="70674c37-b731-12d0-ede1-015ba7262839" testName="CrossMacro.UI.Tests.Services.TextBoxClipboardHandlerTests.TryCutAsync_WhenClipboardSucceeds_RemovesSelectedText" computerName="DESKTOP-QNA3DP1" duration="00:00:00.7514601" startTime="2026-09-12T15:51:57.3529712+08:00" endTime="2026-09-12T15:51:58.1026871+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="11c0e9ec-d12d-491c-aa54-be7c860f4fd5" />
+    <UnitTestResult executionId="7154b6f0-5bbe-49a0-be5f-94b2ee6cb592" testId="83d63f09-897f-dad9-6fd8-b348bf44bce2" testName="CrossMacro.UI.Tests.Services.TextBoxClipboardHandlerTests.TryCutAsync_WhenClipboardThrows_KeepsSelectedText" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0006344" startTime="2026-09-12T15:51:58.1066280+08:00" endTime="2026-09-12T15:51:58.1070309+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7154b6f0-5bbe-49a0-be5f-94b2ee6cb592" />
+    <UnitTestResult executionId="1a4d66c0-ed62-4ca1-967e-d9057a54a2e9" testId="dbd7ecfb-2698-ddbf-2124-90fd7b2a3280" testName="CrossMacro.UI.Tests.Services.ProfileLoadedMacroSessionPersistenceServiceTests.FlushAndReloadAsync_KeepLoadedMacrosIsolatedPerProfile" computerName="DESKTOP-QNA3DP1" duration="00:00:00.7197814" startTime="2026-09-12T15:51:57.3510321+08:00" endTime="2026-09-12T15:51:58.0709640+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1a4d66c0-ed62-4ca1-967e-d9057a54a2e9" />
+    <UnitTestResult executionId="2ac74f6f-d3d3-4140-ace0-42560fd01011" testId="d65a9f44-ab63-4f31-dfcc-6bcdacdac947" testName="CrossMacro.UI.Tests.Services.TextBoxClipboardHandlerTests.TryCopyAsync_WhenNothingIsSelected_DoesNotCallClipboard" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0005622" startTime="2026-09-12T15:51:58.1054387+08:00" endTime="2026-09-12T15:51:58.1059124+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2ac74f6f-d3d3-4140-ace0-42560fd01011" />
+    <UnitTestResult executionId="bc498d87-bae8-4053-b64a-8d1927ed08ab" testId="776134bb-0707-1708-6f4f-ae802fe0d985" testName="CrossMacro.UI.Tests.Services.RuntimeLifecycleTests.StopAggregatesCleanupErrorsAndAttemptsEveryStep" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0031258" startTime="2026-09-12T15:51:57.8276187+08:00" endTime="2026-09-12T15:51:57.8278240+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bc498d87-bae8-4053-b64a-8d1927ed08ab" />
+    <UnitTestResult executionId="8d5ba8e5-2303-4ca8-aab8-f21e82aaf97f" testId="959508df-e6fb-945d-c682-39b791acc4f0" testName="CrossMacro.UI.Tests.Services.RuntimeLifecycleTests.StartAndStopUsesOrderedStepsAndReverseCleanup" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0004845" startTime="2026-09-12T15:51:57.8282862+08:00" endTime="2026-09-12T15:51:57.8283164+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8d5ba8e5-2303-4ca8-aab8-f21e82aaf97f" />
+    <UnitTestResult executionId="dc26357a-7556-41e1-98db-34019a30e15b" testId="d3191f76-08b0-464c-a6ab-48c303d06df3" testName="CrossMacro.UI.Tests.Services.LoadedMacroSessionTests.CreateSequentialCycleSnapshot_ReturnsStableCopiesInSelectedOrder" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0144466" startTime="2026-09-12T15:51:58.0380003+08:00" endTime="2026-09-12T15:51:58.0524138+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="dc26357a-7556-41e1-98db-34019a30e15b" />
+    <UnitTestResult executionId="7620772b-966e-4556-a195-d3747b33b485" testId="0a0822a4-b9f5-f10d-06b8-755f61616988" testName="CrossMacro.UI.Tests.Services.LoadedMacroSessionTests.RenameSelected_WhenOnlyNameChanges_DoesNotRaiseSelectedMacroChanged" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0002579" startTime="2026-09-12T15:51:58.1139595+08:00" endTime="2026-09-12T15:51:58.1139912+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7620772b-966e-4556-a195-d3747b33b485" />
+    <UnitTestResult executionId="644deedd-1819-44e8-bfe3-a65da548e2a3" testId="8ab80c3f-a488-adb8-e9df-af2cfae4b03b" testName="CrossMacro.UI.Tests.Services.ProfileLoadedMacroSessionPersistenceServiceTests.ReloadAsync_WhenStoreFails_ClearsTheSessionWithoutOverwritingTheTargetProfile" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0224387" startTime="2026-09-12T15:51:58.0711463+08:00" endTime="2026-09-12T15:51:58.0934664+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="644deedd-1819-44e8-bfe3-a65da548e2a3" />
+    <UnitTestResult executionId="bf32bfc1-3d06-4e28-b045-8e66850a2e57" testId="fb4cff49-4d2e-0281-a939-9cd381dc3c30" testName="CrossMacro.UI.Tests.Services.LoadedMacroSessionTests.SelectedMacroItem_WhenSelectionChanges_RaisesSelectedMacroChangedOnly" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0002794" startTime="2026-09-12T15:51:58.1140752+08:00" endTime="2026-09-12T15:51:58.1140996+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bf32bfc1-3d06-4e28-b045-8e66850a2e57" />
+    <UnitTestResult executionId="167a869a-11ce-45a0-86c6-031142b9c6da" testId="47589cff-1e0b-95ec-00ab-1e961d073d01" testName="CrossMacro.UI.Tests.Services.RuntimeLifecycleTests.FailedStartRollsBackCompletedSteps" computerName="DESKTOP-QNA3DP1" duration="00:00:00.4664384" startTime="2026-09-12T15:51:57.3522628+08:00" endTime="2026-09-12T15:51:57.8195339+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="167a869a-11ce-45a0-86c6-031142b9c6da" />
+    <UnitTestResult executionId="4586ea0e-a05b-497b-a03b-218dcdd771ba" testId="da95ea94-890a-0b96-d4d5-72bc562c950e" testName="CrossMacro.UI.Tests.Services.ProfileLoadedMacroSessionPersistenceServiceTests.FlushAsync_AfterSoftRemove_LeavesTheProfileMacroFileOnDisk" computerName="DESKTOP-QNA3DP1" duration="00:00:00.0039087" startTime="2026-09-12T15:51:58.1131025+08:00" endTime="2026-09-12T15:51:58.1172679+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4586ea0e-a05b-497b-a03b-218dcdd771ba" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="CrossMacro.UI.Tests.Services.TextBoxClipboardHandlerTests.TryCutAsync_WhenClipboardSucceeds_RemovesSelectedText" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="70674c37-b731-12d0-ede1-015ba7262839">
+      <Execution id="11c0e9ec-d12d-491c-aa54-be7c860f4fd5" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.TextBoxClipboardHandlerTests" name="TryCutAsync_WhenClipboardSucceeds_RemovesSelectedText" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.UI.Tests.Services.ProfileLoadedMacroSessionPersistenceServiceTests.FlushAsync_DoesNotOverwriteAnExternallyLoadedMacroFile" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="080cc504-c0fe-bc42-b036-3fd2542dde41">
+      <Execution id="dd53d6b3-4a66-42ef-ae16-4e25a2c80d8b" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.ProfileLoadedMacroSessionPersistenceServiceTests" name="FlushAsync_DoesNotOverwriteAnExternallyLoadedMacroFile" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.UI.Tests.Services.RuntimeLifecycleTests.FailedStartRollsBackCompletedSteps" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="47589cff-1e0b-95ec-00ab-1e961d073d01">
+      <Execution id="167a869a-11ce-45a0-86c6-031142b9c6da" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.RuntimeLifecycleTests" name="FailedStartRollsBackCompletedSteps" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.UI.Tests.Services.ProfileLoadedMacroSessionPersistenceServiceTests.ReloadAsync_PersistsAnEditMadeWhileTheTargetProfileLoads" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="119887b7-d6ee-48b8-2d78-d0761b77b37e">
+      <Execution id="48a051cf-e5b4-48ee-aaff-65931cd3734c" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.ProfileLoadedMacroSessionPersistenceServiceTests" name="ReloadAsync_PersistsAnEditMadeWhileTheTargetProfileLoads" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.UI.Tests.Services.LoadedMacroSessionTests.RenameSelected_WhenOnlyNameChanges_DoesNotRaiseSelectedMacroChanged" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="0a0822a4-b9f5-f10d-06b8-755f61616988">
+      <Execution id="7620772b-966e-4556-a195-d3747b33b485" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.LoadedMacroSessionTests" name="RenameSelected_WhenOnlyNameChanges_DoesNotRaiseSelectedMacroChanged" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.UI.Tests.Services.LoadedMacroSessionTests.CreateSequentialCycleSnapshot_ReturnsStableCopiesInSelectedOrder" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="d3191f76-08b0-464c-a6ab-48c303d06df3">
+      <Execution id="dc26357a-7556-41e1-98db-34019a30e15b" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.LoadedMacroSessionTests" name="CreateSequentialCycleSnapshot_ReturnsStableCopiesInSelectedOrder" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.UI.Tests.Services.LoadedMacroSessionTests.SelectedMacroItem_WhenSelectionChanges_RaisesSelectedMacroChangedOnly" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="fb4cff49-4d2e-0281-a939-9cd381dc3c30">
+      <Execution id="bf32bfc1-3d06-4e28-b045-8e66850a2e57" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.LoadedMacroSessionTests" name="SelectedMacroItem_WhenSelectionChanges_RaisesSelectedMacroChangedOnly" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.UI.Tests.Services.LoadedMacroSessionTests.CreateAndRestoreSnapshot_PreservesSessionItemsSelectionAndPlaybackMode" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="1b3d9ddf-d01e-978f-2460-77732636ec4e">
+      <Execution id="1585093c-012c-4e4b-8eb8-fb8a5ef8a5e0" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.LoadedMacroSessionTests" name="CreateAndRestoreSnapshot_PreservesSessionItemsSelectionAndPlaybackMode" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.UI.Tests.Services.TextBoxClipboardHandlerTests.TryCopyAsync_WhenSelectionExists_CopiesSelectedText" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="81a05ebb-aaa7-a7fc-1daa-c6abe1a2bbc7">
+      <Execution id="ea3bf8bd-deb1-435d-a7f7-00c590dbd6ae" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.TextBoxClipboardHandlerTests" name="TryCopyAsync_WhenSelectionExists_CopiesSelectedText" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.UI.Tests.Services.ProfileLoadedMacroSessionPersistenceServiceTests.FlushAndReloadAsync_KeepLoadedMacrosIsolatedPerProfile" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="dbd7ecfb-2698-ddbf-2124-90fd7b2a3280">
+      <Execution id="1a4d66c0-ed62-4ca1-967e-d9057a54a2e9" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.ProfileLoadedMacroSessionPersistenceServiceTests" name="FlushAndReloadAsync_KeepLoadedMacrosIsolatedPerProfile" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.UI.Tests.Services.TextBoxClipboardHandlerTests.TryCutAsync_WhenClipboardThrows_KeepsSelectedText" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="83d63f09-897f-dad9-6fd8-b348bf44bce2">
+      <Execution id="7154b6f0-5bbe-49a0-be5f-94b2ee6cb592" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.TextBoxClipboardHandlerTests" name="TryCutAsync_WhenClipboardThrows_KeepsSelectedText" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.UI.Tests.Services.LoadedMacroSessionTests.RestoreSnapshot_WhenPlaybackModeIsUnknown_UsesSelectedOnly" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="927365f6-c81a-b4fe-d8a5-241379fe6194">
+      <Execution id="1e6451aa-8461-46a8-8320-fa10d3b29278" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.LoadedMacroSessionTests" name="RestoreSnapshot_WhenPlaybackModeIsUnknown_UsesSelectedOnly" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.UI.Tests.Services.LoadedMacroSessionTests.UpdateSelectedMacro_WhenPayloadChanges_RaisesSelectedMacroUpdatedOnly" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="dbe6564d-88da-6ce2-94dc-aa069f67928f">
+      <Execution id="9afe4b81-9375-4faf-84c3-20b1f3548c06" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.LoadedMacroSessionTests" name="UpdateSelectedMacro_WhenPayloadChanges_RaisesSelectedMacroUpdatedOnly" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.UI.Tests.Services.TextBoxClipboardHandlerTests.TryCopyAsync_WhenClipboardThrows_DoesNotPropagate" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="09b92571-f839-ca41-0bad-4ebbdd21a22b">
+      <Execution id="89f0129e-deef-4afb-b66b-f9f39c62ac5a" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.TextBoxClipboardHandlerTests" name="TryCopyAsync_WhenClipboardThrows_DoesNotPropagate" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.UI.Tests.Services.ProfileLoadedMacroSessionPersistenceServiceTests.FlushAsync_AfterSoftRemove_LeavesTheProfileMacroFileOnDisk" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="da95ea94-890a-0b96-d4d5-72bc562c950e">
+      <Execution id="4586ea0e-a05b-497b-a03b-218dcdd771ba" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.ProfileLoadedMacroSessionPersistenceServiceTests" name="FlushAsync_AfterSoftRemove_LeavesTheProfileMacroFileOnDisk" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.UI.Tests.Services.RuntimeLifecycleTests.StartAndStopUsesOrderedStepsAndReverseCleanup" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="959508df-e6fb-945d-c682-39b791acc4f0">
+      <Execution id="8d5ba8e5-2303-4ca8-aab8-f21e82aaf97f" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.RuntimeLifecycleTests" name="StartAndStopUsesOrderedStepsAndReverseCleanup" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.UI.Tests.Services.TextBoxClipboardHandlerTests.TryCopyAsync_WhenNothingIsSelected_DoesNotCallClipboard" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="d65a9f44-ab63-4f31-dfcc-6bcdacdac947">
+      <Execution id="2ac74f6f-d3d3-4140-ace0-42560fd01011" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.TextBoxClipboardHandlerTests" name="TryCopyAsync_WhenNothingIsSelected_DoesNotCallClipboard" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.UI.Tests.Services.RuntimeLifecycleTests.StopAggregatesCleanupErrorsAndAttemptsEveryStep" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="776134bb-0707-1708-6f4f-ae802fe0d985">
+      <Execution id="bc498d87-bae8-4053-b64a-8d1927ed08ab" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.RuntimeLifecycleTests" name="StopAggregatesCleanupErrorsAndAttemptsEveryStep" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.UI.Tests.Services.ProfileLoadedMacroSessionPersistenceServiceTests.FlushAsync_WritesAProfileMacroFileForAnUnsavedSessionMacro" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="c9b64174-f025-26e3-b85b-ea107a402ad8">
+      <Execution id="a2fe60e9-a3f2-4da2-acf5-05cff58f5551" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.ProfileLoadedMacroSessionPersistenceServiceTests" name="FlushAsync_WritesAProfileMacroFileForAnUnsavedSessionMacro" />
+    </UnitTest>
+    <UnitTest name="CrossMacro.UI.Tests.Services.ProfileLoadedMacroSessionPersistenceServiceTests.ReloadAsync_WhenStoreFails_ClearsTheSessionWithoutOverwritingTheTargetProfile" storage="d:\desktop\网页设计\mouse\tests\crossmacro.ui.tests\bin\debug\net10.0\crossmacro.ui.tests.dll" id="8ab80c3f-a488-adb8-e9df-af2cfae4b03b">
+      <Execution id="644deedd-1819-44e8-bfe3-a65da548e2a3" />
+      <TestMethod codeBase="D:\Desktop\网页设计\Mouse\tests\CrossMacro.UI.Tests\bin\Debug\net10.0\CrossMacro.UI.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="CrossMacro.UI.Tests.Services.ProfileLoadedMacroSessionPersistenceServiceTests" name="ReloadAsync_WhenStoreFails_ClearsTheSessionWithoutOverwritingTheTargetProfile" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="dbe6564d-88da-6ce2-94dc-aa069f67928f" executionId="9afe4b81-9375-4faf-84c3-20b1f3548c06" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="927365f6-c81a-b4fe-d8a5-241379fe6194" executionId="1e6451aa-8461-46a8-8320-fa10d3b29278" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="080cc504-c0fe-bc42-b036-3fd2542dde41" executionId="dd53d6b3-4a66-42ef-ae16-4e25a2c80d8b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="119887b7-d6ee-48b8-2d78-d0761b77b37e" executionId="48a051cf-e5b4-48ee-aaff-65931cd3734c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1b3d9ddf-d01e-978f-2460-77732636ec4e" executionId="1585093c-012c-4e4b-8eb8-fb8a5ef8a5e0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="09b92571-f839-ca41-0bad-4ebbdd21a22b" executionId="89f0129e-deef-4afb-b66b-f9f39c62ac5a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c9b64174-f025-26e3-b85b-ea107a402ad8" executionId="a2fe60e9-a3f2-4da2-acf5-05cff58f5551" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="81a05ebb-aaa7-a7fc-1daa-c6abe1a2bbc7" executionId="ea3bf8bd-deb1-435d-a7f7-00c590dbd6ae" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="70674c37-b731-12d0-ede1-015ba7262839" executionId="11c0e9ec-d12d-491c-aa54-be7c860f4fd5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="83d63f09-897f-dad9-6fd8-b348bf44bce2" executionId="7154b6f0-5bbe-49a0-be5f-94b2ee6cb592" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="dbd7ecfb-2698-ddbf-2124-90fd7b2a3280" executionId="1a4d66c0-ed62-4ca1-967e-d9057a54a2e9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d65a9f44-ab63-4f31-dfcc-6bcdacdac947" executionId="2ac74f6f-d3d3-4140-ace0-42560fd01011" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="776134bb-0707-1708-6f4f-ae802fe0d985" executionId="bc498d87-bae8-4053-b64a-8d1927ed08ab" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="959508df-e6fb-945d-c682-39b791acc4f0" executionId="8d5ba8e5-2303-4ca8-aab8-f21e82aaf97f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d3191f76-08b0-464c-a6ab-48c303d06df3" executionId="dc26357a-7556-41e1-98db-34019a30e15b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0a0822a4-b9f5-f10d-06b8-755f61616988" executionId="7620772b-966e-4556-a195-d3747b33b485" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8ab80c3f-a488-adb8-e9df-af2cfae4b03b" executionId="644deedd-1819-44e8-bfe3-a65da548e2a3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fb4cff49-4d2e-0281-a939-9cd381dc3c30" executionId="bf32bfc1-3d06-4e28-b045-8e66850a2e57" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="47589cff-1e0b-95ec-00ab-1e961d073d01" executionId="167a869a-11ce-45a0-86c6-031142b9c6da" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="da95ea94-890a-0b96-d4d5-72bc562c950e" executionId="4586ea0e-a05b-497b-a03b-218dcdd771ba" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="20" executed="20" passed="20" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.11)&#xD;
+[xUnit.net 00:00:04.34]   Discovering: CrossMacro.UI.Tests&#xD;
+[xUnit.net 00:00:04.46]   Discovered:  CrossMacro.UI.Tests&#xD;
+[xUnit.net 00:00:04.48]   Starting:    CrossMacro.UI.Tests&#xD;
+     Warning:&#xD;
+     The component "Fluent Assertions" is governed by the rules defined in the Xceed License Agreement and&#xD;
+     the Xceed Fluent Assertions Community License. You may use Fluent Assertions free of charge for&#xD;
+     non-commercial use only. An active subscription is required to use Fluent Assertions for commercial use.&#xD;
+     Please contact Xceed Sales mailto:sales@xceed.com to acquire a subscription at a very low cost.&#xD;
+     A paid commercial license supports the development and continued increasing support of&#xD;
+     Fluent Assertions users under both commercial and community licenses. Help us&#xD;
+     keep Fluent Assertions at the forefront of unit testing.&#xD;
+     For more information, visit https://xceed.com/products/unit-testing/fluent-assertions/&#xD;
+[CrossMacro] Core logger is using bootstrap fallback. Call LoggerSetup.Initialize early for structured logging.&#xD;
+[2026-09-12T07:51:58.0738032+00:00] [CrossMacro][Warning] Failed to load the macro session for profile directory {ProfileDirectory}; starting with an empty session | /profiles/broken&#xD;
+System.IO.InvalidDataException: invalid session&#xD;
+   at CrossMacro.UI.Tests.Services.ProfileLoadedMacroSessionPersistenceServiceTests.&lt;&gt;c.&lt;ReloadAsync_WhenStoreFails_ClearsTheSessionWithoutOverwritingTheTargetProfile&gt;b__1_0(CallInfo _) in D:\Desktop\��ҳ���\Mouse\tests\CrossMacro.UI.Tests\Services\ProfileLoadedMacroSessionPersistenceServiceTests.cs:line 58&#xD;
+   at NSubstitute.Core.ReturnValueFromFunc`1.ReturnFor(CallInfo info)&#xD;
+   at NSubstitute.Core.CallResults.ResultForCallSpec.GetResult(ICall call, ICallInfoFactory callInfoFactory)&#xD;
+   at NSubstitute.Core.CallResults.TryGetResult(ICall call, Object&amp; result)&#xD;
+   at NSubstitute.Routing.Handlers.ReturnConfiguredResultHandler.Handle(ICall call)&#xD;
+   at NSubstitute.Routing.Route.Handle(ICall call)&#xD;
+   at NSubstitute.Core.CallRouter.Route(ICall call)&#xD;
+   at NSubstitute.Proxies.CastleDynamicProxy.CastleForwardingInterceptor.Intercept(IInvocation invocation)&#xD;
+   at Castle.DynamicProxy.AbstractInvocation.Proceed()&#xD;
+   at NSubstitute.Proxies.CastleDynamicProxy.ProxyIdInterceptor.Intercept(IInvocation invocation)&#xD;
+   at Castle.DynamicProxy.AbstractInvocation.Proceed()&#xD;
+   at Castle.Proxies.ObjectProxy_1.LoadAsync(String profileConfigDirectory, CancellationToken cancellationToken)&#xD;
+   at CrossMacro.UI.Services.ProfileLoadedMacroSessionPersistenceService.ReloadAsync(String profileConfigDirectory, CancellationToken cancellationToken) in D:\Desktop\��ҳ���\Mouse\src\CrossMacro.UI\Services\ProfileLoadedMacroSessionPersistenceService.cs:line 54&#xD;
+[2026-09-12T07:51:58.1045874+00:00] [CrossMacro][Warning] [TextBoxClipboard] Failed to copy selected text; ignoring clipboard backend failure&#xD;
+System.TimeoutException: clipboard is locked&#xD;
+   at CrossMacro.UI.Services.TextBoxClipboardHandler.TryCopyAsync(TextBox textBox, Func`2 setTextAsync) in D:\Desktop\��ҳ���\Mouse\src\CrossMacro.UI\Services\TextBoxClipboardHandler.cs:line 20&#xD;
+[2026-09-12T07:51:58.1069123+00:00] [CrossMacro][Warning] [TextBoxClipboard] Failed to cut selected text; keeping the text unchanged&#xD;
+System.TimeoutException: clipboard is locked&#xD;
+   at CrossMacro.UI.Services.TextBoxClipboardHandler.TryCutAsync(TextBox textBox, Func`2 setTextAsync) in D:\Desktop\��ҳ���\Mouse\src\CrossMacro.UI\Services\TextBoxClipboardHandler.cs:line 45&#xD;
+[xUnit.net 00:00:05.28]   Finished:    CrossMacro.UI.Tests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>
