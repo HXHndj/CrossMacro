@@ -67,4 +67,106 @@ public sealed class ManageTextExpansionTests
         _ = await act.Should().ThrowAsync<IOException>();
         await storage.Received(1).ReloadAsync("/tmp/crossmacro-default");
     }
+
+    [Fact]
+    public async Task ActiveMutation_HoldsProfileScopeUntilSaveCompletesBeforeSwitchReload()
+    {
+        var storage = new ScopedTextExpansionStorage();
+        var profileManager = Substitute.For<IProfileManager>();
+        _ = profileManager.ActiveProfile.Returns(new ProfileInfo { Id = "default", Name = "Default" });
+        var service = new ManageTextExpansion(storage, profileManager);
+
+        var mutation = service.AddAsync(new TextExpansionEntry(":active", "value"));
+        await storage.SaveStarted.Task.WaitAsync(TimeSpan.FromSeconds(2));
+
+        var switchTask = Task.Run(async () =>
+        {
+            await using var scope = await storage.EnterAsync();
+            await storage.ReloadAsync("/tmp/profile-b");
+        });
+
+        _ = switchTask.IsCompleted.Should().BeFalse();
+        _ = storage.AllowSave.TrySetResult();
+
+        await mutation;
+        await switchTask;
+        _ = storage.Events.Should().Equal("save-start", "save-end", "reload:/tmp/profile-b");
+    }
+
+    [Fact]
+    public async Task SwitchScopeFirst_MakesActiveMutationWaitForReloadBeforeLoading()
+    {
+        var storage = new ScopedTextExpansionStorage();
+        var profileManager = Substitute.For<IProfileManager>();
+        _ = profileManager.ActiveProfile.Returns(new ProfileInfo { Id = "default", Name = "Default" });
+        var service = new ManageTextExpansion(storage, profileManager);
+        var switchScope = await storage.EnterAsync();
+
+        await storage.ReloadAsync("/tmp/profile-b");
+        var mutation = service.AddAsync(new TextExpansionEntry(":active", "value"));
+
+        _ = mutation.IsCompleted.Should().BeFalse();
+        await switchScope.DisposeAsync();
+        await storage.SaveStarted.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        _ = storage.AllowSave.TrySetResult();
+
+        await mutation;
+        _ = storage.Events.Should().Equal("reload:/tmp/profile-b", "save-start", "save-end");
+    }
+
+    private sealed class ScopedTextExpansionStorage : ITextExpansionStorageService, IProfileTextExpansionOperationScope
+    {
+        private readonly SemaphoreSlim _profileGate = new(1, 1);
+        private readonly List<TextExpansionEntry> _entries = [];
+
+        public TaskCompletionSource SaveStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource AllowSave { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public List<string> Events { get; } = [];
+        public bool IsLoaded => true;
+        public string FilePath => "/tmp/profile-a/text-expansions.json";
+
+        public IList<TextExpansionEntry> Load() => _entries.ToList();
+
+        public Task<IList<TextExpansionEntry>> LoadAsync() => Task.FromResult<IList<TextExpansionEntry>>(_entries.ToList());
+
+        public async Task ReloadAsync(string profileConfigDirectory)
+        {
+            Events.Add($"reload:{profileConfigDirectory}");
+            await Task.CompletedTask;
+        }
+
+        public async Task SaveAsync(IEnumerable<TextExpansionEntry> expansions)
+        {
+            Events.Add("save-start");
+            _ = SaveStarted.TrySetResult();
+            await AllowSave.Task;
+            _entries.Clear();
+            _entries.AddRange(expansions);
+            Events.Add("save-end");
+        }
+
+        public IList<TextExpansionEntry> GetCurrent() => _entries.ToList();
+
+        public async Task<IAsyncDisposable> EnterAsync(CancellationToken cancellationToken = default)
+        {
+            await _profileGate.WaitAsync(cancellationToken);
+            return new GateLease(_profileGate);
+        }
+
+        private sealed class GateLease(SemaphoreSlim gate) : IAsyncDisposable
+        {
+            private readonly SemaphoreSlim _gate = gate;
+            private int _released;
+
+            public ValueTask DisposeAsync()
+            {
+                if (Interlocked.Exchange(ref _released, 1) is 0)
+                {
+                    _ = _gate.Release();
+                }
+
+                return ValueTask.CompletedTask;
+            }
+        }
+    }
 }

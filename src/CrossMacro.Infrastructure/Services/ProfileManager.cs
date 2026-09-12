@@ -113,6 +113,9 @@ internal class ProfileManager : IProfileCatalog
     public async Task<ProfileInfo> CreateProfileAsync(string displayName)
     {
         await _gate.WaitAsync().ConfigureAwait(false);
+        var registrySnapshot = CloneRegistry(_registry);
+        ProfileInfo? createdProfile = null;
+        var registryPersistAttempted = false;
         try
         {
             ValidateDisplayName(displayName, nameof(displayName));
@@ -128,14 +131,44 @@ internal class ProfileManager : IProfileCatalog
                 Name = displayName.Trim(),
                 CreatedAt = DateTime.UtcNow,
             };
+            createdProfile = profile;
 
             await CreateProfileFilesAsync(profile.Id).ConfigureAwait(false);
             _registry.Profiles.Add(profile);
+            registryPersistAttempted = true;
             await SaveRegistryAsync().ConfigureAwait(false);
             ApplyRegistrySnapshot();
 
             Log.Information("Created profile {ProfileId}", profile.Id);
             return profile;
+        }
+        catch (Exception operationError) when (operationError is not OutOfMemoryException)
+        {
+            _registry = registrySnapshot;
+            ApplyRegistrySnapshot();
+
+            var rollbackErrors = new List<Exception>();
+            if (createdProfile is not null)
+            {
+                var createdProfileDirectory = Path.Combine(_profilesRootPath, createdProfile.Id);
+                if (TryDeleteDirectory(createdProfileDirectory) is { } cleanupError)
+                {
+                    rollbackErrors.Add(cleanupError);
+                }
+            }
+
+            if (registryPersistAttempted && await TryRestoreRegistryAsync(registrySnapshot).ConfigureAwait(false) is { } registryError)
+            {
+                rollbackErrors.Add(registryError);
+            }
+
+            if (rollbackErrors.Count > 0)
+            {
+                rollbackErrors.Insert(0, operationError);
+                throw new AggregateException("Profile creation failed and rollback was incomplete.", rollbackErrors);
+            }
+
+            throw;
         }
         finally
         {
@@ -146,6 +179,8 @@ internal class ProfileManager : IProfileCatalog
     public async Task RenameProfileAsync(string profileId, string newDisplayName)
     {
         await _gate.WaitAsync().ConfigureAwait(false);
+        var registrySnapshot = CloneRegistry(_registry);
+        var registryPersistAttempted = false;
         try
         {
             ValidateDisplayName(newDisplayName, nameof(newDisplayName));
@@ -162,10 +197,30 @@ internal class ProfileManager : IProfileCatalog
             }
 
             profile.Name = trimmedName;
+            registryPersistAttempted = true;
             await SaveRegistryAsync().ConfigureAwait(false);
             ApplyRegistrySnapshot();
 
             Log.Information("Renamed profile {ProfileId} to {ProfileName}", profile.Id, profile.Name);
+        }
+        catch (Exception operationError) when (operationError is not OutOfMemoryException)
+        {
+            _registry = registrySnapshot;
+            ApplyRegistrySnapshot();
+
+            var rollbackErrors = new List<Exception>();
+            if (registryPersistAttempted && await TryRestoreRegistryAsync(registrySnapshot).ConfigureAwait(false) is { } registryError)
+            {
+                rollbackErrors.Add(registryError);
+            }
+
+            if (rollbackErrors.Count > 0)
+            {
+                rollbackErrors.Insert(0, operationError);
+                throw new AggregateException("Profile rename failed and rollback was incomplete.", rollbackErrors);
+            }
+
+            throw;
         }
         finally
         {
@@ -176,6 +231,10 @@ internal class ProfileManager : IProfileCatalog
     public async Task DeleteProfileAsync(string profileId)
     {
         await _gate.WaitAsync().ConfigureAwait(false);
+        var registrySnapshot = CloneRegistry(_registry);
+        var registryPersistAttempted = false;
+        var directoryMoved = false;
+        string? stagedDirectory = null;
         try
         {
             if (string.Equals(profileId, DefaultProfileId, StringComparison.OrdinalIgnoreCase))
@@ -192,16 +251,55 @@ internal class ProfileManager : IProfileCatalog
                 ?? throw new InvalidOperationException($"Profile '{profileId}' does not exist.");
 
             var profileDirectory = GetProfileDirectory(profile.Id);
+            if (Directory.Exists(profileDirectory))
+            {
+                stagedDirectory = Path.Combine(
+                    _profilesRootPath,
+                    $".{profile.Id}.{Guid.NewGuid():N}.deleting");
+                Directory.Move(profileDirectory, stagedDirectory);
+                directoryMoved = true;
+            }
+
             _ = _registry.Profiles.Remove(profile);
+            registryPersistAttempted = true;
             await SaveRegistryAsync().ConfigureAwait(false);
             ApplyRegistrySnapshot();
 
-            if (Directory.Exists(profileDirectory))
+            if (directoryMoved && stagedDirectory is not null)
             {
-                Directory.Delete(profileDirectory, recursive: true);
+                Directory.Delete(stagedDirectory, recursive: true);
+                directoryMoved = false;
             }
 
             Log.Information("Deleted profile {ProfileId}", profile.Id);
+        }
+        catch (Exception operationError) when (operationError is not OutOfMemoryException)
+        {
+            _registry = registrySnapshot;
+            ApplyRegistrySnapshot();
+
+            var rollbackErrors = new List<Exception>();
+            if (registryPersistAttempted && await TryRestoreRegistryAsync(registrySnapshot).ConfigureAwait(false) is { } registryError)
+            {
+                rollbackErrors.Add(registryError);
+            }
+
+            if (directoryMoved && stagedDirectory is not null)
+            {
+                var profileDirectory = Path.Combine(_profilesRootPath, profileId);
+                if (TryMoveDirectoryBack(stagedDirectory, profileDirectory) is { } moveError)
+                {
+                    rollbackErrors.Add(moveError);
+                }
+            }
+
+            if (rollbackErrors.Count > 0)
+            {
+                rollbackErrors.Insert(0, operationError);
+                throw new AggregateException("Profile deletion failed and rollback was incomplete.", rollbackErrors);
+            }
+
+            throw;
         }
         finally
         {
@@ -415,6 +513,76 @@ internal class ProfileManager : IProfileCatalog
     {
         await FileBackedJsonStorage.WriteAsync(_registryFilePath, _registry, CrossMacroJsonContext.Default.ProfileRegistry, CancellationToken.None)
             .ConfigureAwait(false);
+    }
+
+    private async Task<Exception?> TryRestoreRegistryAsync(ProfileRegistry snapshot)
+    {
+        try
+        {
+            await FileBackedJsonStorage.WriteAsync(_registryFilePath, snapshot, CrossMacroJsonContext.Default.ProfileRegistry, CancellationToken.None)
+                .ConfigureAwait(false);
+            return null;
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            return ex;
+        }
+    }
+
+    private static Exception? TryDeleteDirectory(string directoryPath)
+    {
+        try
+        {
+            if (Directory.Exists(directoryPath))
+            {
+                Directory.Delete(directoryPath, recursive: true);
+            }
+
+            return null;
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            return ex;
+        }
+    }
+
+    private static Exception? TryMoveDirectoryBack(string stagedDirectory, string profileDirectory)
+    {
+        try
+        {
+            if (!Directory.Exists(stagedDirectory))
+            {
+                return null;
+            }
+
+            if (Directory.Exists(profileDirectory))
+            {
+                return new IOException($"Cannot restore profile directory because the destination already exists: {profileDirectory}");
+            }
+
+            Directory.Move(stagedDirectory, profileDirectory);
+            return null;
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            return ex;
+        }
+    }
+
+    private static ProfileRegistry CloneRegistry(ProfileRegistry registry)
+    {
+        var clone = new ProfileRegistry
+        {
+            Version = registry.Version,
+            ActiveProfile = registry.ActiveProfile,
+        };
+        clone.ReplaceProfiles(registry.Profiles.Select(profile => new ProfileInfo
+        {
+            Id = profile.Id,
+            Name = profile.Name,
+            CreatedAt = profile.CreatedAt,
+        }));
+        return clone;
     }
 
     private void NormalizeRegistry()

@@ -87,8 +87,10 @@ public sealed class ManageTextExpansion(
     {
         cancellationToken.ThrowIfCancellationRequested();
         await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        IAsyncDisposable? profileScope = null;
         try
         {
+            profileScope = await EnterActiveProfileScopeAsync(cancellationToken).ConfigureAwait(false);
             var activeProfileId = _profileManager.ActiveProfile.Id;
             if (string.IsNullOrWhiteSpace(profileIdentifier))
             {
@@ -120,8 +122,25 @@ public sealed class ManageTextExpansion(
         }
         finally
         {
-            _ = _operationGate.Release();
+            try
+            {
+                if (profileScope is not null)
+                {
+                    await profileScope.DisposeAsync().ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                _ = _operationGate.Release();
+            }
         }
+    }
+
+    private async Task<IAsyncDisposable?> EnterActiveProfileScopeAsync(CancellationToken cancellationToken)
+    {
+        return _store is IProfileTextExpansionOperationScope scope
+            ? await scope.EnterAsync(cancellationToken).ConfigureAwait(false)
+            : null;
     }
 
     private static TextExpansionEntry? FindEntry(IEnumerable<TextExpansionEntry> expansions, string trigger) =>

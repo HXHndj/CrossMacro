@@ -3,6 +3,60 @@ namespace CrossMacro.Infrastructure.Helpers;
 
 internal static class FileBackedJsonStorage
 {
+    internal static byte[]? CaptureExisting(string filePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        return File.Exists(filePath) ? File.ReadAllBytes(filePath) : null;
+    }
+
+    internal static async Task<byte[]?> CaptureExistingAsync(string filePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        return File.Exists(filePath)
+            ? await File.ReadAllBytesAsync(filePath, CancellationToken.None).ConfigureAwait(false)
+            : null;
+    }
+
+    /// <summary>
+    /// Restores the exact bytes captured before a multi-file persistence operation.
+    /// A null snapshot means that the destination did not exist.
+    /// </summary>
+    internal static void Restore(string filePath, byte[]? content)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        if (content is null)
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+
+            return;
+        }
+
+        WriteRaw(filePath, content);
+    }
+
+    /// <summary>
+    /// Restores the exact bytes captured before a multi-file persistence operation.
+    /// A null snapshot means that the destination did not exist.
+    /// </summary>
+    internal static async Task RestoreAsync(string filePath, byte[]? content)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        if (content is null)
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+
+            return;
+        }
+
+        await WriteRawAsync(filePath, content).ConfigureAwait(false);
+    }
+
     public static T? Read<T>(string filePath, JsonTypeInfo<T> typeInfo)
     {
         var json = File.ReadAllText(filePath);
@@ -75,6 +129,54 @@ internal static class FileBackedJsonStorage
     }
 
     private static string GetTemporaryPath(string filePath) => $"{filePath}.{System.Guid.NewGuid():N}.tmp";
+
+    private static void WriteRaw(string filePath, byte[] content)
+    {
+        EnsureParentDirectory(filePath);
+        var temporaryPath = GetTemporaryPath(filePath);
+        try
+        {
+            using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 65536, FileOptions.WriteThrough))
+            {
+                stream.Write(content, 0, content.Length);
+                stream.Flush(flushToDisk: true);
+            }
+
+            Replace(filePath, temporaryPath);
+        }
+        finally
+        {
+            DeleteTemporaryFile(temporaryPath);
+        }
+    }
+
+    private static async Task WriteRawAsync(string filePath, byte[] content)
+    {
+        EnsureParentDirectory(filePath);
+        var temporaryPath = GetTemporaryPath(filePath);
+        try
+        {
+            var stream = new FileStream(
+                temporaryPath,
+                FileMode.CreateNew,
+                FileAccess.Write,
+                FileShare.None,
+                65536,
+                FileOptions.Asynchronous | FileOptions.WriteThrough);
+            await using (stream.ConfigureAwait(false))
+            {
+                await stream.WriteAsync(content.AsMemory(), CancellationToken.None).ConfigureAwait(false);
+                await stream.FlushAsync(CancellationToken.None).ConfigureAwait(false);
+                stream.Flush(flushToDisk: true);
+            }
+
+            Replace(filePath, temporaryPath);
+        }
+        finally
+        {
+            DeleteTemporaryFile(temporaryPath);
+        }
+    }
 
     private static void Replace(string filePath, string temporaryPath)
     {

@@ -80,6 +80,7 @@ public sealed class ProfileRuntimeCoordinator : IProfileManager, IProfileSwitchR
     public async Task SwitchProfileAsync(string profileId)
     {
         ProfileInfo activeProfile;
+        IAsyncDisposable? profileScope = null;
 
         await _gate.WaitAsync().ConfigureAwait(false);
         try
@@ -94,6 +95,7 @@ public sealed class ProfileRuntimeCoordinator : IProfileManager, IProfileSwitchR
                 return;
             }
 
+            profileScope = await EnterActiveProfileScopeAsync().ConfigureAwait(false);
             var profileDir = _catalog.GetProfileDirectory(profile.Id);
             var hotkeyWasRunning = _hotkeyService?.IsRunning ?? false;
             var shortcutWasListening = _shortcutService?.IsListening ?? false;
@@ -103,15 +105,23 @@ public sealed class ProfileRuntimeCoordinator : IProfileManager, IProfileSwitchR
 
             await FlushProfileRuntimeParticipantsAsync().ConfigureAwait(false);
 
-            if (!await StopRuntimeServicesAsync().ConfigureAwait(false))
+            var stopResult = await StopRuntimeServicesAsync().ConfigureAwait(false);
+            if (!stopResult.Succeeded)
             {
                 await RestartRuntimeServicesAsync(
-                    hotkeyWasRunning,
-                    shortcutWasListening,
-                    schedulerWasRunning: false,
-                    textExpansionWasRunning,
-                    triggerWasMonitoring).ConfigureAwait(false);
-                throw new InvalidOperationException("Profile switch aborted because the scheduler did not quiesce.");
+                    hotkeyWasRunning && stopResult.HotkeyStopped,
+                    shortcutWasListening && stopResult.ShortcutStopped,
+                    schedulerWasRunning && stopResult.SchedulerStopped,
+                    textExpansionWasRunning && stopResult.TextExpansionStopped,
+                    triggerWasMonitoring && stopResult.TriggerStopped).ConfigureAwait(false);
+
+                var message = stopResult.SchedulerQuiesced
+                    ? "Profile switch aborted because one or more runtime services did not stop cleanly."
+                    : "Profile switch aborted because the scheduler did not quiesce.";
+                var stopError = stopResult.Errors.Count > 0
+                    ? new AggregateException("Runtime service stop failed.", stopResult.Errors)
+                    : null;
+                throw new InvalidOperationException(message, stopError);
             }
 
             try
@@ -146,7 +156,17 @@ public sealed class ProfileRuntimeCoordinator : IProfileManager, IProfileSwitchR
         }
         finally
         {
-            _ = _gate.Release();
+            try
+            {
+                if (profileScope is not null)
+                {
+                    await profileScope.DisposeAsync().ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                _ = _gate.Release();
+            }
         }
 
         ProfileChanged?.Invoke(this, new ProfileChangedEventArgs(activeProfile));
@@ -175,45 +195,99 @@ public sealed class ProfileRuntimeCoordinator : IProfileManager, IProfileSwitchR
 
     public string GetProfileDirectory(string profileId) => _catalog.GetProfileDirectory(profileId);
 
-    private async Task<bool> StopRuntimeServicesAsync()
+    private async Task<RuntimeStopResult> StopRuntimeServicesAsync()
     {
+        var errors = new List<Exception>();
+        var textExpansionStopped = _textExpansionService is null || !_textExpansionService.IsRunning;
         try
         {
             if (_textExpansionService is not null)
             {
                 await _textExpansionService.StopExpansionAsync(CancellationToken.None).ConfigureAwait(false);
             }
+            textExpansionStopped = _textExpansionService is null || !_textExpansionService.IsRunning;
         }
-        catch (Exception ex) when (ex is not OutOfMemoryException) { Log.Warning(ex, "Failed to stop text expansion service"); }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            errors.Add(ex);
+            Log.Warning(ex, "Failed to stop text expansion service");
+        }
 
+        var schedulerStopped = _schedulerService is null;
         try
         {
             if (_schedulerService is not null)
             {
                 await _schedulerService.StopAsync(CancellationToken.None).ConfigureAwait(false);
+                schedulerStopped = true;
             }
         }
-        catch (Exception ex) when (ex is not OutOfMemoryException) { Log.Warning(ex, "Failed to stop scheduler service"); }
-
-        if (_schedulerService is not null && !_schedulerService.Completion.IsCompleted)
+        catch (Exception ex) when (ex is not OutOfMemoryException)
         {
-            Log.Warning("Profile switch aborted because the scheduler lifetime is still active after shutdown timeout");
-            return false;
+            errors.Add(ex);
+            Log.Warning(ex, "Failed to stop scheduler service");
         }
 
-        try { _triggerService.StopMonitoring(); }
-        catch (Exception ex) when (ex is not OutOfMemoryException) { Log.Warning(ex, "Failed to stop trigger service"); }
-        try { _shortcutService?.StopShortcuts(); }
-        catch (Exception ex) when (ex is not OutOfMemoryException) { Log.Warning(ex, "Failed to stop shortcut service"); }
+        var schedulerQuiesced = _schedulerService is null || (schedulerStopped && _schedulerService.Completion.IsCompleted);
+        if (!schedulerQuiesced)
+        {
+            Log.Warning("Profile switch aborted because the scheduler lifetime is still active after shutdown timeout");
+        }
+
+        var triggerStopped = !_triggerService.IsMonitoring;
+        try
+        {
+            _triggerService.StopMonitoring();
+            triggerStopped = !_triggerService.IsMonitoring;
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            errors.Add(ex);
+            Log.Warning(ex, "Failed to stop trigger service");
+        }
+
+        var shortcutStopped = _shortcutService is null || !_shortcutService.IsListening;
+        try
+        {
+            _shortcutService?.StopShortcuts();
+            shortcutStopped = _shortcutService is null || !_shortcutService.IsListening;
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            errors.Add(ex);
+            Log.Warning(ex, "Failed to stop shortcut service");
+        }
+
+        var hotkeyStopped = _hotkeyService is null || !_hotkeyService.IsRunning;
         try
         {
             if (_hotkeyService is not null)
             {
                 await _hotkeyService.StopHotkeyServiceAsync(CancellationToken.None).ConfigureAwait(false);
+                hotkeyStopped = !_hotkeyService.IsRunning;
             }
         }
-        catch (Exception ex) when (ex is not OutOfMemoryException) { Log.Warning(ex, "Failed to stop hotkey service"); }
-        return true;
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            errors.Add(ex);
+            Log.Warning(ex, "Failed to stop hotkey service");
+        }
+
+        return new RuntimeStopResult(
+            schedulerQuiesced,
+            schedulerQuiesced,
+            hotkeyStopped,
+            shortcutStopped,
+            textExpansionStopped,
+            triggerStopped,
+            errors);
+    }
+
+    private async Task<IAsyncDisposable?> EnterActiveProfileScopeAsync()
+    {
+        return _textExpansionStorageService is IProfileTextExpansionOperationScope scope
+            ? await scope.EnterAsync(CancellationToken.None).ConfigureAwait(false)
+            : null;
     }
 
     private async Task ReloadProfileServicesAsync(string profileDir)
@@ -277,5 +351,17 @@ public sealed class ProfileRuntimeCoordinator : IProfileManager, IProfileSwitchR
         {
             _gate.Dispose();
         }
+    }
+
+    private sealed record RuntimeStopResult(
+        bool SchedulerQuiesced,
+        bool SchedulerStopped,
+        bool HotkeyStopped,
+        bool ShortcutStopped,
+        bool TextExpansionStopped,
+        bool TriggerStopped,
+        IReadOnlyList<Exception> Errors)
+    {
+        public bool Succeeded => SchedulerQuiesced && Errors.Count is 0;
     }
 }

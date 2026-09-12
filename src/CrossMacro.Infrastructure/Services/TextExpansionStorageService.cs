@@ -5,13 +5,15 @@ namespace CrossMacro.Infrastructure.Services;
 /// Service for managing text expansion storage in a separate JSON file
 /// Follows XDG Base Directory specification
 /// </summary>
-public class TextExpansionStorageService : ITextExpansionStorageService
+public class TextExpansionStorageService : ITextExpansionStorageService, IProfileTextExpansionOperationScope
 
 {
     private const string ExpansionsFileName = ConfigFileNames.TextExpansions;
     private List<Core.Models.TextExpansionEntry> _expansions = new();
     private readonly Lock _lock = new();
+    private readonly SemaphoreSlim _profileOperationGate = new(1, 1);
     private int _loadedState;
+    private long _generation;
 
     public TextExpansionStorageService(string? configDirectory = null)
     {
@@ -39,21 +41,22 @@ public class TextExpansionStorageService : ITextExpansionStorageService
                     Log.Information("[TextExpansionStorageService] No existing file found, starting with empty list");
                     _expansions = [];
                     Volatile.Write(ref _loadedState, 1);
-                    return _expansions;
+                    return CloneEntries(_expansions);
                 }
 
-                _expansions = FileBackedJsonStorage.Read(FilePath, CrossMacroJsonContext.Default.ListTextExpansionEntry) ?? [];
+                _expansions = CloneEntries(
+                    FileBackedJsonStorage.Read(FilePath, CrossMacroJsonContext.Default.ListTextExpansionEntry) ?? []);
                 Volatile.Write(ref _loadedState, 1);
 
                 Log.Information("[TextExpansionStorageService] Loaded {Count} text expansions", _expansions.Count);
-                return _expansions;
+                return CloneEntries(_expansions);
             }
             catch (Exception ex) when (ex is not OutOfMemoryException)
             {
                 Log.LogError(ex, "[TextExpansionStorageService] Failed to load text expansions");
                 _expansions = [];
                 Volatile.Write(ref _loadedState, 1);
-                return _expansions;
+                return CloneEntries(_expansions);
             }
         }
     }
@@ -64,9 +67,11 @@ public class TextExpansionStorageService : ITextExpansionStorageService
     public async Task<IList<Core.Models.TextExpansionEntry>> LoadAsync()
     {
         string filePath;
+        long generation;
         lock (_lock)
         {
             filePath = FilePath;
+            generation = _generation;
         }
 
         try
@@ -76,7 +81,7 @@ public class TextExpansionStorageService : ITextExpansionStorageService
                 Log.Information("[TextExpansionStorageService] No existing file found, starting with empty list");
                 lock (_lock)
                 {
-                    if (string.Equals(FilePath, filePath, StringComparison.Ordinal))
+                    if (generation == _generation && string.Equals(FilePath, filePath, StringComparison.Ordinal))
                     {
                         _expansions = [];
                         Volatile.Write(ref _loadedState, 1);
@@ -92,22 +97,22 @@ public class TextExpansionStorageService : ITextExpansionStorageService
 
             lock (_lock)
             {
-                if (string.Equals(FilePath, filePath, StringComparison.Ordinal))
+                if (generation == _generation && string.Equals(FilePath, filePath, StringComparison.Ordinal))
                 {
-                    _expansions = loaded;
+                    _expansions = CloneEntries(loaded);
                     Volatile.Write(ref _loadedState, 1);
                 }
             }
 
             Log.Information("[TextExpansionStorageService] Loaded {Count} text expansions", loaded.Count);
-            return loaded;
+            return CloneEntries(loaded);
         }
         catch (Exception ex) when (ex is not OutOfMemoryException)
         {
             Log.LogError(ex, "[TextExpansionStorageService] Failed to load text expansions");
             lock (_lock)
             {
-                if (string.Equals(FilePath, filePath, StringComparison.Ordinal))
+                if (generation == _generation && string.Equals(FilePath, filePath, StringComparison.Ordinal))
                 {
                     _expansions = [];
                     Volatile.Write(ref _loadedState, 1);
@@ -123,6 +128,7 @@ public class TextExpansionStorageService : ITextExpansionStorageService
         lock (_lock)
         {
             FilePath = Path.Combine(profileConfigDirectory, ConfigFileNames.TextExpansions);
+            _generation++;
             _expansions = [];
             Volatile.Write(ref _loadedState, 0);
         }
@@ -137,15 +143,26 @@ public class TextExpansionStorageService : ITextExpansionStorageService
     {
         try
         {
-            var expansionList = expansions.ToList();
+            ArgumentNullException.ThrowIfNull(expansions);
+            var expansionList = CloneEntries(expansions);
+            string filePath;
+            long generation;
+            lock (_lock)
+            {
+                filePath = FilePath;
+                generation = _generation;
+            }
 
-            await FileBackedJsonStorage.WriteAsync(FilePath, expansionList, CrossMacroJsonContext.Default.ListTextExpansionEntry)
+            await FileBackedJsonStorage.WriteAsync(filePath, expansionList, CrossMacroJsonContext.Default.ListTextExpansionEntry)
                 .ConfigureAwait(false);
 
             lock (_lock)
             {
-                _expansions = new List<Core.Models.TextExpansionEntry>(expansionList);
-                Volatile.Write(ref _loadedState, 1);
+                if (generation == _generation && string.Equals(FilePath, filePath, StringComparison.Ordinal))
+                {
+                    _expansions = CloneEntries(expansionList);
+                    Volatile.Write(ref _loadedState, 1);
+                }
             }
 
             Log.Information("[TextExpansionStorageService] Saved {Count} text expansions", expansionList.Count);
@@ -157,6 +174,12 @@ public class TextExpansionStorageService : ITextExpansionStorageService
         }
     }
 
+    public async Task<IAsyncDisposable> EnterAsync(CancellationToken cancellationToken = default)
+    {
+        await _profileOperationGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        return new ProfileOperationLease(_profileOperationGate);
+    }
+
 
     /// <summary>
     /// Gets the current list of expansions (cached in memory)
@@ -165,7 +188,7 @@ public class TextExpansionStorageService : ITextExpansionStorageService
     {
         lock (_lock)
         {
-            return new List<Core.Models.TextExpansionEntry>(_expansions);
+            return CloneEntries(_expansions);
         }
     }
 
@@ -175,4 +198,33 @@ public class TextExpansionStorageService : ITextExpansionStorageService
     /// Gets the file path where expansions are stored
     /// </summary>
     public string FilePath { get; private set; }
+
+    private static List<Core.Models.TextExpansionEntry> CloneEntries(IEnumerable<Core.Models.TextExpansionEntry> entries)
+    {
+        return entries.Select(entry => new Core.Models.TextExpansionEntry
+        {
+            Trigger = entry.Trigger,
+            Replacement = entry.Replacement,
+            IsEnabled = entry.IsEnabled,
+            Method = entry.Method,
+            InsertionMode = entry.InsertionMode,
+            DirectTypingMethod = entry.DirectTypingMethod,
+        }).ToList();
+    }
+
+    private sealed class ProfileOperationLease(SemaphoreSlim gate) : IAsyncDisposable
+    {
+        private readonly SemaphoreSlim _gate = gate;
+        private int _released;
+
+        public ValueTask DisposeAsync()
+        {
+            if (Interlocked.Exchange(ref _released, 1) is 0)
+            {
+                _ = _gate.Release();
+            }
+
+            return ValueTask.CompletedTask;
+        }
+    }
 }

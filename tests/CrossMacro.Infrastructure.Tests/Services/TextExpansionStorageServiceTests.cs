@@ -221,6 +221,52 @@ public sealed class TextExpansionStorageServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task GetCurrent_ReturnsDeepSnapshot_ThatCannotMutateCache()
+    {
+        var service = CreateService();
+        await service.SaveAsync([new TextExpansionEntry(":test", "value")]);
+
+        var current = service.GetCurrent();
+        current[0].IsEnabled = false;
+
+        _ = service.GetCurrent()[0].IsEnabled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SaveAndReload_KeepLatestProfileCacheWhenOperationsOverlap()
+    {
+        var firstProfile = Path.Combine(_testRootDirectory, "first");
+        var secondProfile = Path.Combine(_testRootDirectory, "second");
+        _ = Directory.CreateDirectory(firstProfile);
+        _ = Directory.CreateDirectory(secondProfile);
+
+        await File.WriteAllTextAsync(
+            Path.Combine(firstProfile, ConfigFileNames.TextExpansions),
+            JsonSerializer.Serialize(
+                new List<TextExpansionEntry> { new(":first", "one") },
+                CrossMacroJsonContext.Default.ListTextExpansionEntry),
+            NonCancelableToken);
+        await File.WriteAllTextAsync(
+            Path.Combine(secondProfile, ConfigFileNames.TextExpansions),
+            JsonSerializer.Serialize(
+                new List<TextExpansionEntry> { new(":second", "two") },
+                CrossMacroJsonContext.Default.ListTextExpansionEntry),
+            NonCancelableToken);
+
+        var service = CreateService();
+        await service.ReloadAsync(firstProfile);
+        var staleSave = service.SaveAsync([new TextExpansionEntry(":stale", "old")]);
+        await service.ReloadAsync(secondProfile);
+        await staleSave;
+
+        _ = service.GetCurrent().Should().ContainSingle(entry => entry.Trigger == ":second");
+        var secondFile = await File.ReadAllTextAsync(
+            Path.Combine(secondProfile, ConfigFileNames.TextExpansions),
+            NonCancelableToken);
+        _ = secondFile.Should().Contain(":second");
+    }
+
+    [Fact]
     public async Task SaveAsync_WhenEnumerationThrows_PropagatesException_AndKeepsCache()
     {
         // Arrange

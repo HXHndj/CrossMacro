@@ -141,6 +141,89 @@ public sealed class ProfileManagerTests : IDisposable
     }
 
     [Fact]
+    public async Task CreateProfileAsync_WhenRegistrySaveFails_RestoresMemoryAndRemovesDirectory()
+    {
+        var manager = new ProfileManager(_tempPath);
+        await manager.InitializeAsync();
+
+        var registryPath = Path.Combine(_tempPath, ConfigFileNames.ProfileRegistry);
+        File.Delete(registryPath);
+        _ = Directory.CreateDirectory(registryPath);
+
+        try
+        {
+            var act = () => manager.CreateProfileAsync("Broken Profile");
+
+            _ = await act.Should().ThrowAsync<Exception>();
+            _ = manager.Profiles.Should().NotContain(profile => profile.Id == "broken-profile");
+            _ = Directory.Exists(Path.Combine(_tempPath, ConfigFileNames.ProfilesDirectory, "broken-profile")).Should().BeFalse();
+        }
+        finally
+        {
+            if (Directory.Exists(registryPath))
+            {
+                Directory.Delete(registryPath, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task RenameProfileAsync_WhenRegistrySaveFails_RestoresPreviousName()
+    {
+        var manager = new ProfileManager(_tempPath);
+        await manager.InitializeAsync();
+        var profile = await manager.CreateProfileAsync("Original Profile");
+
+        var registryPath = Path.Combine(_tempPath, ConfigFileNames.ProfileRegistry);
+        File.Delete(registryPath);
+        _ = Directory.CreateDirectory(registryPath);
+
+        try
+        {
+            var act = () => manager.RenameProfileAsync(profile.Id, "Renamed Profile");
+
+            _ = await act.Should().ThrowAsync<Exception>();
+            _ = manager.Profiles.Single(candidate => candidate.Id == profile.Id).Name.Should().Be("Original Profile");
+        }
+        finally
+        {
+            if (Directory.Exists(registryPath))
+            {
+                Directory.Delete(registryPath, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task DeleteProfileAsync_WhenRegistrySaveFails_RestoresRegistryAndDirectory()
+    {
+        var manager = new ProfileManager(_tempPath);
+        await manager.InitializeAsync();
+        var profile = await manager.CreateProfileAsync("Delete Profile");
+        var profileDirectory = manager.GetProfileDirectory(profile.Id);
+
+        var registryPath = Path.Combine(_tempPath, ConfigFileNames.ProfileRegistry);
+        File.Delete(registryPath);
+        _ = Directory.CreateDirectory(registryPath);
+
+        try
+        {
+            var act = () => manager.DeleteProfileAsync(profile.Id);
+
+            _ = await act.Should().ThrowAsync<Exception>();
+            _ = manager.Profiles.Should().Contain(candidate => candidate.Id == profile.Id);
+            _ = Directory.Exists(profileDirectory).Should().BeTrue();
+        }
+        finally
+        {
+            if (Directory.Exists(registryPath))
+            {
+                Directory.Delete(registryPath, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
     public async Task InitializeAsync_WhenRegistryContainsTraversalProfileId_RejectsItBeforePathUse()
     {
         var registryPath = Path.Combine(_tempPath, ConfigFileNames.ProfileRegistry);
@@ -315,6 +398,46 @@ public sealed class ProfileManagerTests : IDisposable
         _ = loadsAfterSwitch.Should().Be(loadsBeforeSwitch);
         schedulerService.DidNotReceive().Start();
         _ = unresolvedLifetime.TrySetResult();
+    }
+
+    [Fact]
+    public async Task SwitchProfileAsync_WhenHotkeyStopFails_AbortsWithoutRestartingFailedService()
+    {
+        var settingsService = Substitute.For<ISettingsService>();
+        var hotkeyConfigService = Substitute.For<IHotkeyConfigurationService>();
+        var hotkeyService = Substitute.For<IGlobalHotkeyService>();
+        var schedulerService = Substitute.For<ISchedulerService>();
+        var scheduledTaskRepository = Substitute.For<IScheduledTaskRepository>();
+        var textExpansionStorageService = Substitute.For<ITextExpansionStorageService>();
+        _ = hotkeyConfigService.LoadAsync().Returns(Task.FromResult(new HotkeySettings()));
+        _ = hotkeyService.IsRunning.Returns(returnThis: true);
+        _ = hotkeyService.StopHotkeyServiceAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromException(new InvalidOperationException("hotkey stop failed")));
+        _ = schedulerService.Completion.Returns(Task.CompletedTask);
+        _ = schedulerService.StopAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+
+        var manager = CreateCoordinator(
+            new ProfileManager(_tempPath),
+            settingsService,
+            hotkeyConfigService,
+            new HotkeySettings(),
+            hotkeyService,
+            shortcutService: null,
+            schedulerService,
+            textExpansionService: null,
+            scheduledTaskRepository,
+            textExpansionStorageService);
+
+        await manager.InitializeAsync();
+        var profile = await manager.CreateProfileAsync("Second Profile");
+
+        var act = () => manager.SwitchProfileAsync(profile.Id);
+
+        _ = await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*runtime services did not stop cleanly*");
+        _ = manager.ActiveProfile.Id.Should().Be("default");
+        hotkeyService.DidNotReceive().Start();
+        _ = scheduledTaskRepository.DidNotReceive().ReloadAsync(manager.GetProfileDirectory(profile.Id));
     }
 
     [Fact]

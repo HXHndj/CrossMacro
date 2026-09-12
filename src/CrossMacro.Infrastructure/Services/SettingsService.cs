@@ -159,24 +159,65 @@ public class SettingsService : ISettingsService, IDisposable
         await _saveGate.WaitAsync(CancellationToken.None).ConfigureAwait(false);
         try
         {
-            await FileBackedJsonStorage.WriteAsync(
-                    snapshot.GlobalPath,
-                    snapshot.GlobalSettings,
-                    CrossMacroJsonContext.Default.PersistedGlobalSettings,
-                    CancellationToken.None)
-                .ConfigureAwait(false);
+            var writeProfile = snapshot.ProfileGeneration == _profileGeneration && snapshot.ProfileGeneration % 2 is 0;
+            var previousGlobal = await FileBackedJsonStorage.CaptureExistingAsync(snapshot.GlobalPath).ConfigureAwait(false);
+            var previousProfile = writeProfile
+                ? await FileBackedJsonStorage.CaptureExistingAsync(snapshot.ProfilePath).ConfigureAwait(false)
+                : null;
 
-            if (snapshot.ProfileGeneration == _profileGeneration && snapshot.ProfileGeneration % 2 is 0)
+            try
             {
                 await FileBackedJsonStorage.WriteAsync(
-                        snapshot.ProfilePath,
-                        snapshot.ProfileSettings,
-                        CrossMacroJsonContext.Default.PersistedProfileSettings,
+                        snapshot.GlobalPath,
+                        snapshot.GlobalSettings,
+                        CrossMacroJsonContext.Default.PersistedGlobalSettings,
                         CancellationToken.None)
                     .ConfigureAwait(false);
-            }
 
-            Log.Information("Settings saved to {GlobalPath} and {ProfilePath}", snapshot.GlobalPath, snapshot.ProfilePath);
+                if (writeProfile)
+                {
+                    await FileBackedJsonStorage.WriteAsync(
+                            snapshot.ProfilePath,
+                            snapshot.ProfileSettings,
+                            CrossMacroJsonContext.Default.PersistedProfileSettings,
+                            CancellationToken.None)
+                        .ConfigureAwait(false);
+                }
+
+                Log.Information("Settings saved to {GlobalPath} and {ProfilePath}", snapshot.GlobalPath, snapshot.ProfilePath);
+            }
+            catch (Exception saveError) when (saveError is not OutOfMemoryException)
+            {
+                var rollbackErrors = new List<Exception>();
+                if (writeProfile)
+                {
+                    try
+                    {
+                        await FileBackedJsonStorage.RestoreAsync(snapshot.ProfilePath, previousProfile).ConfigureAwait(false);
+                    }
+                    catch (Exception rollbackError) when (rollbackError is not OutOfMemoryException)
+                    {
+                        rollbackErrors.Add(rollbackError);
+                    }
+                }
+
+                try
+                {
+                    await FileBackedJsonStorage.RestoreAsync(snapshot.GlobalPath, previousGlobal).ConfigureAwait(false);
+                }
+                catch (Exception rollbackError) when (rollbackError is not OutOfMemoryException)
+                {
+                    rollbackErrors.Add(rollbackError);
+                }
+
+                if (rollbackErrors.Count > 0)
+                {
+                    rollbackErrors.Insert(0, saveError);
+                    throw new AggregateException("Settings save failed and rollback was incomplete.", rollbackErrors);
+                }
+
+                throw;
+            }
         }
         catch (Exception ex) when (ex is not OutOfMemoryException)
         {
@@ -196,17 +237,51 @@ public class SettingsService : ISettingsService, IDisposable
             _saveGate.Wait();
             try
             {
-                FileBackedJsonStorage.Write(
-                    _globalSettingsFilePath,
-                    SettingsPersistenceMapper.ToGlobal(Current),
-                    CrossMacroJsonContext.Default.PersistedGlobalSettings);
+                var previousGlobal = FileBackedJsonStorage.CaptureExisting(_globalSettingsFilePath);
+                var previousProfile = FileBackedJsonStorage.CaptureExisting(_profileSettingsFilePath);
+                try
+                {
+                    FileBackedJsonStorage.Write(
+                        _globalSettingsFilePath,
+                        SettingsPersistenceMapper.ToGlobal(Current),
+                        CrossMacroJsonContext.Default.PersistedGlobalSettings);
 
-                FileBackedJsonStorage.Write(
-                    _profileSettingsFilePath,
-                    SettingsPersistenceMapper.ToProfile(Current),
-                    CrossMacroJsonContext.Default.PersistedProfileSettings);
+                    FileBackedJsonStorage.Write(
+                        _profileSettingsFilePath,
+                        SettingsPersistenceMapper.ToProfile(Current),
+                        CrossMacroJsonContext.Default.PersistedProfileSettings);
 
-                Log.Information("Settings saved to {GlobalPath} and {ProfilePath}", _globalSettingsFilePath, _profileSettingsFilePath);
+                    Log.Information("Settings saved to {GlobalPath} and {ProfilePath}", _globalSettingsFilePath, _profileSettingsFilePath);
+                }
+                catch (Exception saveError) when (saveError is not OutOfMemoryException)
+                {
+                    var rollbackErrors = new List<Exception>();
+                    try
+                    {
+                        FileBackedJsonStorage.Restore(_profileSettingsFilePath, previousProfile);
+                    }
+                    catch (Exception rollbackError) when (rollbackError is not OutOfMemoryException)
+                    {
+                        rollbackErrors.Add(rollbackError);
+                    }
+
+                    try
+                    {
+                        FileBackedJsonStorage.Restore(_globalSettingsFilePath, previousGlobal);
+                    }
+                    catch (Exception rollbackError) when (rollbackError is not OutOfMemoryException)
+                    {
+                        rollbackErrors.Add(rollbackError);
+                    }
+
+                    if (rollbackErrors.Count > 0)
+                    {
+                        rollbackErrors.Insert(0, saveError);
+                        throw new AggregateException("Settings save failed and rollback was incomplete.", rollbackErrors);
+                    }
+
+                    throw;
+                }
             }
             catch (Exception ex) when (ex is not OutOfMemoryException)
             {

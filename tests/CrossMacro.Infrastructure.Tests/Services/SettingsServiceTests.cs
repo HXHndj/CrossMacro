@@ -372,6 +372,38 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task SaveAsync_WhenProfileWriteFails_RestoresGlobalFile()
+    {
+        using var service = new SettingsService(_tempPath);
+        _ = await service.LoadAsync();
+
+        var globalSettingsPath = Path.Combine(_tempPath, ConfigFileNames.GlobalSettings);
+        var originalGlobal = await File.ReadAllBytesAsync(globalSettingsPath, NonCancelableToken);
+        var profileDirectory = Path.GetDirectoryName(DefaultProfileSettingsPath)!;
+
+        File.Delete(DefaultProfileSettingsPath);
+        Directory.Delete(profileDirectory, recursive: true);
+        await File.WriteAllTextAsync(profileDirectory, "blocking file", NonCancelableToken);
+
+        try
+        {
+            service.Current.EnableTrayIcon = true;
+
+            var act = async () => await service.SaveAsync();
+
+            _ = await act.Should().ThrowAsync<IOException>();
+            _ = (await File.ReadAllBytesAsync(globalSettingsPath, NonCancelableToken)).Should().Equal(originalGlobal);
+        }
+        finally
+        {
+            if (File.Exists(profileDirectory))
+            {
+                File.Delete(profileDirectory);
+            }
+        }
+    }
+
+    [Fact]
     public async Task SaveAsync_QueuedSnapshotsAreWrittenInCallOrder()
     {
         var service = new SettingsService(_tempPath);
