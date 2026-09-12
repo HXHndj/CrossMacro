@@ -24,6 +24,8 @@ public sealed class FilesViewModelTests
             "Files_LoadedMacroDescription" => "[Files_LoadedMacroDescription] {0} | {1}",
             "Files_StatusSaveCancelled" => "[Files_StatusSaveCancelled]",
             "Files_StatusLoadCancelled" => "[Files_StatusLoadCancelled]",
+            "Files_StatusLoading" => "[Files_StatusLoading]",
+            "Files_StatusSaving" => "[Files_StatusSaving]",
             "Files_StatusRemoved" => "[Files_StatusRemoved] {0}",
             "Files_StatusSavedTo" => "[Files_StatusSavedTo] {0}",
             "Files_StatusLoaded" => "[Files_StatusLoaded] {0}",
@@ -315,6 +317,61 @@ public sealed class FilesViewModelTests
     }
 
     [Fact]
+    public async Task LoadAndSaveAsync_WhenOneDialogIsAwaiting_BlocksTheOtherAndRestoresBusyState()
+    {
+        _viewModel.SetMacro(CreateMacro());
+
+        var saveDialogStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var saveDialogCompletion = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _ = _dialogService.ShowSaveFileDialogAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<FileDialogFilter[]>())
+            .Returns(_ =>
+            {
+                saveDialogStarted.TrySetResult(true);
+                return saveDialogCompletion.Task;
+            });
+
+        var saveTask = _viewModel.SaveMacroAsync();
+        await saveDialogStarted.Task;
+
+        Assert.True(_viewModel.IsFileOperationInProgress);
+        await _viewModel.LoadMacroAsync();
+        await _dialogService.DidNotReceive().ShowOpenFileDialogAsync(Arg.Any<string>(), Arg.Any<FileDialogFilter[]>());
+        Assert.True(_viewModel.IsFileOperationInProgress);
+
+        saveDialogCompletion.SetResult(null);
+        await saveTask;
+
+        Assert.False(_viewModel.IsFileOperationInProgress);
+        Assert.Equal("[Files_StatusSaveCancelled]", _viewModel.Status);
+    }
+
+    [Fact]
+    public async Task LoadMacroAsync_WhenDialogIsAwaiting_BlocksSecondLoadAndRestoresBusyState()
+    {
+        var dialogStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var dialogCompletion = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _ = _dialogService.ShowOpenFileDialogAsync(Arg.Any<string>(), Arg.Any<FileDialogFilter[]>())
+            .Returns(_ =>
+            {
+                dialogStarted.TrySetResult(true);
+                return dialogCompletion.Task;
+            });
+
+        var firstLoad = _viewModel.LoadMacroAsync();
+        await dialogStarted.Task;
+
+        Assert.True(_viewModel.IsFileOperationInProgress);
+        await _viewModel.LoadMacroAsync();
+        await _dialogService.Received(1).ShowOpenFileDialogAsync(Arg.Any<string>(), Arg.Any<FileDialogFilter[]>());
+
+        dialogCompletion.SetResult(null);
+        await firstLoad;
+
+        Assert.False(_viewModel.IsFileOperationInProgress);
+        Assert.Equal("[Files_StatusLoadCancelled]", _viewModel.Status);
+    }
+
+    [Fact]
     public async Task SaveMacroAsync_WhenSelectionChangesDuringAwait_KeepsOriginalMacroNameAndSourcePath()
     {
         var firstMacro = CreateMacro("First Macro");
@@ -366,6 +423,7 @@ public sealed class FilesViewModelTests
         await _viewModel.SaveMacroAsync();
 
         _ = _viewModel.Status.Should().Be("[Files_StatusSaveCancelled]");
+        Assert.False(_viewModel.IsFileOperationInProgress);
         await _fileManager.DidNotReceive().SaveAsync(Arg.Any<MacroSequence>(), Arg.Any<string>());
     }
 
@@ -386,6 +444,7 @@ public sealed class FilesViewModelTests
             "/path/to/MyMacro.macro");
         _ = _viewModel.Status.Should().Contain("[Files_StatusSavedTo]");
         _ = _viewModel.Status.Should().Contain("MyMacro.macro");
+        Assert.False(_viewModel.IsFileOperationInProgress);
         _ = macro.Name.Should().Be("MyMacro");
         _ = _viewModel.SelectedMacroItem!.SourcePath.Should().Be("/path/to/MyMacro.macro");
         _ = _viewModel.SelectedMacroItem.Description.Should().Contain("MyMacro.macro");
@@ -478,6 +537,7 @@ public sealed class FilesViewModelTests
         await _viewModel.LoadMacroAsync();
 
         _ = _viewModel.Status.Should().Be("[Files_StatusLoadCancelled]");
+        Assert.False(_viewModel.IsFileOperationInProgress);
         _ = await _fileManager.DidNotReceive().LoadAsync(Arg.Any<string>());
     }
 
@@ -500,6 +560,7 @@ public sealed class FilesViewModelTests
         _ = _viewModel.SelectedSequenceRepeatCount.Should().Be(1);
         _ = _viewModel.Status.Should().Contain("[Files_StatusLoaded]");
         _ = _viewModel.Status.Should().Contain("file.macro");
+        Assert.False(_viewModel.IsFileOperationInProgress);
         _ = _viewModel.LoadedMacros.Should().ContainSingle();
         _ = _viewModel.SelectedMacroItem!.SourcePath.Should().Be("/path/to/file.macro");
         _ = loadedMacroFromEvent.Should().BeSameAs(macro);
@@ -592,6 +653,7 @@ public sealed class FilesViewModelTests
 
         _ = _viewModel.Status.Should().Contain("[Files_StatusSaveError]");
         _ = _viewModel.Status.Should().Contain("write failed");
+        Assert.False(_viewModel.IsFileOperationInProgress);
     }
 
     [Fact]
@@ -606,6 +668,7 @@ public sealed class FilesViewModelTests
 
         _ = _viewModel.Status.Should().Contain("[Files_StatusLoadError]");
         _ = _viewModel.Status.Should().Contain("read failed");
+        Assert.False(_viewModel.IsFileOperationInProgress);
     }
 
     private static MacroSequence CreateMacro(string name = "Test Macro")

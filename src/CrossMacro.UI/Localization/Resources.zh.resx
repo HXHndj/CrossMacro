@@ -304,6 +304,9 @@
   <data name="Playback_StrictSpeedMotionRate" xml:space="preserve">
     <value>报告上限</value>
   </data>
+  <data name="Playback_PrecisionMotionRate" xml:space="preserve">
+    <value>质量上限</value>
+  </data>
   <data name="Playback_PrecisionMotionRateHint" xml:space="preserve">
     <value>优先保持最平滑的路径；实际速度可能降低。</value>
   </data>
@@ -945,6 +948,12 @@
   </data>
   <data name="Files_StatusReady" xml:space="preserve">
     <value>准备好</value>
+  </data>
+  <data name="Files_StatusLoading" xml:space="preserve">
+    <value>正在加载宏...</value>
+  </data>
+  <data name="Files_StatusSaving" xml:space="preserve">
+    <value>正在保存宏...</value>
   </data>
   <data name="Files_OpenMacroDialogFilter" xml:space="preserve">
     <value>宏文件</value>
@@ -1831,6 +1840,9 @@
   <data name="HotkeyCapture_ServiceError" xml:space="preserve">
     <value>服务错误</value>
   </data>
+  <data name="HotkeyCapture_Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
   <data name="Dialog_Yes" xml:space="preserve">
     <value>是</value>
   </data>
@@ -2193,6 +2205,15 @@
   </data>
   <data name="Editor_SelectedActionsFormat" xml:space="preserve">
     <value>已选择 {0} 项</value>
+  </data>
+  <data name="Editor_SelectedActionsLabel" xml:space="preserve">
+    <value>项已选择</value>
+  </data>
+  <data name="Editor_SelectedWaitActionsLabel" xml:space="preserve">
+    <value>个等待操作已选择</value>
+  </data>
+  <data name="Editor_MultiSelectionPropertiesHint" xml:space="preserve">
+    <value>仅选择一个操作或多个等待操作时显示属性。</value>
   </data>
   <data name="Editor_RunTest" xml:space="preserve">
     <value>Run Test</value>

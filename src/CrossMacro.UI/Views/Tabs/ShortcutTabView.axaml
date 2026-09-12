@@ -45,8 +45,16 @@ Margin="0,0,12,0"/>
                         </Button>
                     </Grid>
                     
-                    <ItemsControl ItemsSource="{Binding Tasks}">
-                        <ItemsControl.ItemTemplate>
+                    <ScrollViewer MaxHeight="280"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{Binding Tasks}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <VirtualizingStackPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
                               <DataTemplate x:DataType="vm:ShortcutTaskEditor">
                                 <Border Classes="task-row"
                                         Classes.selected="{Binding IsSelected}">
@@ -98,7 +106,8 @@ Margin="0,0,12,0"/>
                                                 Command="{Binding #ShortcutListBorder.((vm:ShortcutViewModel)DataContext).SelectTaskCommand}"
                                                 CommandParameter="{Binding}"
                                                 Cursor="Hand"
-                                                ToolTip.Tip="{localization:Loc Shortcut_EditTooltip}">
+                                                ToolTip.Tip="{localization:Loc Shortcut_EditTooltip}"
+                                                AutomationProperties.Name="{localization:Loc Shortcut_EditTooltip}">
                                             <PathIcon Data="{icons:AppIcon Edit}" Width="14" Height="14"/>
                                         </Button>
                                         
@@ -110,14 +119,16 @@ Margin="0,0,12,0"/>
                                                 Command="{Binding #ShortcutListBorder.((vm:ShortcutViewModel)DataContext).RemoveTaskCommand}"
                                                 CommandParameter="{Binding}"
                                                 Cursor="Hand"
-                                                ToolTip.Tip="{localization:Loc Shortcut_DeleteTooltip}">
+                                                ToolTip.Tip="{localization:Loc Shortcut_DeleteTooltip}"
+                                                AutomationProperties.Name="{localization:Loc Shortcut_DeleteTooltip}">
                                             <PathIcon Data="{icons:AppIcon Delete}" Width="14" Height="14" Opacity="0.85"/>
                                         </Button>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
                 </StackPanel>
             </Border>
             
@@ -245,8 +256,16 @@ Margin="0,0,8,0">
                             </Button>
                         </Grid>
                         <TextBlock Text="{localization:Loc Shortcut_WindowScopeHint}" Classes="caption" TextWrapping="Wrap"/>
-                        <ItemsControl ItemsSource="{Binding SelectedTask?.WindowRules}">
-                            <ItemsControl.ItemTemplate>
+                        <ScrollViewer MaxHeight="240"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding SelectedTask?.WindowRules}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <VirtualizingStackPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:ShortcutWindowRuleEditor">
                                     <Grid ColumnDefinitions="160,8,140,8,*,8,Auto" Margin="0,2">
                                         <ComboBox Grid.Column="0"
@@ -267,7 +286,8 @@ Margin="0,0,8,0">
                                                         IsEnabled="{Binding !IsRefreshingWindows}"
                                                         Margin="8,0,0,0"
                                                         Padding="8"
-                                                        ToolTip.Tip="{localization:Loc Trigger_WindowPickerRefresh}">
+                                                        ToolTip.Tip="{localization:Loc Trigger_WindowPickerRefresh}"
+                                                        AutomationProperties.Name="{localization:Loc Trigger_WindowPickerRefresh}">
                                                     <PathIcon Data="{icons:AppIcon Refresh}" Width="14" Height="14"/>
                                                 </Button>
                                             </Grid>
@@ -284,13 +304,15 @@ Margin="0,0,8,0">
                                                 VerticalAlignment="Top"
                                                 Command="{Binding #ShortcutListBorder.((vm:ShortcutViewModel)DataContext).RemoveWindowRuleCommand}"
                                                 CommandParameter="{Binding}"
-                                                ToolTip.Tip="{localization:Loc Shortcut_RemoveWindowRule}">
+                                                ToolTip.Tip="{localization:Loc Shortcut_RemoveWindowRule}"
+                                                AutomationProperties.Name="{localization:Loc Shortcut_RemoveWindowRule}">
                                             <PathIcon Data="{icons:AppIcon Delete}" Width="14" Height="14" Opacity="0.85"/>
                                         </Button>
                                     </Grid>
                                 </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
                     </StackPanel>
                 </StackPanel>
             </Border>

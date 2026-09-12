@@ -180,7 +180,8 @@
                                         Command="{Binding RefreshThemesCommand}"
                                         Padding="8"
                                         VerticalAlignment="Center"
-                                        ToolTip.Tip="{localization:Loc Settings_RefreshThemes}">
+                                        ToolTip.Tip="{localization:Loc Settings_RefreshThemes}"
+                                        AutomationProperties.Name="{localization:Loc Settings_RefreshThemes}">
                                     <PathIcon Data="{icons:AppIcon Refresh}" Width="14" Height="14"/>
                                 </Button>
                             </Grid>

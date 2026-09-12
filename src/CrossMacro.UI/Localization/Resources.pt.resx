@@ -304,6 +304,9 @@ Ativado grava deltas de píxeis lógicos do ambiente de trabalho. Esta opção r
   <data name="Playback_StrictSpeedMotionRate" xml:space="preserve">
     <value>Limite de relatórios</value>
   </data>
+  <data name="Playback_PrecisionMotionRate" xml:space="preserve">
+    <value>Limite de qualidade</value>
+  </data>
   <data name="Playback_PrecisionMotionRateHint" xml:space="preserve">
     <value>Trajeto mais suave; a velocidade efetiva pode ser reduzida.</value>
   </data>
@@ -945,6 +948,12 @@ Ativado grava deltas de píxeis lógicos do ambiente de trabalho. Esta opção r
   </data>
   <data name="Files_StatusReady" xml:space="preserve">
     <value>Pronto</value>
+  </data>
+  <data name="Files_StatusLoading" xml:space="preserve">
+    <value>Carregando macro...</value>
+  </data>
+  <data name="Files_StatusSaving" xml:space="preserve">
+    <value>Salvando macro...</value>
   </data>
   <data name="Files_OpenMacroDialogFilter" xml:space="preserve">
     <value>Arquivos Macro</value>
@@ -1831,6 +1840,9 @@ Ativado grava deltas de píxeis lógicos do ambiente de trabalho. Esta opção r
   <data name="HotkeyCapture_ServiceError" xml:space="preserve">
     <value>Erro de serviço</value>
   </data>
+  <data name="HotkeyCapture_Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
   <data name="Dialog_Yes" xml:space="preserve">
     <value>Sim</value>
   </data>
@@ -2193,6 +2205,15 @@ Ativado grava deltas de píxeis lógicos do ambiente de trabalho. Esta opção r
   </data>
   <data name="Editor_SelectedActionsFormat" xml:space="preserve">
     <value>{0} selecionadas</value>
+  </data>
+  <data name="Editor_SelectedActionsLabel" xml:space="preserve">
+    <value>ações selecionadas</value>
+  </data>
+  <data name="Editor_SelectedWaitActionsLabel" xml:space="preserve">
+    <value>ações de espera selecionadas</value>
+  </data>
+  <data name="Editor_MultiSelectionPropertiesHint" xml:space="preserve">
+    <value>As propriedades são exibidas apenas quando uma ação ou várias ações de espera estão selecionadas.</value>
   </data>
   <data name="Editor_RunTest" xml:space="preserve">
     <value>Run Test</value>

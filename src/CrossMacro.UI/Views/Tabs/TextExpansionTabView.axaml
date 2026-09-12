@@ -136,8 +136,17 @@
                                    IsVisible="{Binding !Expansions.Count, FallbackValue=True}"/>
 
                         <!-- List -->
-                        <ItemsControl Grid.Row="1" ItemsSource="{Binding Expansions}">
-                            <ItemsControl.ItemTemplate>
+                        <ScrollViewer Grid.Row="1"
+                                      MaxHeight="300"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding Expansions}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <VirtualizingStackPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="core:TextExpansionEntry">
                                     <Border Padding="0,12">
                                         <Grid ColumnDefinitions="Auto,*,Auto">
@@ -198,7 +207,8 @@
                                                     Padding="8"
                                                     Command="{Binding #Root.((vm:TextExpansionViewModel)DataContext)?.RemoveExpansionCommand}"
                                                     CommandParameter="{Binding}"
-                                                    Cursor="Hand">
+                                                    Cursor="Hand"
+                                                    AutomationProperties.Name="{localization:Loc TextExpansion_DeleteTitle}">
                                                 <PathIcon Data="{icons:AppIcon Delete}"
                                                                     Width="14"
                                                                     Height="14"
@@ -207,8 +217,9 @@
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
                     </Grid>
                 </Border>
 

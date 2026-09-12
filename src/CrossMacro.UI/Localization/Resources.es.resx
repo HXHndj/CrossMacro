@@ -304,6 +304,9 @@ Activado registra deltas de píxeles lógicos del escritorio. Esta opción requi
   <data name="Playback_StrictSpeedMotionRate" xml:space="preserve">
     <value>Límite de informes</value>
   </data>
+  <data name="Playback_PrecisionMotionRate" xml:space="preserve">
+    <value>Límite de calidad</value>
+  </data>
   <data name="Playback_PrecisionMotionRateHint" xml:space="preserve">
     <value>Trayectoria más suave; la velocidad efectiva puede reducirse.</value>
   </data>
@@ -945,6 +948,12 @@ Activado registra deltas de píxeles lógicos del escritorio. Esta opción requi
   </data>
   <data name="Files_StatusReady" xml:space="preserve">
     <value>Listo</value>
+  </data>
+  <data name="Files_StatusLoading" xml:space="preserve">
+    <value>Cargando macro...</value>
+  </data>
+  <data name="Files_StatusSaving" xml:space="preserve">
+    <value>Guardando macro...</value>
   </data>
   <data name="Files_OpenMacroDialogFilter" xml:space="preserve">
     <value>Archivos de macros</value>
@@ -1831,6 +1840,9 @@ Activado registra deltas de píxeles lógicos del escritorio. Esta opción requi
   <data name="HotkeyCapture_ServiceError" xml:space="preserve">
     <value>Error de servicio</value>
   </data>
+  <data name="HotkeyCapture_Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
   <data name="Dialog_Yes" xml:space="preserve">
     <value>Sí</value>
   </data>
@@ -2193,6 +2205,15 @@ Activado registra deltas de píxeles lógicos del escritorio. Esta opción requi
   </data>
   <data name="Editor_SelectedActionsFormat" xml:space="preserve">
     <value>{0} seleccionadas</value>
+  </data>
+  <data name="Editor_SelectedActionsLabel" xml:space="preserve">
+    <value>acciones seleccionadas</value>
+  </data>
+  <data name="Editor_SelectedWaitActionsLabel" xml:space="preserve">
+    <value>acciones de espera seleccionadas</value>
+  </data>
+  <data name="Editor_MultiSelectionPropertiesHint" xml:space="preserve">
+    <value>Las propiedades solo se muestran al seleccionar una acción o varias acciones de espera.</value>
   </data>
   <data name="Editor_RunTest" xml:space="preserve">
     <value>Run Test</value>

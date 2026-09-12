@@ -304,6 +304,9 @@
   <data name="Playback_StrictSpeedMotionRate" xml:space="preserve">
     <value>Лимит отчётов</value>
   </data>
+  <data name="Playback_PrecisionMotionRate" xml:space="preserve">
+    <value>Предел качества</value>
+  </data>
   <data name="Playback_PrecisionMotionRateHint" xml:space="preserve">
     <value>Для наиболее плавной траектории фактическая скорость может быть снижена.</value>
   </data>
@@ -945,6 +948,12 @@
   </data>
   <data name="Files_StatusReady" xml:space="preserve">
     <value>Готов</value>
+  </data>
+  <data name="Files_StatusLoading" xml:space="preserve">
+    <value>Загрузка макроса...</value>
+  </data>
+  <data name="Files_StatusSaving" xml:space="preserve">
+    <value>Сохранение макроса...</value>
   </data>
   <data name="Files_OpenMacroDialogFilter" xml:space="preserve">
     <value>Макрофайлы</value>
@@ -1831,6 +1840,9 @@
   <data name="HotkeyCapture_ServiceError" xml:space="preserve">
     <value>Ошибка службы</value>
   </data>
+  <data name="HotkeyCapture_Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
   <data name="Dialog_Yes" xml:space="preserve">
     <value>Да</value>
   </data>
@@ -2193,6 +2205,15 @@
   </data>
   <data name="Editor_SelectedActionsFormat" xml:space="preserve">
     <value>Выбрано: {0}</value>
+  </data>
+  <data name="Editor_SelectedActionsLabel" xml:space="preserve">
+    <value>действий выбрано</value>
+  </data>
+  <data name="Editor_SelectedWaitActionsLabel" xml:space="preserve">
+    <value>ожидающих действий выбрано</value>
+  </data>
+  <data name="Editor_MultiSelectionPropertiesHint" xml:space="preserve">
+    <value>Свойства отображаются только при выборе одного действия или нескольких действий ожидания.</value>
   </data>
   <data name="Editor_RunTest" xml:space="preserve">
     <value>Run Test</value>

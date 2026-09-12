@@ -421,6 +421,17 @@ p {
   font-weight: 500;
 }
 
+.screenshot-card__original {
+  display: inline-flex;
+  margin-inline-start: var(--space-3);
+  color: var(--color-text-soft);
+  font-size: 0.8125rem;
+}
+
+.screenshot-card__original:hover {
+  color: var(--color-text);
+}
+
 .link-card {
   display: grid;
   align-content: start;

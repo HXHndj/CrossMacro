@@ -307,6 +307,9 @@ On records logical desktop-pixel deltas. This option requires access to the glob
   <data name="Playback_StrictSpeedMotionRate" xml:space="preserve">
     <value>Report limit</value>
   </data>
+  <data name="Playback_PrecisionMotionRate" xml:space="preserve">
+    <value>Quality ceiling</value>
+  </data>
   <data name="Playback_PrecisionMotionRateHint" xml:space="preserve">
     <value>Smoothest route; effective speed may be reduced.</value>
   </data>
@@ -945,6 +948,12 @@ On records logical desktop-pixel deltas. This option requires access to the glob
   </data>
   <data name="Files_StatusReady" xml:space="preserve">
     <value>Ready</value>
+  </data>
+  <data name="Files_StatusLoading" xml:space="preserve">
+    <value>Loading macro...</value>
+  </data>
+  <data name="Files_StatusSaving" xml:space="preserve">
+    <value>Saving macro...</value>
   </data>
   <data name="Files_OpenMacroDialogFilter" xml:space="preserve">
     <value>Macro Files</value>
@@ -1810,6 +1819,9 @@ On records logical desktop-pixel deltas. This option requires access to the glob
   <data name="HotkeyCapture_ServiceError" xml:space="preserve">
     <value>Service Error</value>
   </data>
+  <data name="HotkeyCapture_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
   <data name="Dialog_Yes" xml:space="preserve">
     <value>Yes</value>
   </data>
@@ -2205,6 +2217,15 @@ On records logical desktop-pixel deltas. This option requires access to the glob
   </data>
   <data name="Editor_SelectedActionsFormat" xml:space="preserve">
     <value>{0} selected</value>
+  </data>
+  <data name="Editor_SelectedActionsLabel" xml:space="preserve">
+    <value>actions selected</value>
+  </data>
+  <data name="Editor_SelectedWaitActionsLabel" xml:space="preserve">
+    <value>wait actions selected</value>
+  </data>
+  <data name="Editor_MultiSelectionPropertiesHint" xml:space="preserve">
+    <value>Properties are shown only when one action or multiple wait actions are selected.</value>
   </data>
   <data name="Editor_RunTest" xml:space="preserve">
     <value>Run Test</value>

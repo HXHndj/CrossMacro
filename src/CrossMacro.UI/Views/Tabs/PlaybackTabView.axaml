@@ -72,7 +72,7 @@
                                     IsVisible="{Binding ShowPrecisionMotionRate}">
                             <StackPanel Orientation="Horizontal" Spacing="4">
                                 <TextBlock Classes="field-label"
-                                           Text="{localization:Loc Playback_StrictSpeedMotionRate}"/>
+                                           Text="{localization:Loc Playback_PrecisionMotionRate}"/>
                                 <TextBlock Classes="caption" Text="/ s"/>
                             </StackPanel>
                             <NumericUpDown

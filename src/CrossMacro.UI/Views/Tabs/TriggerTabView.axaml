@@ -46,8 +46,16 @@ Margin="0,0,12,0"/>
                         </Button>
                     </Grid>
 
-                    <ItemsControl ItemsSource="{Binding Tasks}">
-                        <ItemsControl.ItemTemplate>
+                    <ScrollViewer MaxHeight="280"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{Binding Tasks}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <VirtualizingStackPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
                                  <DataTemplate x:DataType="vm:TriggerTaskEditor">
                                 <Border Classes="task-row"
                                         Classes.selected="{Binding IsSelected}">
@@ -98,7 +106,8 @@ Margin="0,0,12,0"/>
                                                 Command="{Binding #TriggerListBorder.((vm:TriggerViewModel)DataContext).SelectTaskCommand}"
                                                 CommandParameter="{Binding}"
                                                 Cursor="Hand"
-                                                ToolTip.Tip="{localization:Loc Trigger_EditTooltip}">
+                                                ToolTip.Tip="{localization:Loc Trigger_EditTooltip}"
+                                                AutomationProperties.Name="{localization:Loc Trigger_EditTooltip}">
                                             <PathIcon Data="{icons:AppIcon Edit}" Width="14" Height="14"/>
                                         </Button>
 
@@ -110,14 +119,16 @@ Margin="0,0,12,0"/>
                                                 Command="{Binding #TriggerListBorder.((vm:TriggerViewModel)DataContext).RemoveTaskCommand}"
                                                 CommandParameter="{Binding}"
                                                 Cursor="Hand"
-                                                ToolTip.Tip="{localization:Loc Trigger_DeleteTooltip}">
+                                                ToolTip.Tip="{localization:Loc Trigger_DeleteTooltip}"
+                                                AutomationProperties.Name="{localization:Loc Trigger_DeleteTooltip}">
                                             <PathIcon Data="{icons:AppIcon Delete}" Width="14" Height="14" Opacity="0.85"/>
                                         </Button>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
                 </StackPanel>
             </Border>
 

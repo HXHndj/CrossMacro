@@ -31,6 +31,13 @@ public partial class FilesViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(CanSaveMacro))]
     private bool _canManageLoadedMacrosExternal = true;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanLoadMacro))]
+    [NotifyPropertyChangedFor(nameof(CanSaveMacro))]
+    private bool _isFileOperationInProgress;
+
+    private int _fileOperationGate;
+
     /// <summary>
     /// Event fired when a macro is loaded from disk.
     /// </summary>
@@ -144,9 +151,9 @@ public partial class FilesViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(CanSaveMacro))]
     public partial bool HasRecordedMacro { get; private set; }
 
-    public bool CanLoadMacro => CanManageLoadedMacrosExternal;
+    public bool CanLoadMacro => !IsFileOperationInProgress && CanManageLoadedMacrosExternal;
 
-    public bool CanSaveMacro => HasRecordedMacro && CanManageLoadedMacrosExternal;
+    public bool CanSaveMacro => HasRecordedMacro && !IsFileOperationInProgress && CanManageLoadedMacrosExternal;
 
     public bool IsSelectedOnlyMode
     {
@@ -277,8 +284,15 @@ public partial class FilesViewModel : ViewModelBase
             return;
         }
 
+        if (!TryBeginFileOperation())
+        {
+            return;
+        }
+
         try
         {
+            await RunOnUiThreadAsync(() => SetTransientStatus(_localizationService["Files_StatusSaving"])).ConfigureAwait(false);
+
             var filters =
                 new[]
                 {
@@ -308,6 +322,10 @@ public partial class FilesViewModel : ViewModelBase
         {
             await RunOnUiThreadAsync(() => SetTransientStatus(string.Format(_localizationService.CurrentCulture, _localizationService["Files_StatusSaveError"], ex.Message))).ConfigureAwait(false);
         }
+        finally
+        {
+            await EndFileOperationAsync().ConfigureAwait(false);
+        }
     }
 
     public async Task LoadMacroAsync()
@@ -317,8 +335,15 @@ public partial class FilesViewModel : ViewModelBase
             return;
         }
 
+        if (!TryBeginFileOperation())
+        {
+            return;
+        }
+
         try
         {
+            await RunOnUiThreadAsync(() => SetTransientStatus(_localizationService["Files_StatusLoading"])).ConfigureAwait(false);
+
             var filters =
                 new[]
                 {
@@ -350,6 +375,34 @@ public partial class FilesViewModel : ViewModelBase
         catch (Exception ex) when (ex is not OutOfMemoryException)
         {
             await RunOnUiThreadAsync(() => SetTransientStatus(string.Format(_localizationService.CurrentCulture, _localizationService["Files_StatusLoadError"], ex.Message))).ConfigureAwait(false);
+        }
+        finally
+        {
+            await EndFileOperationAsync().ConfigureAwait(false);
+        }
+    }
+
+    private bool TryBeginFileOperation()
+    {
+        if (!CanManageLoadedMacrosExternal
+            || Interlocked.CompareExchange(ref _fileOperationGate, 1, 0) is not 0)
+        {
+            return false;
+        }
+
+        IsFileOperationInProgress = true;
+        return true;
+    }
+
+    private async Task EndFileOperationAsync()
+    {
+        try
+        {
+            await RunOnUiThreadAsync(() => IsFileOperationInProgress = false).ConfigureAwait(false);
+        }
+        finally
+        {
+            Volatile.Write(ref _fileOperationGate, 0);
         }
     }
 

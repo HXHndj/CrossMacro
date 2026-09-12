@@ -5,6 +5,7 @@
   <ItemGroup>
     <PackageVersion Include="Avalonia" Version="12.1.1" />
     <PackageVersion Include="Avalonia.Fonts.Inter" Version="12.1.1" />
+    <PackageVersion Include="Avalonia.Headless" Version="12.1.1" />
     <PackageVersion Include="Avalonia.HarfBuzz" Version="12.1.1" />
     <PackageVersion Include="Avalonia.Native" Version="12.1.1" />
     <PackageVersion Include="Avalonia.Skia" Version="12.1.1" />

@@ -304,6 +304,9 @@
   <data name="Playback_StrictSpeedMotionRate" xml:space="preserve">
     <value>レポート上限</value>
   </data>
+  <data name="Playback_PrecisionMotionRate" xml:space="preserve">
+    <value>品質上限</value>
+  </data>
   <data name="Playback_PrecisionMotionRateHint" xml:space="preserve">
     <value>最も滑らかな軌跡を優先し、実効速度を下げる場合があります。</value>
   </data>
@@ -945,6 +948,12 @@
   </data>
   <data name="Files_StatusReady" xml:space="preserve">
     <value>準備完了</value>
+  </data>
+  <data name="Files_StatusLoading" xml:space="preserve">
+    <value>マクロを読み込み中...</value>
+  </data>
+  <data name="Files_StatusSaving" xml:space="preserve">
+    <value>マクロを保存中...</value>
   </data>
   <data name="Files_OpenMacroDialogFilter" xml:space="preserve">
     <value>マクロファイル</value>
@@ -1831,6 +1840,9 @@
   <data name="HotkeyCapture_ServiceError" xml:space="preserve">
     <value>サービスエラー</value>
   </data>
+  <data name="HotkeyCapture_Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
   <data name="Dialog_Yes" xml:space="preserve">
     <value>はい</value>
   </data>
@@ -2193,6 +2205,15 @@
   </data>
   <data name="Editor_SelectedActionsFormat" xml:space="preserve">
     <value>{0} 件選択中</value>
+  </data>
+  <data name="Editor_SelectedActionsLabel" xml:space="preserve">
+    <value>アクションを選択中</value>
+  </data>
+  <data name="Editor_SelectedWaitActionsLabel" xml:space="preserve">
+    <value>待機アクションを選択中</value>
+  </data>
+  <data name="Editor_MultiSelectionPropertiesHint" xml:space="preserve">
+    <value>プロパティは1つのアクション、または複数の待機アクションを選択した場合のみ表示されます。</value>
   </data>
   <data name="Editor_RunTest" xml:space="preserve">
     <value>Run Test</value>

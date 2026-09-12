@@ -1077,7 +1077,10 @@
                         <StackPanel Spacing="12" IsVisible="{Binding ShowBatchDelayProperties}">
                             <TextBlock Classes="card-title" Text="{localization:Loc Editor_SelectedActionProperties}"/>
                             <Border Classes="value-display">
-                                <TextBlock Text="{Binding SelectedActionCount, StringFormat='{}{0} wait actions selected'}"/>
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <TextBlock Text="{Binding SelectedActionCount}"/>
+                                    <TextBlock Text="{localization:Loc Editor_SelectedWaitActionsLabel}"/>
+                                </StackPanel>
                             </Border>
 
                             <StackPanel Spacing="4">
@@ -1112,13 +1115,20 @@
                                    HorizontalAlignment="Center"
                                    Margin="0,20"/>
 
-                        <TextBlock Text="{Binding SelectedActionCount, StringFormat='{}{0} actions selected. Properties are shown only for one action or multiple wait actions.'}"
-                                   IsVisible="{Binding ShowMultiSelectionPropertiesHint}"
-                                   Foreground="{DynamicResource TextSecondaryBrush}"
-                                   FontStyle="Italic"
-                                   TextWrapping="Wrap"
-                                   HorizontalAlignment="Center"
-                                   Margin="0,20"/>
+                        <StackPanel IsVisible="{Binding ShowMultiSelectionPropertiesHint}"
+                                    HorizontalAlignment="Center"
+                                    Margin="0,20"
+                                    Spacing="4">
+                            <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding SelectedActionCount}"/>
+                                <TextBlock Text="{localization:Loc Editor_SelectedActionsLabel}"/>
+                            </StackPanel>
+                            <TextBlock Text="{localization:Loc Editor_MultiSelectionPropertiesHint}"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       FontStyle="Italic"
+                                       TextWrapping="Wrap"
+                                       HorizontalAlignment="Center"/>
+                        </StackPanel>
 
                     </StackPanel>
                 </ScrollViewer>
@@ -1126,7 +1136,7 @@
         </Grid>
 
         <!-- Footer: Status + Actions -->
-        <Border Grid.Row="2" Margin="0,16,0,0">
+        <Border Grid.Row="1" Margin="0,16,0,0">
             <StackPanel Spacing="8">
                 <Border IsVisible="{Binding HasLoadWarnings}"
                         Classes="notice-card warning">

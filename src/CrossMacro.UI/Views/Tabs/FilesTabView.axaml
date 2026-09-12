@@ -17,7 +17,7 @@
         <designVm:DesignFilesViewModel/>
     </Design.DataContext>
 
-    <Panel>
+    <Panel IsEnabled="{Binding !IsFileOperationInProgress}">
         <ScrollViewer Padding="0">
             <StackPanel Spacing="20">
                 <StackPanel Spacing="8">
@@ -27,7 +27,15 @@
                                  ItemsSource="{Binding LoadedMacros}"
                                  SelectedItem="{Binding SelectedMacroItem}"
                                  MinHeight="220"
+                                 MaxHeight="280"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                  IsEnabled="{Binding CanManageLoadedMacrosExternal}">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <VirtualizingStackPanel />
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
                             <ListBox.ItemTemplate>
                                 <DataTemplate x:DataType="models:LoadedMacroListItem">
                                     <Grid ColumnDefinitions="*,Auto"
@@ -63,7 +71,8 @@
                                                 Command="{Binding #FilesRoot.((vm:FilesViewModel)DataContext).RemoveLoadedMacroCommand}"
                                                 CommandParameter="{Binding}"
                                                 Cursor="Hand"
-                                                ToolTip.Tip="{localization:Loc Files_RemoveLoadedMacroTooltip}">
+                                                ToolTip.Tip="{localization:Loc Files_RemoveLoadedMacroTooltip}"
+                                                AutomationProperties.Name="{localization:Loc Files_RemoveLoadedMacroTooltip}">
                                             <PathIcon Data="{icons:AppIcon Delete}"
                                                                 Width="14"
                                                                 Height="14"

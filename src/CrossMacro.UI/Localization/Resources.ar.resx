@@ -304,6 +304,9 @@
   <data name="Playback_StrictSpeedMotionRate" xml:space="preserve">
     <value>حد التقارير</value>
   </data>
+  <data name="Playback_PrecisionMotionRate" xml:space="preserve">
+    <value>سقف الجودة</value>
+  </data>
   <data name="Playback_PrecisionMotionRateHint" xml:space="preserve">
     <value>لأكثر مسار سلاسة؛ قد تنخفض السرعة الفعلية.</value>
   </data>
@@ -945,6 +948,12 @@
   </data>
   <data name="Files_StatusReady" xml:space="preserve">
     <value>مستعد</value>
+  </data>
+  <data name="Files_StatusLoading" xml:space="preserve">
+    <value>جارٍ تحميل الماكرو...</value>
+  </data>
+  <data name="Files_StatusSaving" xml:space="preserve">
+    <value>جارٍ حفظ الماكرو...</value>
   </data>
   <data name="Files_OpenMacroDialogFilter" xml:space="preserve">
     <value>ملفات ماكرو</value>
@@ -1831,6 +1840,9 @@
   <data name="HotkeyCapture_ServiceError" xml:space="preserve">
     <value>خطأ في الخدمة</value>
   </data>
+  <data name="HotkeyCapture_Cancel" xml:space="preserve">
+    <value>إلغاء</value>
+  </data>
   <data name="Dialog_Yes" xml:space="preserve">
     <value>نعم</value>
   </data>
@@ -2193,6 +2205,15 @@
   </data>
   <data name="Editor_SelectedActionsFormat" xml:space="preserve">
     <value>{0} محددة</value>
+  </data>
+  <data name="Editor_SelectedActionsLabel" xml:space="preserve">
+    <value>إجراءات محددة</value>
+  </data>
+  <data name="Editor_SelectedWaitActionsLabel" xml:space="preserve">
+    <value>إجراءات انتظار محددة</value>
+  </data>
+  <data name="Editor_MultiSelectionPropertiesHint" xml:space="preserve">
+    <value>تظهر الخصائص عند تحديد إجراء واحد أو عدة إجراءات انتظار فقط.</value>
   </data>
   <data name="Editor_RunTest" xml:space="preserve">
     <value>Run Test</value>

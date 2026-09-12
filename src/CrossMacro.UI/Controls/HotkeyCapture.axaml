@@ -2,54 +2,73 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="using:CrossMacro.UI.Controls"
              xmlns:icons="using:CrossMacro.UI.Icons"
+             xmlns:localization="using:CrossMacro.UI.Localization"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="160" d:DesignHeight="36"
              x:Class="CrossMacro.UI.Controls.HotkeyCapture"
              x:DataType="controls:HotkeyCapture"
              x:Name="Root"
-             Focusable="True">
-    <Border x:Name="HotkeyBorder"
-            CornerRadius="8"
-            Padding="10,6,10,6"
-            Cursor="Hand"
-            PointerPressed="OnPointerPressed">
-        <Border.Transitions>
-            <Transitions>
-                <BrushTransition Property="Background" Duration="0:0:0.2"/>
-                <BrushTransition Property="BorderBrush" Duration="0:0:0.2"/>
-                <ThicknessTransition Property="BorderThickness" Duration="0:0:0.1"/>
-            </Transitions>
-        </Border.Transitions>
-        
-        <Grid ColumnDefinitions="*,Auto">
-            <!-- Hotkey Display -->
-            <TextBlock Grid.Column="0"
-                       x:Name="DisplayText"
-                       Text="{Binding #Root.DisplayString}"
-                       FontWeight="Bold" 
-                       Foreground="{DynamicResource TextPrimaryBrush}" 
-                       FontFamily="Consolas,Courier New,monospace"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       Margin="0,0,10,0"/>
-            
-            <!-- Edit Icon -->
-            <PathIcon x:Name="EditIcon"
-                      Grid.Column="1"
-                      Data="{icons:AppIcon Edit}"
-                      Foreground="{DynamicResource TextSecondaryBrush}"
-                      Width="14"
-                      Height="14"
-                      Opacity="0.5"
-                      VerticalAlignment="Center">
-                <PathIcon.Transitions>
-                    <Transitions>
-                        <DoubleTransition Property="Opacity" Duration="0:0:0.2"/>
-                    </Transitions>
-                </PathIcon.Transitions>
-            </PathIcon>
-        </Grid>
-    </Border>
+             Focusable="True"
+             IsTabStop="True"
+             KeyDown="OnKeyDown"
+             AutomationProperties.Name="{Binding #Root.DisplayString}">
+    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+        <Border x:Name="HotkeyBorder"
+                Grid.Column="0"
+                CornerRadius="8"
+                Padding="10,6,10,6"
+                PointerPressed="OnPointerPressed">
+            <Border.Transitions>
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2"/>
+                    <ThicknessTransition Property="BorderThickness" Duration="0:0:0.1"/>
+                </Transitions>
+            </Border.Transitions>
+
+            <Grid ColumnDefinitions="*,Auto">
+                <!-- Hotkey Display -->
+                <TextBlock Grid.Column="0"
+                           x:Name="DisplayText"
+                           Text="{Binding #Root.DisplayString}"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           FontFamily="Consolas,Courier New,monospace"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Margin="0,0,10,0"/>
+
+                <!-- Edit Icon -->
+                <!-- Data is assigned in code on attach: resolving it during XAML
+                     populate requires platform geometry services that unit tests
+                     do not register. -->
+                <PathIcon x:Name="EditIcon"
+                          Grid.Column="1"
+                          Foreground="{DynamicResource TextSecondaryBrush}"
+                          Width="14"
+                          Height="14"
+                          Opacity="0.5"
+                          VerticalAlignment="Center">
+                    <PathIcon.Transitions>
+                        <Transitions>
+                            <DoubleTransition Property="Opacity" Duration="0:0:0.2"/>
+                        </Transitions>
+                    </PathIcon.Transitions>
+                </PathIcon>
+            </Grid>
+        </Border>
+
+        <Button x:Name="CancelButton"
+                Grid.Column="1"
+                Classes="secondary compact"
+                IsVisible="{Binding #Root.IsCapturing}"
+                Click="OnCancelCaptureClick"
+                Padding="8,6"
+                VerticalAlignment="Center"
+                ToolTip.Tip="{localization:Loc HotkeyCapture_Cancel}">
+            <TextBlock Text="{localization:Loc HotkeyCapture_Cancel}"/>
+        </Button>
+    </Grid>
     
 </UserControl>

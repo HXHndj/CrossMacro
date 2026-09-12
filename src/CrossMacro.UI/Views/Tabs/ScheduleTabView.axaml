@@ -45,8 +45,16 @@ Margin="0,0,12,0"/>
                         </Button>
                     </Grid>
 
-                    <ItemsControl ItemsSource="{Binding Tasks}">
-                        <ItemsControl.ItemTemplate>
+                    <ScrollViewer MaxHeight="280"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{Binding Tasks}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <VirtualizingStackPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
                              <DataTemplate x:DataType="vm:ScheduledTaskEditor">
                                 <Border Classes="task-row"
                                         Classes.selected="{Binding IsSelected}">
@@ -91,7 +99,8 @@ Margin="0,0,12,0"/>
                                                 Command="{Binding #TaskListBorder.((vm:ScheduleViewModel)DataContext).SelectTaskCommand}"
                                                 CommandParameter="{Binding}"
                                                 Cursor="Hand"
-                                                ToolTip.Tip="{localization:Loc Schedule_EditTask}">
+                                                ToolTip.Tip="{localization:Loc Schedule_EditTask}"
+                                                AutomationProperties.Name="{localization:Loc Schedule_EditTask}">
                                             <PathIcon Data="{icons:AppIcon Edit}" Width="14" Height="14"/>
                                         </Button>
 
@@ -103,14 +112,16 @@ Margin="0,0,12,0"/>
                                                 Command="{Binding #TaskListBorder.((vm:ScheduleViewModel)DataContext).RemoveTaskCommand}"
                                                 CommandParameter="{Binding}"
                                                 Cursor="Hand"
-                                                ToolTip.Tip="{localization:Loc Schedule_DeleteTask}">
+                                                ToolTip.Tip="{localization:Loc Schedule_DeleteTask}"
+                                                AutomationProperties.Name="{localization:Loc Schedule_DeleteTask}">
                                             <PathIcon Data="{icons:AppIcon Delete}" Width="14" Height="14" Opacity="0.85"/>
                                         </Button>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
                 </StackPanel>
             </Border>
 

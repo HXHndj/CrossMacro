@@ -37,6 +37,13 @@ public partial class HotkeyCapture : UserControl, IDisposable
     private ILocalizationService? _attachedLocalizationService;
     private readonly Lock _validationResetLock = new();
     private readonly Lock _captureLock = new();
+    private long _captureVersion;
+    private Task? _lastCaptureTask;
+
+    // Test seams keep the interaction tests headless while production still uses the
+    // platform hotkey service and Avalonia dispatcher.
+    internal Func<CancellationToken, Task<string>>? CaptureNextKeyAsyncOverride { get; set; }
+    internal Action<Action>? UiPostOverride { get; set; }
 
     public ILocalizationService? LocalizationService
     {
@@ -127,6 +134,10 @@ public partial class HotkeyCapture : UserControl, IDisposable
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         _isDetached = false;
+        // Platform visuals (geometry + cursor) resolve platform services; they
+        // are only available once a real renderer is present, never in unit tests.
+        EditIcon.Data = Icons.AppIcons.Get(Icons.AppIcon.Edit);
+        HotkeyBorder.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand);
         UpdateDisplayString();
         base.OnAttachedToVisualTree(e);
     }
@@ -180,7 +191,59 @@ public partial class HotkeyCapture : UserControl, IDisposable
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         e.Handled = true;
-        _ = StartCaptureAsync();
+        _ = Focus();
+        BeginCapture();
+    }
+
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Source is Control source && !ReferenceEquals(source, this))
+        {
+            return;
+        }
+
+        if (e.Key is not (Key.Enter or Key.Space))
+        {
+            return;
+        }
+
+        e.Handled = true;
+        BeginCapture();
+    }
+
+    private void OnCancelCaptureClick(object? sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        CancelCapture();
+        IsCapturing = false;
+        UpdateDisplayString();
+        UpdateVisualStateClasses();
+        _ = Focus();
+    }
+
+    private void BeginCapture()
+    {
+        if (!IsCapturing)
+        {
+            _lastCaptureTask = StartCaptureAsync();
+        }
+    }
+
+    internal Task InvokeKeyDownForTestAsync(Key key, object? source = null)
+    {
+        _isDetached = false;
+        var keyEvent = new KeyEventArgs
+        {
+            Key = key,
+            Source = source ?? this,
+        };
+        OnKeyDown(this, keyEvent);
+        return _lastCaptureTask ?? Task.CompletedTask;
+    }
+
+    internal void CancelCaptureForTest()
+    {
+        OnCancelCaptureClick(this, new RoutedEventArgs());
     }
 
     private async Task StartCaptureAsync()
@@ -192,7 +255,7 @@ public partial class HotkeyCapture : UserControl, IDisposable
 
         var hotkeyService = GlobalHotkeyService;
 
-        if (hotkeyService is null)
+        if (hotkeyService is null && CaptureNextKeyAsyncOverride is null)
         {
             DisplayString = ServiceErrorDisplayText;
             return;
@@ -202,6 +265,7 @@ public partial class HotkeyCapture : UserControl, IDisposable
         UpdateDisplayString();
         UpdateVisualStateClasses();
         CancelCapture();
+        var captureVersion = Interlocked.Increment(ref _captureVersion);
         var captureCts = new CancellationTokenSource();
         _captureCts = captureCts;
         var captureToken = captureCts.Token;
@@ -209,12 +273,13 @@ public partial class HotkeyCapture : UserControl, IDisposable
         try
         {
             // Capture directly from the service (bypassing UI/OS filtering)
-            var newHotkey = await hotkeyService.CaptureNextKeyAsync(captureToken).ConfigureAwait(false);
+            var newHotkey = await (CaptureNextKeyAsyncOverride?.Invoke(captureToken)
+                ?? hotkeyService!.CaptureNextKeyAsync(captureToken)).ConfigureAwait(false);
 
             // Update on UI thread
-            Dispatcher.UIThread.Post(() =>
+            PostToUi(() =>
             {
-                if (_isDetached)
+                if (!IsCaptureCurrent(captureVersion, captureToken))
                 {
                     return;
                 }
@@ -252,9 +317,9 @@ public partial class HotkeyCapture : UserControl, IDisposable
         catch (OperationCanceledException) when (captureToken.IsCancellationRequested) { /* Empty */ }
         catch (Exception ex) when (ex is not OutOfMemoryException)
         {
-            Dispatcher.UIThread.Post(() =>
+            PostToUi(() =>
             {
-                if (_isDetached)
+                if (!IsCaptureCurrent(captureVersion, captureToken))
                 {
                     return;
                 }
@@ -351,6 +416,7 @@ public partial class HotkeyCapture : UserControl, IDisposable
 
     private void CancelCapture()
     {
+        _ = Interlocked.Increment(ref _captureVersion);
         lock (_captureLock)
         {
             if (_captureCts is null)
@@ -361,6 +427,25 @@ public partial class HotkeyCapture : UserControl, IDisposable
             _captureCts.Cancel();
             _captureCts = null;
         }
+    }
+
+    private bool IsCaptureCurrent(long captureVersion, CancellationToken captureToken)
+    {
+        return !_isDetached
+            && !_disposed
+            && !captureToken.IsCancellationRequested
+            && Volatile.Read(ref _captureVersion) == captureVersion;
+    }
+
+    private void PostToUi(Action action)
+    {
+        if (UiPostOverride is { } post)
+        {
+            post(action);
+            return;
+        }
+
+        Dispatcher.UIThread.Post(action);
     }
 
     public void Dispose()

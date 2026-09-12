@@ -304,6 +304,9 @@ Activé enregistre les deltas de pixels logiques du bureau. Cette option nécess
   <data name="Playback_StrictSpeedMotionRate" xml:space="preserve">
     <value>Limite de rapports</value>
   </data>
+  <data name="Playback_PrecisionMotionRate" xml:space="preserve">
+    <value>Plafond de qualité</value>
+  </data>
   <data name="Playback_PrecisionMotionRateHint" xml:space="preserve">
     <value>Trajet le plus fluide ; la vitesse effective peut être réduite.</value>
   </data>
@@ -945,6 +948,12 @@ Activé enregistre les deltas de pixels logiques du bureau. Cette option nécess
   </data>
   <data name="Files_StatusReady" xml:space="preserve">
     <value>Prêt</value>
+  </data>
+  <data name="Files_StatusLoading" xml:space="preserve">
+    <value>Chargement de la macro...</value>
+  </data>
+  <data name="Files_StatusSaving" xml:space="preserve">
+    <value>Enregistrement de la macro...</value>
   </data>
   <data name="Files_OpenMacroDialogFilter" xml:space="preserve">
     <value>Fichiers de macros</value>
@@ -1831,6 +1840,9 @@ Activé enregistre les deltas de pixels logiques du bureau. Cette option nécess
   <data name="HotkeyCapture_ServiceError" xml:space="preserve">
     <value>Erreur de service</value>
   </data>
+  <data name="HotkeyCapture_Cancel" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
   <data name="Dialog_Yes" xml:space="preserve">
     <value>Oui</value>
   </data>
@@ -2193,6 +2205,15 @@ Activé enregistre les deltas de pixels logiques du bureau. Cette option nécess
   </data>
   <data name="Editor_SelectedActionsFormat" xml:space="preserve">
     <value>{0} sélectionnées</value>
+  </data>
+  <data name="Editor_SelectedActionsLabel" xml:space="preserve">
+    <value>actions sélectionnées</value>
+  </data>
+  <data name="Editor_SelectedWaitActionsLabel" xml:space="preserve">
+    <value>actions d’attente sélectionnées</value>
+  </data>
+  <data name="Editor_MultiSelectionPropertiesHint" xml:space="preserve">
+    <value>Les propriétés s’affichent uniquement lorsqu’une action ou plusieurs actions d’attente sont sélectionnées.</value>
   </data>
   <data name="Editor_RunTest" xml:space="preserve">
     <value>Run Test</value>

@@ -19,31 +19,43 @@ const metadata = {
 const screenshots = [
   {
     src: playbackImage.src,
+    width: playbackImage.width,
+    height: playbackImage.height,
     alt: 'CrossMacro playback tab with macro playback settings.',
     label: 'Playback',
   },
   {
     src: textExpansionImage.src,
+    width: textExpansionImage.width,
+    height: textExpansionImage.height,
     alt: 'CrossMacro text expansion tab with shortcut entries.',
     label: 'Text Expansion',
   },
   {
     src: shortcutsImage.src,
+    width: shortcutsImage.width,
+    height: shortcutsImage.height,
     alt: 'CrossMacro shortcuts tab with keyboard shortcut bindings.',
     label: 'Shortcuts',
   },
   {
     src: scheduleImage.src,
+    width: scheduleImage.width,
+    height: scheduleImage.height,
     alt: 'CrossMacro scheduled tasks tab with automation schedules.',
     label: 'Scheduled Tasks',
   },
   {
     src: editorImage.src,
+    width: editorImage.width,
+    height: editorImage.height,
     alt: 'CrossMacro editor tab for editing macro actions.',
     label: 'Editor',
   },
   {
     src: settingsImage.src,
+    width: settingsImage.width,
+    height: settingsImage.height,
     alt: 'CrossMacro settings tab with app preferences.',
     label: 'Settings',
   },
@@ -114,7 +126,7 @@ const downloadCards = [
       </div>
     </div>
     <div class="hero__visual">
-      <img class="hero__image" src={recordingImage.src} alt="CrossMacro recording interface preview." decoding="async" />
+      <img class="hero__image" src={recordingImage.src} width={recordingImage.width} height={recordingImage.height} alt="CrossMacro recording interface preview." decoding="async" />
     </div>
   </section>
 
@@ -140,10 +152,13 @@ const downloadCards = [
       {screenshots.map((shot, index) => (
         <figure class="screenshot-card">
           <div class="screenshot-card__frame">
-            <img src={shot.src} alt={shot.alt} loading={index === 0 ? 'eager' : 'lazy'} decoding="async" />
+            <img src={shot.src} width={shot.width} height={shot.height} alt={shot.alt} loading={index === 0 ? 'eager' : 'lazy'} decoding="async" />
           </div>
           <figcaption>
             <strong>{shot.label}</strong>
+            <a class="screenshot-card__original" href={shot.src} target="_blank" rel="noreferrer" aria-label={`Open full-size ${shot.label} screenshot`}>
+              Open full-size image
+            </a>
           </figcaption>
         </figure>
       ))}
