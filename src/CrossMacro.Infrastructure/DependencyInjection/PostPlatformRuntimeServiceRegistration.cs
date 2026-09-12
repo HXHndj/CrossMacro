@@ -28,7 +28,8 @@ internal static class PostPlatformRuntimeServiceRegistration
         // Route all consumers (global hotkeys, text expansion, recording) through
         // one shared physical input capture so a single native hook chain serves
         // the whole process. Requires the platform's InputCaptureSessionFactory.
-        if (services.All(descriptor => descriptor.ServiceType != typeof(InputCaptureSessionCoordinator)))
+        if (services.Any(descriptor => descriptor.ServiceType == typeof(InputCaptureSessionFactory))
+            && services.All(descriptor => descriptor.ServiceType != typeof(InputCaptureSessionCoordinator)))
         {
             _ = services.AddSingleton<InputCaptureSessionCoordinator>(sp =>
                 new InputCaptureSessionCoordinator(sp.GetRequiredService<InputCaptureSessionFactory>()));
