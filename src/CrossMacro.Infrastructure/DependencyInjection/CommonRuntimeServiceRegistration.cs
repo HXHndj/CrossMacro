@@ -15,6 +15,6 @@ internal static class CommonRuntimeServiceRegistration
             sp.GetService<Func<IInputCapture>>(), sp.GetRequiredService<ICoordinateStrategyFactory>(),
             sp.GetRequiredService<Func<ICoordinateStrategy, IInputEventProcessor>>(), sp.GetService<Func<IInputSimulator>>(),
             sp.GetService<IMousePositionProvider>(), sp.GetService<IInputSimulatorPool>(),
-            sp.GetService<ICoarseDelayStrategy>()));
+            sp.GetService<ICoarseDelayStrategy>(), sp.GetService<ISettingsService>()));
     }
 }

@@ -11,14 +11,34 @@ public class StandardInputEventProcessor(ICoordinateStrategy coordinateStrategy)
     private int _lastEmittedX = int.MinValue;
     private int _lastEmittedY = int.MinValue;
 
-    public void Configure(bool recordMouse, bool recordKeyboard, IReadOnlySet<int>? ignoredKeys, bool isAbsoluteCoordinates = false)
+    /// <summary>Default online debounce radius (pixels) for condensed absolute recording.</summary>
+    public const int DefaultCondenseRadiusPixels = 2;
+
+    /// <summary>Condensed samples older than this gap from the last kept sample are always kept.</summary>
+    public static readonly long DefaultCondenseMaxGapMilliseconds = 100;
+
+    private int _condenseRadiusPixels;
+    private long _condenseMaxGapMilliseconds;
+    private long _lastEmittedTimestamp;
+
+    public void Configure(
+        bool recordMouse,
+        bool recordKeyboard,
+        IReadOnlySet<int>? ignoredKeys,
+        bool isAbsoluteCoordinates = false,
+        bool condenseMouseMove = true,
+        int condenseRadiusPixels = DefaultCondenseRadiusPixels,
+        long condenseMaxGapMilliseconds = 100)
     {
         _recordMouse = recordMouse;
         _recordKeyboard = recordKeyboard;
         _ignoredKeys = ignoredKeys;
         _isAbsoluteCoordinates = isAbsoluteCoordinates;
+        _condenseRadiusPixels = condenseMouseMove ? Math.Max(0, condenseRadiusPixels) : 0;
+        _condenseMaxGapMilliseconds = condenseMaxGapMilliseconds;
         _lastEmittedX = int.MinValue;
         _lastEmittedY = int.MinValue;
+        _lastEmittedTimestamp = 0;
     }
 
     public MacroEvent? Process(CapturedInputEvent args, long timestamp)
@@ -120,8 +140,25 @@ public class StandardInputEventProcessor(ICoordinateStrategy coordinateStrategy)
                 return null;
             }
 
+            // Online radial debounce (absolute mode only): drop micro-jitter that
+            // stays within the condense radius of the last kept sample unless the
+            // gap grows past the time budget (which preserves pauses and slow
+            // drifts). Relative deltas are never condensed.
+            if (_condenseRadiusPixels > 0 && _lastEmittedX is not int.MinValue)
+            {
+                var deltaX = (long)sample.X - _lastEmittedX;
+                var deltaY = (long)sample.Y - _lastEmittedY;
+                var elapsedMilliseconds = timestamp - _lastEmittedTimestamp;
+                if ((deltaX * deltaX) + (deltaY * deltaY) < ((long)_condenseRadiusPixels * _condenseRadiusPixels)
+                    && elapsedMilliseconds < _condenseMaxGapMilliseconds)
+                {
+                    return null;
+                }
+            }
+
             _lastEmittedX = sample.X;
             _lastEmittedY = sample.Y;
+            _lastEmittedTimestamp = timestamp;
         }
 
         return new MacroEvent

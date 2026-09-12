@@ -5,6 +5,65 @@ public sealed class StandardInputEventProcessorTests
 {
 
     [Fact]
+    public void ProcessPositionSample_CondensedAbsolute_DropsSubRadiusJitter()
+    {
+        var strategy = Substitute.For<ICoordinateStrategy>();
+        var processor = new StandardInputEventProcessor(strategy);
+        processor.Configure(
+            recordMouse: true, recordKeyboard: true, ignoredKeys: null,
+            isAbsoluteCoordinates: true, condenseMouseMove: true);
+
+        _ = processor.ProcessPositionSample(CoordinateSample.Create(100, 100), timestamp: 1_000).Should().NotBeNull();
+        _ = processor.ProcessPositionSample(CoordinateSample.Create(101, 100), timestamp: 1_010).Should().BeNull();
+        _ = processor.ProcessPositionSample(CoordinateSample.Create(100, 101), timestamp: 1_020).Should().BeNull();
+        // Past the radius: kept.
+        _ = processor.ProcessPositionSample(CoordinateSample.Create(104, 100), timestamp: 1_030).Should().NotBeNull();
+    }
+
+    [Fact]
+    public void ProcessPositionSample_CondensedAbsolute_KeepsSamplesAfterTimeBudgetEvenWithinRadius()
+    {
+        var strategy = Substitute.For<ICoordinateStrategy>();
+        var processor = new StandardInputEventProcessor(strategy);
+        processor.Configure(
+            recordMouse: true, recordKeyboard: true, ignoredKeys: null,
+            isAbsoluteCoordinates: true, condenseMouseMove: true);
+
+        _ = processor.ProcessPositionSample(CoordinateSample.Create(100, 100), timestamp: 1_000).Should().NotBeNull();
+        // 1px away but past the 100 ms budget: the slow drift is preserved.
+        _ = processor.ProcessPositionSample(CoordinateSample.Create(101, 100), timestamp: 1_200).Should().NotBeNull();
+    }
+
+    [Fact]
+    public void ProcessPositionSample_CondenseDisabled_KeepsEveryDistinctSample()
+    {
+        var strategy = Substitute.For<ICoordinateStrategy>();
+        var processor = new StandardInputEventProcessor(strategy);
+        processor.Configure(
+            recordMouse: true, recordKeyboard: true, ignoredKeys: null,
+            isAbsoluteCoordinates: true, condenseMouseMove: false);
+
+        _ = processor.ProcessPositionSample(CoordinateSample.Create(100, 100), timestamp: 1_000).Should().NotBeNull();
+        _ = processor.ProcessPositionSample(CoordinateSample.Create(101, 100), timestamp: 1_010).Should().NotBeNull();
+    }
+
+    [Fact]
+    public void ProcessPositionSample_RelativeMode_IsNeverCondensed()
+    {
+        var strategy = Substitute.For<ICoordinateStrategy>();
+        var processor = new StandardInputEventProcessor(strategy);
+        processor.Configure(
+            recordMouse: true, recordKeyboard: true, ignoredKeys: null,
+            isAbsoluteCoordinates: false, condenseMouseMove: true);
+
+        // Relative deltas must all survive condensation or the path endpoint drifts.
+        _ = processor.ProcessPositionSample(CoordinateSample.Create(1, 0), timestamp: 1_000).Should().NotBeNull();
+        _ = processor.ProcessPositionSample(CoordinateSample.Create(1, 0), timestamp: 1_010).Should().NotBeNull();
+        _ = processor.ProcessPositionSample(CoordinateSample.Create(1, 0), timestamp: 1_020).Should().NotBeNull();
+    }
+
+
+    [Fact]
     public void Process_MouseMove2D_ShouldRecordAsMoveEvent()
     {
         // Arrange

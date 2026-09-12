@@ -8,7 +8,8 @@ public sealed class MacroRecorder(
     Func<IInputSimulator>? inputSimulatorFactory = null,
     IMousePositionProvider? positionProvider = null,
     IInputSimulatorPool? inputSimulatorPool = null,
-    ICoarseDelayStrategy? coarseDelayStrategy = null) : IMacroRecorder
+    ICoarseDelayStrategy? coarseDelayStrategy = null,
+    ISettingsService? settingsService = null) : IMacroRecorder
 {
     private MacroSequence? _currentSequence;
     private ScreenRect? _recordingDesktopBounds;
@@ -24,6 +25,7 @@ public sealed class MacroRecorder(
     private readonly ICoordinateStrategyFactory _coordinateStrategyFactory = coordinateStrategyFactory;
     private readonly Func<ICoordinateStrategy, IInputEventProcessor> _processorFactory = processorFactory;
     private readonly ICoarseDelayStrategy? _coarseDelayStrategy = coarseDelayStrategy;
+    private readonly ISettingsService? _settingsService = settingsService;
 
     private readonly Func<IInputSimulator>? _inputSimulatorFactory = inputSimulatorFactory;
     private readonly IMousePositionProvider? _positionProvider = positionProvider;
@@ -132,7 +134,8 @@ public sealed class MacroRecorder(
                 recordMouse,
                 recordKeyboard,
                 ignoredKeys is not null ? new HashSet<int>(ignoredKeys) : null,
-                useAbsoluteCoordinates);
+                useAbsoluteCoordinates,
+                condenseMouseMove: _settingsService?.Current.CondenseMouseMoveRecording ?? true);
 
             if (_currentStrategy is ICoordinateSampleSource sampleSource)
             {

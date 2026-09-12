@@ -128,6 +128,14 @@ public class AppSettings
     /// </summary>
     public bool SkipInitialZeroZero { get; set; }
 
+    /// <summary>
+    /// Condense absolute-coordinate mouse-move recordings: sub-pixel jitter and
+    /// micro-adjustments within a short window are dropped so playback stays
+    /// faithful while the recorded stream shrinks dramatically. Relative
+    /// recordings are never condensed (dropping deltas would distort paths).
+    /// </summary>
+    public bool CondenseMouseMoveRecording { get; set; } = true;
+
     // Text Expansion Settings
 
     /// <summary>
