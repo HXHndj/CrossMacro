@@ -5,13 +5,15 @@ public sealed class WindowsInputSimulator :
     IInputSimulator,
     IInputSimulatorCapabilities,
     ITaggedKeyboardInputSimulator,
-    ITaggedUnicodeTextInputSimulator
+    ITaggedUnicodeTextInputSimulator,
+    IAbsoluteMotionTrajectorySimulator
 {
+    private const int BatchBufferSize = 128;
     private ScreenRect? _desktopBounds;
 
     // ThreadStatic ensures each thread has its own buffer - thread-safe without locking
     [field: ThreadStatic]
-    private static InputStruct[] InputBuffer { get => field ??= new InputStruct[1]; }
+    private static InputStruct[] InputBuffer { get => field ??= new InputStruct[BatchBufferSize]; }
 
     public string ProviderName => "Windows SendInput";
     public bool IsSupported => OperatingSystem.IsWindows();
@@ -58,12 +60,57 @@ public sealed class WindowsInputSimulator :
         SendInput(input);
     }
 
+    public async Task SimulateAbsoluteTrajectoryAsync(
+        IReadOnlyList<AbsoluteMotionTrajectorySample> samples,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(samples);
+        if (samples.Count is 0)
+        {
+            return;
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // Absolute-deadline pacing (no cumulative drift); the caller re-anchors
+        // its playback timeline once the batch completes.
+        var deadlineTicks = Stopwatch.GetTimestamp();
+        foreach (var sample in samples)
+        {
+            MoveAbsolute(sample.X, sample.Y);
+            if (sample.DelayAfterMicroseconds <= 0)
+            {
+                continue;
+            }
+
+            deadlineTicks = checked(deadlineTicks + MicrosecondsToStopwatchTicks(sample.DelayAfterMicroseconds));
+            await WindowsPrecisionDelay.WaitUntilAsync(deadlineTicks, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private static long MicrosecondsToStopwatchTicks(long microseconds) =>
+        checked((long)Math.Ceiling(microseconds * (double)Stopwatch.Frequency / 1_000_000d));
+
     public void MouseButton(int button, bool pressed)
     {
         if (TryCreateMouseButtonInput(button, pressed, out var input))
         {
             SendInput(input);
         }
+    }
+
+    public void MouseButtonClick(int button)
+    {
+        // Atomic down+up in one SendInput call: halves the P/Invoke count for
+        // click-heavy macros and guarantees no interleaved injection splits the pair.
+        Span<InputStruct> pair = [default, default];
+        if (!TryCreateMouseButtonInput(button, pressed: true, out pair[0])
+            || !TryCreateMouseButtonInput(button, pressed: false, out pair[1]))
+        {
+            return;
+        }
+
+        SendInputBatch(pair);
     }
 
     internal static bool TryCreateMouseButtonInput(int button, bool pressed, out InputStruct input)
@@ -271,6 +318,24 @@ public sealed class WindowsInputSimulator :
         if (injectedInputs is not 1)
         {
             EnsureInputWasAccepted(1, injectedInputs, Marshal.GetLastWin32Error());
+        }
+    }
+
+    private static void SendInputBatch(ReadOnlySpan<InputStruct> inputs)
+    {
+        ArgumentOutOfRangeException.ThrowIfZero(inputs.Length);
+        var buffer = InputBuffer;
+        while (inputs.Length > 0)
+        {
+            var chunkLength = Math.Min(inputs.Length, buffer.Length);
+            inputs[..chunkLength].CopyTo(buffer.AsSpan(0, chunkLength));
+            var injectedInputs = User32.SendInput((uint)chunkLength, buffer, InputStruct.Size);
+            if (injectedInputs != (uint)chunkLength)
+            {
+                EnsureInputWasAccepted((uint)chunkLength, injectedInputs, Marshal.GetLastWin32Error());
+            }
+
+            inputs = inputs[chunkLength..];
         }
     }
 

@@ -309,8 +309,7 @@ public sealed class MacroEventExecutor(
             default:
                 LogClickEvent(ev);
                 var clickButton = (ushort)_buttonMapper.Map(ev.Button);
-                _simulator.MouseButton(clickButton, pressed: true);
-                _simulator.MouseButton(clickButton, pressed: false);
+                _simulator.MouseButtonClick(clickButton);
                 break;
         }
     }

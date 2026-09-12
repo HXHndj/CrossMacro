@@ -191,4 +191,29 @@ public sealed class WindowsInputSimulatorTests
 
         Assert.Equal(new ScreenRect(-1920, -200, 4480, 1640), bounds);
     }
+
+    [Fact]
+    public void Simulator_ImplementsAbsoluteMotionTrajectoryInterface()
+    {
+        using var simulator = new WindowsInputSimulator();
+
+        Assert.IsAssignableFrom<IAbsoluteMotionTrajectorySimulator>(simulator);
+    }
+
+    [Fact]
+    public async Task SimulateAbsoluteTrajectoryAsync_WhenEmpty_ReturnsImmediately()
+    {
+        using var simulator = new WindowsInputSimulator();
+
+        await simulator.SimulateAbsoluteTrajectoryAsync([], CancellationToken.None);
+    }
+
+    [Fact]
+    public void MouseButtonClick_WithUnknownButton_IsSilentlySkipped()
+    {
+        using var simulator = new WindowsInputSimulator();
+
+        // Unknown evdev button codes cannot be mapped; no injection happens.
+        simulator.MouseButtonClick(ushort.MaxValue - 1);
+    }
 }

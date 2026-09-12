@@ -157,9 +157,8 @@ public sealed class MacroEventExecutorTests : IDisposable
         // Act
         _executor.Execute(ev, coordinateMode: null);
 
-        // Assert
-        _simulator.Received(1).MouseButton((ushort)MacroMouseButton.Right, pressed: true);
-        _simulator.Received(1).MouseButton((ushort)MacroMouseButton.Right, pressed: false);
+        // Assert - clicks go through the atomic MouseButtonClick action
+        _simulator.Received(1).MouseButtonClick((ushort)MacroMouseButton.Right);
     }
 
     [Fact]
@@ -182,8 +181,7 @@ public sealed class MacroEventExecutorTests : IDisposable
         // Assert
         _simulator.DidNotReceive().MoveAbsolute(Arg.Any<int>(), Arg.Any<int>());
         _simulator.DidNotReceive().MoveRelative(Arg.Any<int>(), Arg.Any<int>());
-        _simulator.Received(1).MouseButton((ushort)MacroMouseButton.Left, pressed: true);
-        _simulator.Received(1).MouseButton((ushort)MacroMouseButton.Left, pressed: false);
+        _simulator.Received(1).MouseButtonClick((ushort)MacroMouseButton.Left);
     }
 
     [Fact]
