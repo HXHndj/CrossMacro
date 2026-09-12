@@ -846,6 +846,42 @@ public sealed partial class EditorViewModelTests
     }
 
     [Fact]
+    public async Task SelectingAwayFromImagePreview_CancelsStaleDecode()
+    {
+        var decoder = new BlockingImageAssetPreviewDecoder();
+        using var viewModel = new EditorViewModel(
+            _converter,
+            _validator,
+            _captureService,
+            _fileManager,
+            _dialogService,
+            _keyCodeMapper,
+            _macroPlayer,
+            _localizationService,
+            new EditorActionDisplayFormatter(_localizationService),
+            _screenPixelReader,
+            new ImageAssetCodec(),
+            decoder);
+        var sequence = new MacroSequence { Name = "Image Macro" };
+        sequence.Images["Target_1"] = TransparentPngBase64;
+        var action = new EditorAction
+        {
+            Type = EditorActionType.ImageSearch,
+            ImageAssetName = "Target_1",
+        };
+        _ = _converter.FromMacroSequenceWithDiagnostics(sequence)
+            .Returns(new EditorActionRestoreResult([action], [], restoredFromScriptSteps: true));
+
+        viewModel.LoadMacroSequence(sequence);
+        await decoder.Started.Task.WaitAsync(TimeSpan.FromSeconds(2));
+
+        viewModel.SelectedAction = null;
+
+        await decoder.Cancelled.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        _ = decoder.Cancelled.Task.Result.Should().BeTrue();
+    }
+
+    [Fact]
     public async Task SaveMacroAsync_WhenImageSearchAssetImported_PersistsImageAssetsOnGeneratedSequence()
     {
         var pngPath = Path.Combine(Path.GetTempPath(), $"crossmacro-target-{Guid.NewGuid():N}.png");
@@ -1010,5 +1046,32 @@ public sealed partial class EditorViewModelTests
 
         _ = action.ScreenTargetColorVariableName.Should().Be("sample_color");
         _ = _viewModel.SelectedScreenTargetColorVariableSuggestion.Should().BeNull();
+    }
+
+    private sealed class BlockingImageAssetPreviewDecoder : IImageAssetPreviewDecoder
+    {
+        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource<bool> Cancelled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public ImageAssetPreview Decode(string encoded, string? assetName = null) => throw new NotSupportedException();
+
+        public async Task<ImageAssetPreview> DecodeAsync(
+            string encoded,
+            string? assetName = null,
+            CancellationToken cancellationToken = default)
+        {
+            Started.TrySetResult(true);
+            try
+            {
+                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                Cancelled.TrySetResult(true);
+                throw;
+            }
+
+            throw new InvalidOperationException("The blocking preview decoder should be cancelled.");
+        }
     }
 }

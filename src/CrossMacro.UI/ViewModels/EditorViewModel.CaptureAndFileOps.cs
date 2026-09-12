@@ -550,50 +550,88 @@ public partial class EditorViewModel
             return null;
         }
 
-        var normalizedActions = CloneActions(Actions);
-        NormalizeCurrentPositionMouseButtonActionSnapshot(normalizedActions);
-
-        var (isValid, validationErrors) = _validator.ValidateAll(normalizedActions);
-        var errors = validationErrors.ToList();
-        errors.AddRange(ValidateImageSearchAssets(normalizedActions));
-        if (!isValid || errors.Count > 0)
+        // The immutable action snapshots are cheap to capture on the UI thread.  Clone,
+        // validate, convert and attach image payloads off-thread so a large macro does not
+        // monopolize the dispatcher while the save command is preparing its file.
+        var knownStateAtStart = _lastKnownState;
+        var actionSnapshot = knownStateAtStart.Actions.ToArray();
+        var imageAssetsSnapshot = _imageAssets.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+        var macroName = MacroName;
+        var skipInitialZeroZeroAtStart = _skipInitialZeroZero;
+        var prepared = await Task.Run(() =>
         {
-            var errorMessage = $"{Localize("Editor_ValidationErrorHeader")}\n\n{string.Join('\n', errors.Select(error => $"• {error}"))}";
+            var normalizedActions = CloneActions(actionSnapshot);
+            NormalizeCurrentPositionMouseButtonActionSnapshot(normalizedActions);
+
+            var (isValid, validationErrors) = _validator.ValidateAll(normalizedActions);
+            var errors = validationErrors.ToList();
+            errors.AddRange(ValidateImageSearchAssets(normalizedActions, imageAssetsSnapshot));
+            var firstCoordinateAction = normalizedActions.FirstOrDefault(action =>
+                UsesCoordinateFields(action.Type) && !IsCurrentPositionMouseButtonAction(action));
+            var isAbsolute = firstCoordinateAction?.IsAbsolute ?? false;
+            var skipInitialZeroZero = skipInitialZeroZeroAtStart
+                || normalizedActions.Exists(IsCurrentPositionMouseButtonAction);
+            if (!isValid || errors.Count > 0)
+            {
+                return new PreparedMacroSave(
+                    Sequence: null,
+                    Errors: errors,
+                    IsAbsolute: isAbsolute,
+                    SkipInitialZeroZero: skipInitialZeroZero);
+            }
+
+            var projection = new EditorMacroProjection(
+                normalizedActions,
+                macroName,
+                isAbsolute,
+                skipInitialZeroZero);
+            var sequence = _converter.ToMacroSequence(projection);
+            sequence?.ReplaceImages(imageAssetsSnapshot);
+            return new PreparedMacroSave(
+                Sequence: sequence,
+                Errors: errors,
+                IsAbsolute: isAbsolute,
+                SkipInitialZeroZero: skipInitialZeroZero);
+        }, _viewModelCts.Token).ConfigureAwait(false);
+
+        if (prepared.Sequence is null)
+        {
+            if (prepared.Errors.Count is 0)
+            {
+                return null;
+            }
+
+            var errorMessage = $"{Localize("Editor_ValidationErrorHeader")}\n\n{string.Join('\n', prepared.Errors.Select(error => $"• {error}"))}";
             await _dialogService.ShowMessageAsync(Localize("Editor_DialogTitleValidationErrors"), errorMessage).ConfigureAwait(false);
-            await RunOnUiThreadAsync(() => Status = string.Format(_localizationService.CurrentCulture, Localize("Editor_StatusValidationFailed"), errors.Count)).ConfigureAwait(false);
+            await RunOnUiThreadAsync(() => Status = string.Format(_localizationService.CurrentCulture, Localize("Editor_StatusValidationFailed"), prepared.Errors.Count)).ConfigureAwait(false);
             return null;
         }
 
-        var firstCoordinateAction = normalizedActions.FirstOrDefault(action =>
-            UsesCoordinateFields(action.Type) && !IsCurrentPositionMouseButtonAction(action));
-        var isAbsolute = firstCoordinateAction?.IsAbsolute ?? false;
-        var skipInitialZeroZero = _skipInitialZeroZero || RequiresSkipInitialZeroZero;
+        var skipInitialZeroZero = prepared.SkipInitialZeroZero;
         await RunOnUiThreadAsync(() =>
         {
-            if (_skipInitialZeroZero != skipInitialZeroZero)
+            if (ReferenceEquals(_lastKnownState, knownStateAtStart)
+                && _skipInitialZeroZero == skipInitialZeroZeroAtStart
+                && _skipInitialZeroZero != skipInitialZeroZero)
             {
                 _skipInitialZeroZero = skipInitialZeroZero;
                 OnPropertyChanged(nameof(SkipInitialZeroZero));
             }
         }).ConfigureAwait(false);
-
-        var projection = new EditorMacroProjection(
-            normalizedActions,
-            MacroName,
-            isAbsolute,
-            skipInitialZeroZero);
-        var sequence = _converter.ToMacroSequence(projection);
-        if (sequence is null)
-        {
-            return null;
-        }
-
-        sequence.ReplaceImages(_imageAssets);
-        return sequence;
+        return prepared.Sequence;
     }
 
-    private IEnumerable<string> ValidateImageSearchAssets(IEnumerable<EditorAction> actions)
+    private sealed record PreparedMacroSave(
+        MacroSequence? Sequence,
+        IReadOnlyList<string> Errors,
+        bool IsAbsolute,
+        bool SkipInitialZeroZero);
+
+    private IEnumerable<string> ValidateImageSearchAssets(
+        IEnumerable<EditorAction> actions,
+        IReadOnlyDictionary<string, string>? imageAssets = null)
     {
+        imageAssets ??= _imageAssets;
         var index = 0;
         foreach (var action in actions)
         {
@@ -603,7 +641,7 @@ public partial class EditorViewModel
                 continue;
             }
 
-            if (string.IsNullOrWhiteSpace(action.ImageAssetName) || !_imageAssets.ContainsKey(action.ImageAssetName))
+            if (string.IsNullOrWhiteSpace(action.ImageAssetName) || !imageAssets.ContainsKey(action.ImageAssetName))
             {
                 yield return string.Format(CultureInfo.InvariantCulture, "Action {0} ({1}): Image asset '{2}' is not imported.", index, action.Type, action.ImageAssetName);
             }
@@ -937,9 +975,12 @@ public partial class EditorViewModel
                 return;
             }
 
+            var restoreResult = await Task.Run(
+                () => _converter.FromMacroSequenceWithDiagnostics(sequence),
+                _viewModelCts.Token).ConfigureAwait(false);
             await RunOnUiThreadAsync(() =>
             {
-                LoadMacroSequence(sequence);
+                LoadMacroSequence(sequence, restoreResult);
                 var baseStatus = string.Format(_localizationService.CurrentCulture, Localize("Editor_StatusLoaded"), Path.GetFileName(filePath));
                 Status = HasLoadWarnings
                     ? string.Format(_localizationService.CurrentCulture, Localize("Editor_StatusLoadedWithWarnings"), Path.GetFileName(filePath), LoadWarnings.Count)
@@ -958,11 +999,17 @@ public partial class EditorViewModel
     public void LoadMacroSequence(MacroSequence sequence)
     {
         ArgumentNullException.ThrowIfNull(sequence);
+        LoadMacroSequence(sequence, _converter.FromMacroSequenceWithDiagnostics(sequence));
+    }
+
+    private void LoadMacroSequence(MacroSequence sequence, EditorActionRestoreResult restoreResult)
+    {
+        ArgumentNullException.ThrowIfNull(sequence);
+        ArgumentNullException.ThrowIfNull(restoreResult);
         SaveUndoState();
 
         ClearLoadedMacroSessionLink();
         SetSelectedImageAssetPreview(preview: null);
-        var restoreResult = _converter.FromMacroSequenceWithDiagnostics(sequence);
         var editorActions = restoreResult.Actions;
         SetLoadWarnings(restoreResult.Warnings);
         if (sequence.ScriptSteps.Count > 0 && !restoreResult.RestoredFromScriptSteps)

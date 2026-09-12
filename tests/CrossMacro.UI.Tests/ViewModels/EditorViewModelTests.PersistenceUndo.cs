@@ -536,6 +536,173 @@ public sealed partial class EditorViewModelTests
     }
 
     [Fact]
+    public void LargeActionList_WhenSingleTextFieldChanges_UpdatesOnlyTheBoundRow()
+    {
+        var sequence = new MacroSequence { Name = "Large Macro" };
+        var converted = Enumerable.Range(0, 5_000)
+            .Select(index => new EditorAction
+            {
+                Type = EditorActionType.TextInput,
+                Text = $"row-{index}",
+            })
+            .ToList();
+        _ = _converter.FromMacroSequenceWithDiagnostics(sequence)
+            .Returns(new EditorActionRestoreResult(converted, new List<EditorActionRestoreWarning>(), restoredFromScriptSteps: false));
+
+        _viewModel.LoadMacroSequence(sequence);
+
+        var resetCount = 0;
+        var changedCount = 0;
+        _viewModel.ActionListItems.CollectionChanged += (_, args) =>
+        {
+            if (args.Action is NotifyCollectionChangedAction.Reset)
+            {
+                resetCount++;
+            }
+
+            changedCount++;
+        };
+
+        _viewModel.Actions[2_500].Text = "edited";
+
+        _ = resetCount.Should().Be(0);
+        _ = changedCount.Should().Be(2);
+        _ = _viewModel.ActionListItems.Should().HaveCount(5_000);
+        _ = _viewModel.ActionListItems[2_500].DisplayName.Should().Contain("edited");
+    }
+
+    [Fact]
+    public void CoalescedLargeActionEdits_ReuseUnchangedSnapshotActions()
+    {
+        var sequence = new MacroSequence { Name = "Large Macro" };
+        var converted = Enumerable.Range(0, 5_000)
+            .Select(index => new EditorAction
+            {
+                Type = EditorActionType.TextInput,
+                Text = $"row-{index}",
+            })
+            .ToList();
+        _ = _converter.FromMacroSequenceWithDiagnostics(sequence)
+            .Returns(new EditorActionRestoreResult(converted, new List<EditorActionRestoreWarning>(), restoredFromScriptSteps: false));
+
+        _viewModel.LoadMacroSequence(sequence);
+        var action = _viewModel.Actions[2_500];
+        action.Text = "first";
+        action.Text = "second";
+
+        var undoStack = (System.Collections.IEnumerable)typeof(EditorViewModel)
+            .GetField("_undoStack", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .GetValue(_viewModel)!;
+        var historySnapshot = undoStack.Cast<object>().Last(snapshot =>
+            ((IReadOnlyList<EditorAction>)snapshot.GetType().GetProperty("Actions")!.GetValue(snapshot)!).Count == 5_000);
+        var historyActions = (IReadOnlyList<EditorAction>)historySnapshot.GetType().GetProperty("Actions")!.GetValue(historySnapshot)!;
+        var knownState = typeof(EditorViewModel)
+            .GetField("_lastKnownState", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .GetValue(_viewModel)!;
+        var knownActions = (IReadOnlyList<EditorAction>)knownState.GetType().GetProperty("Actions")!.GetValue(knownState)!;
+
+        _ = Enumerable.Range(0, 5_000)
+            .Count(index => ReferenceEquals(historyActions[index], knownActions[index]))
+            .Should().Be(4_999);
+        _ = historyActions[2_500].Text.Should().Be("row-2500");
+        _ = knownActions[2_500].Text.Should().Be("second");
+    }
+
+    [Fact]
+    public void DifferentPropertyEditsWithinCoalescingWindow_UndoTheLatestEditOnly()
+    {
+        var first = new EditorAction { Type = EditorActionType.TextInput, Text = "first" };
+        var second = new EditorAction { Type = EditorActionType.TextInput, Text = "second" };
+        _viewModel.Actions.Add(first);
+        _viewModel.Actions.Add(second);
+
+        _viewModel.SelectedAction = first;
+        first.Text = "first-edited";
+        _viewModel.SelectedAction = second;
+        second.Text = "second-edited";
+
+        _viewModel.Undo();
+
+        _ = _viewModel.Actions[0].Text.Should().Be("first-edited");
+        _ = _viewModel.Actions[1].Text.Should().Be("second");
+
+        _viewModel.Redo();
+
+        _ = _viewModel.Actions[0].Text.Should().Be("first-edited");
+        _ = _viewModel.Actions[1].Text.Should().Be("second-edited");
+    }
+
+    [Fact]
+    public void UndoThenEditThenUndoAndRedo_DoesNotMutateHistoryActions()
+    {
+        var action = new EditorAction { Type = EditorActionType.TextInput, Text = "original" };
+        _viewModel.Actions.Add(action);
+        _viewModel.SelectedAction = action;
+
+        action.Text = "first";
+        _viewModel.Undo();
+        _viewModel.SelectedAction!.Text = "second";
+
+        _viewModel.Undo();
+        _ = _viewModel.Actions[0].Text.Should().Be("original");
+
+        _viewModel.Redo();
+        _ = _viewModel.Actions[0].Text.Should().Be("second");
+    }
+
+    [Fact]
+    public async Task SaveMacroAsync_WhenUnselectedActionChanges_UsesLatestActionSnapshot()
+    {
+        var selected = new EditorAction { Type = EditorActionType.MouseClick, X = 1, Y = 2 };
+        var unselected = new EditorAction { Type = EditorActionType.MouseClick, X = 3, Y = 4 };
+        _viewModel.Actions.Add(selected);
+        _viewModel.Actions.Add(unselected);
+        _viewModel.SelectedAction = selected;
+        unselected.X = 99;
+
+        EditorMacroProjection? captured = null;
+        _ = _converter.ToMacroSequence(Arg.Do<EditorMacroProjection>(projection => captured = projection))
+            .Returns(new MacroSequence { Name = "Saved" });
+        _ = _dialogService
+            .ShowSaveFileDialogAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<FileDialogFilter[]>())
+            .Returns("/tmp/latest-action.macro");
+
+        await _viewModel.SaveMacroAsync();
+
+        _ = captured.Should().NotBeNull();
+        _ = captured!.Actions[1].X.Should().Be(99);
+    }
+
+    [Fact]
+    public async Task SaveMacroAsync_WhenSkipFlagChangesDuringBackgroundPreparation_DoesNotOverwriteNewValue()
+    {
+        var action = new EditorAction { Type = EditorActionType.MouseMove, X = 10, Y = 20 };
+        _viewModel.Actions.Add(action);
+        _viewModel.SelectedAction = action;
+
+        var preparationStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releasePreparation = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _ = _converter.ToMacroSequence(Arg.Any<EditorMacroProjection>())
+            .Returns(_ =>
+            {
+                preparationStarted.SetResult();
+                releasePreparation.Task.GetAwaiter().GetResult();
+                return new MacroSequence { Name = "Saved" };
+            });
+        _ = _dialogService
+            .ShowSaveFileDialogAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<FileDialogFilter[]>())
+            .Returns("/tmp/skip-flag.macro");
+
+        var saveTask = _viewModel.SaveMacroAsync();
+        await preparationStarted.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        _viewModel.SkipInitialZeroZero = true;
+        releasePreparation.SetResult();
+        await saveTask;
+
+        _ = _viewModel.SkipInitialZeroZero.Should().BeTrue();
+    }
+
+    [Fact]
     public void LoadMacroSequence_WhenConverterRestoresMixedModes_PreservesPerActionModes()
     {
         // Arrange

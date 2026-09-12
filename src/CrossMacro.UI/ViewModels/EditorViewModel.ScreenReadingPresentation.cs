@@ -78,9 +78,25 @@ public partial class EditorViewModel
 
     private async Task RefreshSelectedImageAssetPreviewAsync()
     {
+        var refreshVersion = Interlocked.Increment(ref _imageAssetPreviewRefreshVersion);
+        var refreshCts = CancellationTokenSource.CreateLinkedTokenSource(_viewModelCts.Token);
+        var previousRefreshCts = Interlocked.Exchange(ref _imageAssetPreviewCts, refreshCts);
+        if (previousRefreshCts is not null)
+        {
+            await CancelPreviewCtsAsync(previousRefreshCts).ConfigureAwait(false);
+        }
+
+        if (_disposed || !ReferenceEquals(_imageAssetPreviewCts, refreshCts))
+        {
+            refreshCts.Dispose();
+            return;
+        }
+
         SetSelectedImageAssetPreview(preview: null);
         if (!ShowImageSearchFields)
         {
+            _ = Interlocked.CompareExchange(ref _imageAssetPreviewCts, value: null, refreshCts);
+            refreshCts.Dispose();
             return;
         }
 
@@ -93,15 +109,16 @@ public partial class EditorViewModel
                 _localizationService.CurrentCulture,
                 Localize("Editor_StatusImagePreviewError"),
                 assetName ?? Localize("Editor_ImageAsset"));
+            _ = Interlocked.CompareExchange(ref _imageAssetPreviewCts, value: null, refreshCts);
+            refreshCts.Dispose();
             return;
         }
 
-        var refreshVersion = Interlocked.Increment(ref _imageAssetPreviewRefreshVersion);
         try
         {
             var previewDecoder = _imageAssetPreviewDecoder
                 ?? throw new InvalidOperationException("Image asset preview decoder is not registered.");
-            var decoded = await previewDecoder.DecodeAsync(encoded, assetName, _viewModelCts.Token).ConfigureAwait(false);
+            var decoded = await previewDecoder.DecodeAsync(encoded, assetName, refreshCts.Token).ConfigureAwait(false);
 
             // Marshal back to the UI thread; the version check drops stale results when the
             // selection changes quickly.
@@ -124,9 +141,36 @@ public partial class EditorViewModel
                 Localize("Editor_StatusImagePreviewError"),
                 ex.Message)).ConfigureAwait(false);
         }
+        finally
+        {
+            _ = Interlocked.CompareExchange(ref _imageAssetPreviewCts, value: null, refreshCts);
+            refreshCts.Dispose();
+        }
     }
 
     private int _imageAssetPreviewRefreshVersion;
+    private CancellationTokenSource? _imageAssetPreviewCts;
+
+    private void CancelImageAssetPreview()
+    {
+        var previewCts = Interlocked.Exchange(ref _imageAssetPreviewCts, value: null);
+        if (previewCts is not null)
+        {
+            _ = CancelPreviewCtsAsync(previewCts);
+        }
+    }
+
+    private static async Task CancelPreviewCtsAsync(CancellationTokenSource cancellationSource)
+    {
+        try
+        {
+            await cancellationSource.CancelAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            Log.Debug(ex, "[EditorViewModel] Preview cancellation callback failed");
+        }
+    }
 
     private void SetSelectedImageAssetPreview(WriteableBitmap? preview)
     {

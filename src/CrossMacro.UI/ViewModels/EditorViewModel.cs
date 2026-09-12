@@ -89,6 +89,8 @@ public partial class EditorViewModel : ViewModelBase, IDisposable
     private EditorActionPickerGroup? _newActionGroup;
     private EditorActionPickerChoice? _newActionChoice;
     private readonly HashSet<EditorAction> _subscribedActions = new();
+    private readonly Dictionary<EditorAction, EditorActionListItem> _actionListItemsByAction = new();
+    private readonly Dictionary<EditorAction, int> _actionListItemIndicesByAction = new();
     private static readonly IReadOnlyList<(string ResourceKey, EditorActionType[] ActionTypes)> EditorActionGroupDefinitions =
         [
             ("Editor_ActionGroup_Mouse", new[]
@@ -1014,6 +1016,7 @@ public partial class EditorViewModel : ViewModelBase, IDisposable
             Log.Debug(ex, "[EditorViewModel] Cancellation callbacks failed during dispose");
         }
 
+        CancelImageAssetPreview();
         _viewModelCts.Dispose();
         foreach (var action in _subscribedActions)
         {
@@ -1021,6 +1024,8 @@ public partial class EditorViewModel : ViewModelBase, IDisposable
         }
 
         _subscribedActions.Clear();
+        _actionListItemsByAction.Clear();
+        _actionListItemIndicesByAction.Clear();
         Actions.CollectionChanged -= OnActionsCollectionChanged;
         SelectedActionUnderlyingIndices.CollectionChanged -= OnSelectedActionUnderlyingIndicesChanged;
         LoadWarnings.CollectionChanged -= OnLoadWarningsCollectionChanged;
@@ -1214,6 +1219,7 @@ public partial class EditorViewModel : ViewModelBase, IDisposable
         if (!_isBatchUpdatingActions)
         {
             RefreshActionCollectionState();
+            RememberCurrentState();
         }
     }
 
@@ -1278,9 +1284,26 @@ public partial class EditorViewModel : ViewModelBase, IDisposable
 
     private void OnAnyActionPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (!string.Equals(e.PropertyName, nameof(EditorAction.Index), StringComparison.Ordinal))
+        if (!string.Equals(e.PropertyName, nameof(EditorAction.Index), StringComparison.Ordinal)
+            && !TryUpdateActionListItemDisplay(sender as EditorAction, e.PropertyName))
         {
             UpdateActionListPresentation();
+        }
+
+        if (!_isRestoringState
+            && !_isSynchronizingActionProperties
+            && sender is EditorAction changedAction
+            && !ReferenceEquals(changedAction, SelectedAction)
+            && e.PropertyName is not (nameof(EditorAction.Index) or nameof(EditorAction.DisplayName)))
+        {
+            // Non-selected actions are edited through batch operations; their
+            // property edits must be undoable exactly like selected-action edits.
+            if (!ShouldCoalescePropertyUndo(changedAction, e.PropertyName!))
+            {
+                SaveUndoState(_lastKnownState);
+            }
+
+            RememberPropertyEditState(changedAction);
         }
 
         if (string.Equals(e.PropertyName, nameof(EditorAction.Type), StringComparison.Ordinal))
@@ -1363,6 +1386,8 @@ public partial class EditorViewModel : ViewModelBase, IDisposable
         _isSelectingFromActionList = true;
         try
         {
+            _actionListItemsByAction.Clear();
+            _actionListItemIndicesByAction.Clear();
             ActionListItems.Clear();
 
             var depth = 0;
@@ -1391,13 +1416,17 @@ public partial class EditorViewModel : ViewModelBase, IDisposable
                     var representativeIsLowImportance = EditorActionListMetadata.IsLowImportance(representativeAction, isInsideDrag: false);
                     var representativeDisplayName = _actionDisplayFormatter.Format(representativeAction);
 
-                    ActionListItems.Add(CreateActionListItem(
+                    var condensedItem = CreateActionListItem(
                         representativeAction,
                         condensedRun.RepresentativeIndex,
                         depth,
                         representativeDisplayName,
                         representativeIsLowImportance,
-                        condensedRun.HiddenCount));
+                        condensedRun.HiddenCount);
+                    var condensedItemIndex = ActionListItems.Count;
+                    ActionListItems.Add(condensedItem);
+                    _actionListItemsByAction[representativeAction] = condensedItem;
+                    _actionListItemIndicesByAction[representativeAction] = condensedItemIndex;
                     index = condensedRun.EndIndex;
                     continue;
                 }
@@ -1413,14 +1442,22 @@ public partial class EditorViewModel : ViewModelBase, IDisposable
                         ? $"End {_actionDisplayFormatter.FormatBlockName(blockStack.Pop())}"
                         : Localize("Editor_Action_EndBlockShort");
 
-                    ActionListItems.Add(CreateActionListItem(action, index, depth, displayName, isLowImportance, condensedHiddenCount: 0));
+                    var blockEndItem = CreateActionListItem(action, index, depth, displayName, isLowImportance, condensedHiddenCount: 0);
+                    var blockEndItemIndex = ActionListItems.Count;
+                    ActionListItems.Add(blockEndItem);
+                    _actionListItemsByAction[action] = blockEndItem;
+                    _actionListItemIndicesByAction[action] = blockEndItemIndex;
                     EditorActionListMetadata.UpdateDragState(action, ref isDragging);
                     continue;
                 }
 
                 var rowDisplayName = _actionDisplayFormatter.Format(action);
 
-                ActionListItems.Add(CreateActionListItem(action, index, depth, rowDisplayName, isLowImportance, condensedHiddenCount: 0));
+                var actionItem = CreateActionListItem(action, index, depth, rowDisplayName, isLowImportance, condensedHiddenCount: 0);
+                var actionItemIndex = ActionListItems.Count;
+                ActionListItems.Add(actionItem);
+                _actionListItemsByAction[action] = actionItem;
+                _actionListItemIndicesByAction[action] = actionItemIndex;
 
                 if (IsScriptBlockStartAction(action.Type))
                 {
@@ -1449,6 +1486,125 @@ public partial class EditorViewModel : ViewModelBase, IDisposable
         {
             _isSelectingFromActionList = previousSelectionSyncFlag;
         }
+    }
+
+    private bool TryUpdateActionListItemDisplay(EditorAction? action, string? propertyName)
+    {
+        if (action is null
+            || HideMouseMoves
+            || HideShortWaits
+            || SimplifyMovement
+            || !IsDisplayOnlyActionProperty(propertyName)
+            || !_actionListItemsByAction.TryGetValue(action, out var item)
+            || !_actionListItemIndicesByAction.TryGetValue(action, out var itemIndex))
+        {
+            return false;
+        }
+
+        var replacement = CreateActionListItem(
+            action,
+            item.UnderlyingIndex,
+            item.IndentLevel,
+            _actionDisplayFormatter.Format(action),
+            item.IsNoise,
+            item.CondensedHiddenCount);
+        ActionListItems[itemIndex] = replacement;
+        _actionListItemsByAction[action] = replacement;
+
+        if (ReferenceEquals(_selectedActionListItem, item))
+        {
+            _selectedActionListItem = replacement;
+            OnPropertyChanged(nameof(SelectedActionListItem));
+        }
+
+        return true;
+    }
+
+    private static bool IsDisplayOnlyActionProperty(string? propertyName)
+    {
+        return propertyName is nameof(EditorAction.DisplayName)
+            or nameof(EditorAction.Text)
+            or nameof(EditorAction.X)
+            or nameof(EditorAction.Y)
+            or nameof(EditorAction.CoordinateXToken)
+            or nameof(EditorAction.CoordinateYToken)
+            or nameof(EditorAction.IsAbsolute)
+            or nameof(EditorAction.CoordinateSpace)
+            or nameof(EditorAction.Button)
+            or nameof(EditorAction.KeyCode)
+            or nameof(EditorAction.KeyName)
+            or nameof(EditorAction.UseCurrentPosition)
+            or nameof(EditorAction.ScrollAmount)
+            or nameof(EditorAction.DelayMs)
+            or nameof(EditorAction.DelayDuration)
+            or nameof(EditorAction.RandomDelayMinMs)
+            or nameof(EditorAction.RandomDelayMaxMs)
+            or nameof(EditorAction.ClipboardCopyShortcut)
+            or nameof(EditorAction.MousePositionXVariableName)
+            or nameof(EditorAction.MousePositionYVariableName)
+            or nameof(EditorAction.ScriptVariableName)
+            or nameof(EditorAction.ScriptValueType)
+            or nameof(EditorAction.ScriptValue)
+            or nameof(EditorAction.ScriptNumericSourceType)
+            or nameof(EditorAction.ScriptNumericValue)
+            or nameof(EditorAction.ScriptLeftOperandType)
+            or nameof(EditorAction.ScriptLeftOperand)
+            or nameof(EditorAction.ScriptConditionOperator)
+            or nameof(EditorAction.ScriptRightOperandType)
+            or nameof(EditorAction.ScriptRightOperand)
+            or nameof(EditorAction.ForVariableName)
+            or nameof(EditorAction.ForStartType)
+            or nameof(EditorAction.ForStartValue)
+            or nameof(EditorAction.ForEndType)
+            or nameof(EditorAction.ForEndValue)
+            or nameof(EditorAction.ForHasStep)
+            or nameof(EditorAction.ForStepType)
+            or nameof(EditorAction.ForStepValue)
+            or nameof(EditorAction.ScreenX)
+            or nameof(EditorAction.ScreenY)
+            or nameof(EditorAction.ScreenLeft)
+            or nameof(EditorAction.ScreenTop)
+            or nameof(EditorAction.ScreenWidth)
+            or nameof(EditorAction.ScreenHeight)
+            or nameof(EditorAction.ScreenColorHex)
+            or nameof(EditorAction.ScreenTargetColorSource)
+            or nameof(EditorAction.ScreenTargetColorVariableName)
+            or nameof(EditorAction.ScreenColorVariableName)
+            or nameof(EditorAction.ScreenTimeoutMs)
+            or nameof(EditorAction.ScreenTolerance)
+            or nameof(EditorAction.ScreenFoundVariableName)
+            or nameof(EditorAction.ScreenFoundXVariableName)
+            or nameof(EditorAction.ScreenFoundYVariableName)
+            or nameof(EditorAction.ImageAssetName)
+            or nameof(EditorAction.ImageSearchSimilarity)
+            or nameof(EditorAction.ImageSearchMatchMode)
+            or nameof(EditorAction.ShellCommandMode)
+            or nameof(EditorAction.ShellCommand)
+            or nameof(EditorAction.ShellStandardInput)
+            or nameof(EditorAction.ShellExitCodeVariableName)
+            or nameof(EditorAction.ShellStandardOutputVariableName)
+            or nameof(EditorAction.ShellStandardErrorVariableName)
+            or nameof(EditorAction.ShellRetries)
+            or nameof(EditorAction.ShellBackoffMs)
+            or nameof(EditorAction.ShellTimeoutMs)
+            or nameof(EditorAction.ScreenshotOutputPath)
+            or nameof(EditorAction.ScreenshotCopyToClipboard)
+            or nameof(EditorAction.ScreenshotUseRegion)
+            or nameof(EditorAction.ScreenshotRegionX)
+            or nameof(EditorAction.ScreenshotRegionY)
+            or nameof(EditorAction.ScreenshotRegionWidth)
+            or nameof(EditorAction.ScreenshotRegionHeight)
+            or nameof(EditorAction.WindowCommandMode)
+            or nameof(EditorAction.WindowSelectorKind)
+            or nameof(EditorAction.WindowSelectorValue)
+            or nameof(EditorAction.WindowActiveField)
+            or nameof(EditorAction.WindowOutputVariable)
+            or nameof(EditorAction.WindowTimeoutMs)
+            or nameof(EditorAction.WindowX)
+            or nameof(EditorAction.WindowY)
+            or nameof(EditorAction.WindowWidth)
+            or nameof(EditorAction.WindowHeight)
+            or nameof(EditorAction.WindowWorkspace);
     }
 
     private sealed record CondensibleRun(int EndIndex, int RepresentativeIndex, int HiddenCount);

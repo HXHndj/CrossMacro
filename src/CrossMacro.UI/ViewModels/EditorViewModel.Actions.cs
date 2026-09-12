@@ -25,7 +25,7 @@ public partial class EditorViewModel
     }
 
     private sealed record EditorStateSnapshot(
-        List<EditorAction> Actions,
+        IReadOnlyList<EditorAction> Actions,
         bool SkipInitialZeroZero);
 
     private static List<EditorAction> CloneActions(IEnumerable<EditorAction> actions)
@@ -209,11 +209,52 @@ public partial class EditorViewModel
         _lastKnownState = CloneState();
     }
 
+    private void RememberPropertyEditState(EditorAction? action)
+    {
+        if (action is null)
+        {
+            RememberCurrentState();
+            return;
+        }
+
+        var actionIndex = Actions.IndexOf(action);
+        if (actionIndex < 0 || actionIndex >= _lastKnownState.Actions.Count)
+        {
+            RememberCurrentState();
+            return;
+        }
+
+        // History snapshots own detached actions.  A property edit only replaces the
+        // changed action and copies the reference array, so unrelated actions are not
+        // cloned for every keystroke and cannot be mutated through a history entry.
+        var knownActions = _lastKnownState.Actions.ToArray();
+        knownActions[actionIndex] = action.Clone();
+        _lastKnownState = new EditorStateSnapshot(knownActions, _skipInitialZeroZero);
+    }
+
     private void ResetPropertyEditUndoCoalescing()
     {
         _lastPropertyEditAction = null;
         _lastPropertyEditName = null;
         _lastPropertyEditUndoAt = DateTimeOffset.MinValue;
+    }
+
+    private void SaveUndoState()
+    {
+        SaveUndoState(CloneState());
+    }
+
+    private void SaveUndoState(EditorStateSnapshot state)
+    {
+        if (_undoStack.Count is 0 || !AreStatesEquivalent(_undoStack.Peek(), state))
+        {
+            _undoStack.Push(state);
+            TrimUndoStack();
+        }
+
+        _redoStack.Clear();
+        OnPropertyChanged(nameof(CanUndo));
+        OnPropertyChanged(nameof(CanRedo));
     }
 
     private void SetSelectedImageSearchMatchMode(EditorImageMatchMode value)
@@ -230,8 +271,11 @@ public partial class EditorViewModel
         }
 
         action.SetImageSearchMatchMode(value);
-        RememberCurrentState();
-        UpdateActionListPresentation();
+        RememberPropertyEditState(action);
+        if (!TryUpdateActionListItemDisplay(action, nameof(EditorAction.ImageSearchMatchMode)))
+        {
+            UpdateActionListPresentation();
+        }
         OnPropertyChanged(nameof(SelectedImageSearchMatchMode));
     }
 
@@ -384,7 +428,7 @@ public partial class EditorViewModel
 
         if (shouldTrackUndo)
         {
-            RememberCurrentState();
+            RememberPropertyEditState(sender as EditorAction);
         }
     }
 
@@ -563,24 +607,6 @@ public partial class EditorViewModel
         }
 
         RefreshCurrentPositionConfiguration();
-    }
-
-    private void SaveUndoState()
-    {
-        SaveUndoState(CloneState());
-    }
-
-    private void SaveUndoState(EditorStateSnapshot state)
-    {
-        if (_undoStack.Count is 0 || !AreStatesEquivalent(_undoStack.Peek(), state))
-        {
-            _undoStack.Push(new EditorStateSnapshot(CloneActions(state.Actions), state.SkipInitialZeroZero));
-            TrimUndoStack();
-        }
-
-        _redoStack.Clear();
-        OnPropertyChanged(nameof(CanUndo));
-        OnPropertyChanged(nameof(CanRedo));
     }
 
     private void TrimUndoStack()
@@ -1177,7 +1203,7 @@ public partial class EditorViewModel
             Actions.Clear();
             foreach (var action in state.Actions)
             {
-                Actions.Add(action);
+                Actions.Add(action.Clone());
             }
         }
         finally
