@@ -36,6 +36,8 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
     private uint _messagePumpThreadId;
     private CancellationTokenRegistration _startCancellationRegistration;
     private readonly IWindowsHookInstaller _hookInstaller;
+    private WindowsInputEventDispatcher? _inputDispatcher;
+    private int _dispatchOverflowSignaled;
 
     public WindowsInputCapture()
         : this(new DefaultWindowsHookInstaller()) { /* Empty */ }
@@ -90,6 +92,12 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
         {
             _messagePumpThreadId = Kernel32.GetCurrentThreadId();
 
+            // The dispatcher must exist before the hooks are installed so the
+            // callbacks can always enqueue. Managed processing then happens on
+            // the dedicated dispatch thread, never inside the hook callback.
+            _inputDispatcher = new WindowsInputEventDispatcher(DispatchInputEvent, ReportDispatchError);
+            _dispatchOverflowSignaled = 0;
+
             _mouseProc = MouseHookCallback;
             _keyboardProc = KeyboardHookCallback;
             _sessionWindowProc = SessionWindowCallback;
@@ -121,6 +129,9 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
         {
             UnregisterSessionNotificationWindow();
             UninstallHooks();
+            // Hooks are gone, so no more enqueues can race the drain.
+            _inputDispatcher?.Dispose();
+            _inputDispatcher = null;
             ReleaseRawInputBuffer();
             _messagePumpThreadId = 0;
         }
@@ -295,6 +306,36 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
         StopCapture();
     }
 
+    /// <summary>
+    /// Called on the hook thread only: enqueue and return immediately so the
+    /// system-wide input chain is never blocked by managed subscribers.
+    /// </summary>
+    private void EnqueueInput(CapturedInputEventArgs args)
+    {
+        var dispatcher = _inputDispatcher;
+        if (dispatcher is not null && !dispatcher.TryEnqueue(args))
+        {
+            HandleDispatchOverflow();
+        }
+    }
+
+    private void HandleDispatchOverflow()
+    {
+        if (Interlocked.Exchange(ref _dispatchOverflowSignaled, 1) is not 0)
+        {
+            return;
+        }
+
+        CaptureError?.Invoke(this, new InputCaptureErrorEventArgs(
+            $"The Windows input event queue exceeded {WindowsInputEventDispatcher.DefaultCapacity} events; capture was stopped because the dispatch thread could not keep up."));
+        StopCapture();
+    }
+
+    private void DispatchInputEvent(CapturedInputEventArgs args) => InputReceived?.Invoke(this, args);
+
+    private void ReportDispatchError(Exception exception) =>
+        CaptureError?.Invoke(this, new InputCaptureErrorEventArgs($"Input dispatch error: {exception.Message}"));
+
     private IntPtr MouseHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
     {
         if (nCode >= 0)
@@ -362,7 +403,7 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
                 TimestampMicroseconds = timestampMicroseconds,
                 DeviceName = "VirtualMouse",
             };
-            InputReceived?.Invoke(this, new CapturedInputEventArgs(xArgs));
+            EnqueueInput(new CapturedInputEventArgs(xArgs));
         }
 
         if (_useAbsoluteCoordinates || movement.YValue is not 0)
@@ -376,7 +417,7 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
                 TimestampMicroseconds = timestampMicroseconds,
                 DeviceName = "VirtualMouse",
             };
-            InputReceived?.Invoke(this, new CapturedInputEventArgs(yArgs));
+            EnqueueInput(new CapturedInputEventArgs(yArgs));
         }
 
         var syncArgs = new CapturedInputEvent
@@ -388,7 +429,7 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
             TimestampMicroseconds = timestampMicroseconds,
             DeviceName = "VirtualMouse",
         };
-        InputReceived?.Invoke(this, new CapturedInputEventArgs(syncArgs));
+        EnqueueInput(new CapturedInputEventArgs(syncArgs));
     }
 
     internal static (ushort XCode, int XValue, ushort YCode, int YValue) ResolveMouseMovement(
@@ -517,7 +558,7 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
         long timestampMicroseconds = GetMonotonicTimestampMicroseconds();
         if (deltaX is not 0)
         {
-            InputReceived?.Invoke(this, new CapturedInputEventArgs(new CapturedInputEvent
+            EnqueueInput(new CapturedInputEventArgs(new CapturedInputEvent
             {
                 Type = InputEventType.MouseMove,
                 Code = InputEventCode.REL_X,
@@ -530,7 +571,7 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
 
         if (deltaY is not 0)
         {
-            InputReceived?.Invoke(this, new CapturedInputEventArgs(new CapturedInputEvent
+            EnqueueInput(new CapturedInputEventArgs(new CapturedInputEvent
             {
                 Type = InputEventType.MouseMove,
                 Code = InputEventCode.REL_Y,
@@ -541,7 +582,7 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
             }));
         }
 
-        InputReceived?.Invoke(this, new CapturedInputEventArgs(new CapturedInputEvent
+        EnqueueInput(new CapturedInputEventArgs(new CapturedInputEvent
         {
             Type = InputEventType.Sync,
             Code = 0,
@@ -577,7 +618,7 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
             TimestampMicroseconds = GetMonotonicTimestampMicroseconds(),
             DeviceName = "VirtualMouse",
         };
-        InputReceived?.Invoke(this, new CapturedInputEventArgs(args));
+        EnqueueInput(new CapturedInputEventArgs(args));
     }
 
     private IntPtr KeyboardHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
@@ -625,7 +666,7 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
                 TimestampMicroseconds = GetMonotonicTimestampMicroseconds(),
                 DeviceName = "VirtualKeyboard",
             };
-            InputReceived?.Invoke(this, new CapturedInputEventArgs(args));
+            EnqueueInput(new CapturedInputEventArgs(args));
         }
         else if (isDown)
         {
