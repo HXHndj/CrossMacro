@@ -608,7 +608,7 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
         int evdevCode = MapKeyboardEvent((ushort)hookStruct.vkCode, hookStruct.flags);
 
         // Debug logging for key analysis
-        if (isDown)
+        if (isDown && Log.IsEnabled(Serilog.Events.LogEventLevel.Debug))
         {
             Log.Debug("[WindowsInputCapture] KeyDown: VK={VK} (0x{VKHex}), Scan={Scan}, Flags={Flags}, Mapped={Evdev}",
                 hookStruct.vkCode, hookStruct.vkCode.ToString("X", CultureInfo.InvariantCulture), hookStruct.scanCode, hookStruct.flags, evdevCode);

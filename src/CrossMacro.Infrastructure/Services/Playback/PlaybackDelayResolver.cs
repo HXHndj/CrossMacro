@@ -6,7 +6,13 @@ namespace CrossMacro.Infrastructure.Services.Playback;
 /// </summary>
 public sealed class PlaybackDelayResolver(Func<int, int, int>? randomInclusive = null)
 {
-    private readonly Func<int, int, int> _randomInclusive = randomInclusive ?? RandomNumberGeneratorUtility.GetInt32Inclusive;
+    private readonly Func<int, int, int> _randomInclusive = randomInclusive ?? SharedRandomInclusive;
+
+    /// <summary>
+    /// Delay jitter is not security-sensitive; use the shared PRNG to avoid a
+    /// crypto-RNG syscall per randomized event on high-density playback.
+    /// </summary>
+    private static int SharedRandomInclusive(int min, int max) => Random.Shared.Next(min, max + 1);
 
     public int Resolve(int fixedDelayMs, bool hasRandomDelay, int randomDelayMinMs, int randomDelayMaxMs)
     {

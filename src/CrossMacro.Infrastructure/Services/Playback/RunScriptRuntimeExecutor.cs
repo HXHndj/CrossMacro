@@ -35,6 +35,11 @@ internal sealed class RunScriptRuntimeExecutor(
     private readonly RunScriptScreenshotExecutor _screenshotExecutor = screenshotExecutor ?? throw new ArgumentNullException(nameof(screenshotExecutor));
     private readonly RunScriptMousePositionExecutor _mousePositionExecutor = mousePositionExecutor ?? throw new ArgumentNullException(nameof(mousePositionExecutor));
 
+    // Loop-heavy scripts re-execute the same step text every iteration; cache the
+    // compiled result (keyed by the variable-resolved text) to avoid re-tokenizing.
+    // Execution is strictly sequential (await-chained), so no synchronization is needed.
+    private readonly Dictionary<string, RunScriptCompileResult> _compileCache = new(StringComparer.Ordinal);
+
     public async Task ExecuteAsync(RunScriptRuntimeExecutionRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -272,8 +277,7 @@ internal sealed class RunScriptRuntimeExecutor(
         }
 
         var resolvedStep = ResolveVariables(step);
-        var compiler = new RunScriptCompiler(_keyCodeMapper);
-        var compileResult = compiler.Compile([new RunScriptStep(resolvedStep)]);
+        var compileResult = CompileCached(resolvedStep);
         if (!compileResult.Success || compileResult.Sequence is null)
         {
             throw new InvalidOperationException($"Step {stepNumber.ToString(CultureInfo.InvariantCulture)}: {compileResult.ErrorMessage}");
@@ -285,14 +289,25 @@ internal sealed class RunScriptRuntimeExecutor(
         }
     }
 
+    private RunScriptCompileResult CompileCached(string resolvedStep)
+    {
+        if (!_compileCache.TryGetValue(resolvedStep, out var cached))
+        {
+            var compiler = new RunScriptCompiler(_keyCodeMapper);
+            cached = compiler.Compile([new RunScriptStep(resolvedStep)]);
+            _compileCache[resolvedStep] = cached;
+        }
+
+        return cached;
+    }
+
     private async Task ExecuteCopyShortcutAsync(
         string shortcut,
         int stepNumber,
         RunScriptRuntimeExecutionRequest request,
         CancellationToken cancellationToken)
     {
-        var compiler = new RunScriptCompiler(_keyCodeMapper);
-        var compileResult = compiler.Compile([new RunScriptStep($"tap {shortcut}")]);
+        var compileResult = CompileCached($"tap {shortcut}");
         if (!compileResult.Success || compileResult.Sequence is null)
         {
             throw new InvalidOperationException($"Step {stepNumber.ToString(CultureInfo.InvariantCulture)}: {compileResult.ErrorMessage}");

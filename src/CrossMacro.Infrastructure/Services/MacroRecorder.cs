@@ -298,9 +298,12 @@ public sealed class MacroRecorder(
 
         _currentSequence.Events.Add(macroEvent);
 
-        Log.Debug("[MacroRecorder] Event #{Count}: {Type} | X={X} Y={Y} | Key={Key} Button={Button} | Delay={Delay}us",
-            _currentSequence.Events.Count, macroEvent.Type, macroEvent.X, macroEvent.Y,
-            macroEvent.KeyCode, macroEvent.Button, macroEvent.DelayMicroseconds);
+        if (Log.IsEnabled(CoreLogLevel.Debug))
+        {
+            Log.Debug("[MacroRecorder] Event #{Count}: {Type} | X={X} Y={Y} | Key={Key} Button={Button} | Delay={Delay}us",
+                _currentSequence.Events.Count, macroEvent.Type, macroEvent.X, macroEvent.Y,
+                macroEvent.KeyCode, macroEvent.Button, macroEvent.DelayMicroseconds);
+        }
 
         return macroEvent;
     }
@@ -417,33 +420,55 @@ public sealed class MacroRecorder(
         sequence.RecordedAt = DateTime.UtcNow;
         sequence.ActualDuration = stopwatch.Elapsed;
 
-        sequence.MouseMoveCount = sequence.Events.Count(e => e.Type is EventType.MouseMove);
-        sequence.ClickCount = sequence.Events.Count(e =>
-            e.Type is EventType.Click or EventType.ButtonPress or EventType.ButtonRelease);
+        int mouseMoveCount = 0;
+        int clickCount = 0;
+        int buttonCount = 0;
+        var sampleMoves = new List<MacroEvent>(5);
+        foreach (var e in sequence.Events)
+        {
+            if (e.Type is EventType.MouseMove)
+            {
+                mouseMoveCount++;
+                if (sampleMoves.Count < 5 && (e.X is not 0 || e.Y is not 0))
+                {
+                    sampleMoves.Add(e);
+                }
+            }
+            else if (e.Type is EventType.Click)
+            {
+                clickCount++;
+            }
+            else if (e.Type is EventType.ButtonPress or EventType.ButtonRelease)
+            {
+                clickCount++;
+                buttonCount++;
+            }
+        }
+
+        sequence.MouseMoveCount = mouseMoveCount;
+        sequence.ClickCount = clickCount;
 
         if (stopwatch.Elapsed.TotalSeconds > 0)
         {
             sequence.EventsPerSecond = sequence.Events.Count / stopwatch.Elapsed.TotalSeconds;
         }
 
-        // Debug: Count event types
-        var moveCount = sequence.Events.Count(e => e.Type is EventType.MouseMove);
-        var buttonCount = sequence.Events.Count(e => e.Type is EventType.ButtonPress or EventType.ButtonRelease);
-        var nonZeroMoves = sequence.Events.Where(e => e.Type is EventType.MouseMove && (e.X is not 0 || e.Y is not 0)).Take(5).ToList();
-
         Log.Information("[MacroRecorder] Recording completed: Duration={Duration:F2}s, TotalEvents={Events}, MouseMoves={Moves}, Buttons={Buttons}",
-            stopwatch.Elapsed.TotalSeconds, sequence.Events.Count, moveCount, buttonCount);
+            stopwatch.Elapsed.TotalSeconds, sequence.Events.Count, mouseMoveCount, buttonCount);
 
-        if (nonZeroMoves.Count > 0)
+        if (sampleMoves.Count > 0)
         {
-            foreach (var m in nonZeroMoves)
+            foreach (var m in sampleMoves)
             {
-                Log.Debug("[MacroRecorder] Sample Move: X={X}, Y={Y}", m.X, m.Y);
+                if (Log.IsEnabled(CoreLogLevel.Debug))
+                {
+                    Log.Debug("[MacroRecorder] Sample Move: X={X}, Y={Y}", m.X, m.Y);
+                }
             }
         }
-        else if (moveCount > 0)
+        else if (mouseMoveCount > 0)
         {
-            Log.Warning("[MacroRecorder] All {Count} MouseMove events have X=0 and Y=0!", moveCount);
+            Log.Warning("[MacroRecorder] All {Count} MouseMove events have X=0 and Y=0!", mouseMoveCount);
         }
     }
 

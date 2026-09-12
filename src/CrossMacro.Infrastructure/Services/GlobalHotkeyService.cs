@@ -277,8 +277,11 @@ public sealed class GlobalHotkeyService : IGlobalHotkeyService
         if (e.Value is 1)
         {
             _modifierTracker.OnKeyPressed(e.Code);
-            Log.Debug("[GlobalHotkeyService] Key pressed: Code={Code}, CurrentModifiers=[{Modifiers}]",
-                e.Code, string.Join('+', _modifierTracker.CurrentModifiers));
+            if (Log.IsEnabled(CoreLogLevel.Debug))
+            {
+                Log.Debug("[GlobalHotkeyService] Key pressed: Code={Code}, CurrentModifiers=[{Modifiers}]",
+                    e.Code, string.Join('+', _modifierTracker.CurrentModifiers));
+            }
         }
         else if (e.Value is 0)
         {
@@ -307,23 +310,32 @@ public sealed class GlobalHotkeyService : IGlobalHotkeyService
             return;
         }
 
-        // Build hotkey string
-        var hotkeyString = _hotkeyStringBuilder.Build(e.Code, currentModifiers);
+        // Build the hotkey string only when a consumer needs it (capture result,
+        // raw-input broadcast, or debug logging); the matcher works on code + modifiers.
+        string? hotkeyString = null;
+        if (_isCapturing || RawInputReceived is not null)
+        {
+            hotkeyString = _hotkeyStringBuilder.Build(e.Code, currentModifiers);
+        }
 
-        Log.Debug("[GlobalHotkeyService] Hotkey candidate: {HotkeyString} (Code={Code})", hotkeyString, e.Code);
+        if (Log.IsEnabled(CoreLogLevel.Debug))
+        {
+            hotkeyString ??= _hotkeyStringBuilder.Build(e.Code, currentModifiers);
+            Log.Debug("[GlobalHotkeyService] Hotkey candidate: {HotkeyString} (Code={Code})", hotkeyString, e.Code);
+        }
 
         if (_isCapturing && _captureTcs is not null)
         {
             var captureTcs = _captureTcs;
             Log.Debug("[GlobalHotkeyService] Captured hotkey: {HotkeyString}", hotkeyString);
-            _ = captureTcs.TrySetResult(hotkeyString);
+            _ = captureTcs.TrySetResult(hotkeyString!);
             return;
         }
 
         // Check hotkey matches
         if (_hotkeyMatcher.TryMatch(e.Code, currentModifiers, _recordingHotkey, "Recording"))
         {
-            Log.Information("[GlobalHotkeyService] Recording Hotkey Pressed: {Hotkey}", hotkeyString);
+            Log.Information("[GlobalHotkeyService] Recording Hotkey Pressed: {Hotkey}", hotkeyString ??= _hotkeyStringBuilder.Build(e.Code, currentModifiers));
             ToggleRecordingRequested?.Invoke(this, EventArgs.Empty);
         }
 
@@ -331,19 +343,19 @@ public sealed class GlobalHotkeyService : IGlobalHotkeyService
         {
             if (_hotkeyMatcher.TryMatch(e.Code, currentModifiers, _playbackHotkey, "Playback"))
             {
-                Log.Information("[GlobalHotkeyService] Playback Hotkey Pressed: {Hotkey}", hotkeyString);
+                Log.Information("[GlobalHotkeyService] Playback Hotkey Pressed: {Hotkey}", hotkeyString ??= _hotkeyStringBuilder.Build(e.Code, currentModifiers));
                 TogglePlaybackRequested?.Invoke(this, EventArgs.Empty);
             }
 
             if (_hotkeyMatcher.TryMatch(e.Code, currentModifiers, _pauseHotkey, "Pause"))
             {
-                Log.Information("[GlobalHotkeyService] Pause Hotkey Pressed: {Hotkey}", hotkeyString);
+                Log.Information("[GlobalHotkeyService] Pause Hotkey Pressed: {Hotkey}", hotkeyString ??= _hotkeyStringBuilder.Build(e.Code, currentModifiers));
                 TogglePauseRequested?.Invoke(this, EventArgs.Empty);
             }
         }
 
         // Broadcast raw input
-        RawInputReceived?.Invoke(this, new RawHotkeyInputEventArgs(e.Code, currentModifiers, hotkeyString));
+        RawInputReceived?.Invoke(this, new RawHotkeyInputEventArgs(e.Code, currentModifiers, hotkeyString ?? string.Empty));
     }
 
     private void HandleMouseButtonInput(CapturedInputEvent e)

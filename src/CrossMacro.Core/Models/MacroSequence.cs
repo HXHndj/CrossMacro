@@ -40,11 +40,35 @@ public class MacroSequence
     public void ReplaceEvents(IEnumerable<MacroEvent> events)
     {
         ArgumentNullException.ThrowIfNull(events);
-        var replacement = events.ToList();
-        Events.Clear();
-        foreach (var macroEvent in replacement)
+        if (Events is not List<MacroEvent> target)
         {
-            Events.Add(macroEvent);
+            // Non-standard backing list; fall back to the simple path.
+            foreach (var macroEvent in events.ToList())
+            {
+                Events.Add(macroEvent);
+            }
+            return;
+        }
+
+        if (ReferenceEquals(events, target))
+        {
+            return;
+        }
+
+        if (events is not ICollection<MacroEvent>)
+        {
+            // Lazy sequence: snapshot before clearing so sources derived from this list stay intact.
+            events = events.ToList();
+        }
+
+        target.Clear();
+        if (events is ICollection<MacroEvent> { Count: > 0 } collection)
+        {
+            target.EnsureCapacity(collection.Count);
+        }
+        foreach (var macroEvent in events)
+        {
+            target.Add(macroEvent);
         }
     }
 
