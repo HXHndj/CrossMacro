@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "status": "completed",
+  "fileName": "pwsh",
+  "argumentList": [
+    "-NoProfile",
+    "-Command",
+    "$child = Start-Process -FilePath pwsh -ArgumentList @(' -NoProfile', '-Command', 'Start-Sleep -Seconds 3') -WindowStyle Hidden -PassThru; Write-Output ('child_pid=' + $child.Id); Wait-Process -Id $child.Id"
+  ],
+  "humanCommandLine": "pwsh -NoProfile -Command \"$child = Start-Process -FilePath pwsh -ArgumentList @(' -NoProfile', '-Command', 'Start-Sleep -Seconds 3') -WindowStyle Hidden -PassThru; Write-Output ('child_pid=' + $child.Id); Wait-Process -Id $child.Id\"",
+  "workingDirectory": "D:\\Desktop\\网页设计\\Mouse",
+  "runName": "pid-tree-selftest",
+  "outputDirectory": "D:\\Desktop\\网页设计\\Mouse\\docs\\fixes\\2026-09-12\\validation\\runner-tree\\pid-tree-selftest-20260912-163726-494-f0e723d9",
+  "stdoutPath": "D:\\Desktop\\网页设计\\Mouse\\docs\\fixes\\2026-09-12\\validation\\runner-tree\\pid-tree-selftest-20260912-163726-494-f0e723d9\\stdout.log",
+  "stderrPath": "D:\\Desktop\\网页设计\\Mouse\\docs\\fixes\\2026-09-12\\validation\\runner-tree\\pid-tree-selftest-20260912-163726-494-f0e723d9\\stderr.log",
+  "samplesPath": "D:\\Desktop\\网页设计\\Mouse\\docs\\fixes\\2026-09-12\\validation\\runner-tree\\pid-tree-selftest-20260912-163726-494-f0e723d9\\samples.jsonl",
+  "commandPath": "D:\\Desktop\\网页设计\\Mouse\\docs\\fixes\\2026-09-12\\validation\\runner-tree\\pid-tree-selftest-20260912-163726-494-f0e723d9\\command.json",
+  "sampleIntervalMilliseconds": 500,
+  "timeoutSeconds": 15,
+  "memoryBudgetBytes": 2147483648,
+  "memoryBudgetGiB": 2.0,
+  "budgetMetric": "PrivateBytes",
+  "rootPid": 30612,
+  "startTimeUtc": "2026-09-12T08:37:27.3201616Z",
+  "endTimeUtc": "2026-09-12T08:37:31.6183746Z",
+  "exitCode": 0,
+  "timedOut": false,
+  "budgetExceeded": false,
+  "budgetExceededAtUtc": null,
+  "processStartMode": "ProcessStartInfo.ArgumentList/CreateNoWindow",
+  "peak": {
+    "sampleIndex": 3,
+    "timestampUtc": "2026-09-12T08:37:28.9948696Z",
+    "treeWorkingSetBytes": 100454400,
+    "treePrivateBytes": 34893824,
+    "treeCombinedBytes": 135348224,
+    "liveProcessCount": 1,
+    "trackedPidCount": 1
+  },
+  "termination": [],
+  "errors": []
+}
