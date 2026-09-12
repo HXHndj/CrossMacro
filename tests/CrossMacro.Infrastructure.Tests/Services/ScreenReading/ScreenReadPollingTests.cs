@@ -88,4 +88,19 @@ public sealed class ScreenReadPollingTests
 
         _ = ScreenReadPolling.GetDelay(deadline, TimeSpan.FromSeconds(1)).Should().Be(TimeSpan.Zero);
     }
+
+    [Fact]
+    public void GetEffectiveDelay_WhenPollIntervalIsZero_UsesMinimumYieldInterval()
+    {
+        var now = TimeProvider.System.GetUtcNow();
+        var deadline = now + TimeSpan.FromSeconds(1);
+
+        var delay = ScreenReadPolling.GetEffectiveDelay(
+            deadline,
+            TimeSpan.Zero,
+            consecutiveMisses: 0,
+            TimeProvider.System);
+
+        _ = delay.Should().Be(TimeSpan.FromMilliseconds(1));
+    }
 }

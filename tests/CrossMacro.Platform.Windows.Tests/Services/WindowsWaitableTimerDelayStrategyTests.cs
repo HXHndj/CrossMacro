@@ -37,6 +37,24 @@ public sealed class WindowsWaitableTimerDelayStrategyTests
     }
 
     [WindowsFact]
+    public async Task WaitAsync_WhenCancelledDuringNativeWait_StopsPromptly()
+    {
+        using var waitStarted = new ManualResetEventSlim(initialState: false);
+        using var strategy = new WindowsWaitableTimerDelayStrategy(waitStarted.Set);
+        using var cancellation = new CancellationTokenSource();
+        var waitTask = Task.Run(
+            () => ((ICoarseDelayStrategy)strategy).WaitAsync(500, cancellation.Token).AsTask(),
+            CancellationToken.None);
+
+        Assert.True(waitStarted.Wait(TimeSpan.FromSeconds(1), CancellationToken.None));
+        await cancellation.CancelAsync();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => waitTask.WaitAsync(
+            TimeSpan.FromMilliseconds(250),
+            CancellationToken.None));
+    }
+
+    [WindowsFact]
     public async Task WaitAsync_SequentialWaits_EachWaitForTheRequestedDuration()
     {
         using var strategy = new WindowsWaitableTimerDelayStrategy();

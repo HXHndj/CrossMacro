@@ -20,9 +20,11 @@ internal static partial class User32
     [LibraryImport("user32.dll", SetLastError = true)]
     internal static partial IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
 
-    [LibraryImport("user32.dll", EntryPoint = "GetMessageW")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    internal static partial bool GetMessage(out Msg lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax);
+    // GetMessageW returns -1 on error, 0 for WM_QUIT, and a positive value
+    // for a message. Keep the native int so the message pump can distinguish
+    // the error path from an ordinary quit.
+    [LibraryImport("user32.dll", EntryPoint = "GetMessageW", SetLastError = true)]
+    internal static partial int GetMessage(out Msg lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax);
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]

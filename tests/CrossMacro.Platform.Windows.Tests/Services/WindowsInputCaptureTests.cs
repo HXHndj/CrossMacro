@@ -202,6 +202,66 @@ public sealed class WindowsInputCaptureTests
             () => startTask);
     }
 
+    [Fact]
+    public async Task DispatchOverflow_ReportsErrorAfterReturningFromCapturePath()
+    {
+        using var capture = new WindowsInputCapture(new FailingHookInstaller(failMouse: false, failKeyboard: false));
+        using var entered = new ManualResetEventSlim(initialState: false);
+        using var release = new ManualResetEventSlim(initialState: false);
+        capture.CaptureError += (sender, args) =>
+        {
+            entered.Set();
+            _ = release.Wait(TimeSpan.FromSeconds(2), CancellationToken.None);
+        };
+
+        var overflowTask = Task.Run(capture.HandleDispatchOverflow, CancellationToken.None);
+        await overflowTask.WaitAsync(TimeSpan.FromSeconds(1), CancellationToken.None);
+        Assert.True(entered.Wait(TimeSpan.FromSeconds(1), CancellationToken.None));
+
+        release.Set();
+    }
+
+    [WindowsFact]
+    public async Task StartAsync_WhenThreadReservationAlreadyExists_RejectsConcurrentStart()
+    {
+        var hookInstaller = new BlockingHookInstaller();
+        using var capture = new WindowsInputCapture(hookInstaller);
+        capture.Configure(captureMouse: true, captureKeyboard: false);
+
+        var firstStart = capture.StartAsync(CancellationToken.None);
+        await hookInstaller.HookInstallStarted.Task.WaitAsync(
+            TimeSpan.FromSeconds(2),
+            TimeProvider.System,
+            CancellationToken.None);
+
+        var secondStart = capture.StartAsync(CancellationToken.None);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => secondStart);
+
+        hookInstaller.ReleaseHookInstall();
+        await Assert.ThrowsAsync<InvalidOperationException>(() => firstStart);
+    }
+
+    [Fact]
+    public async Task StartAsync_WhenThreadStartFails_ReleasesReservation()
+    {
+        var startedThread = new Thread(static () => { })
+        {
+            IsBackground = true,
+        };
+        startedThread.Start();
+        startedThread.Join();
+
+        using var capture = new WindowsInputCapture(
+            new FailingHookInstaller(failMouse: false, failKeyboard: false),
+            _ => startedThread);
+        capture.Configure(captureMouse: false, captureKeyboard: false);
+
+        await Assert.ThrowsAsync<ThreadStateException>(
+            () => capture.StartAsync(CancellationToken.None));
+        await Assert.ThrowsAsync<ThreadStateException>(
+            () => capture.StartAsync(CancellationToken.None));
+    }
+
     private sealed class FailingHookInstaller(bool failMouse, bool failKeyboard) : IWindowsHookInstaller
     {
         private static readonly IntPtr SuccessfulHookHandle = new(1);

@@ -10,6 +10,7 @@ internal static class ScreenReadPolling
     private const int BackoffAfterConsecutiveMisses = 10;
     private const int MaximumBackoffShift = 4;
     private static readonly TimeSpan MaximumBackoffInterval = TimeSpan.FromMilliseconds(500);
+    private static readonly TimeSpan MinimumPollInterval = TimeSpan.FromMilliseconds(1);
 
     public static DateTimeOffset GetDeadline(TimeSpan timeout, TimeProvider? timeProvider = null) =>
         (timeProvider ?? TimeProvider.System).GetUtcNow() + timeout;
@@ -26,7 +27,8 @@ internal static class ScreenReadPolling
     public static TimeSpan GetDelay(DateTimeOffset deadline, TimeSpan pollInterval, TimeProvider? timeProvider = null)
     {
         var remaining = GetRemaining(deadline, timeProvider);
-        return remaining < pollInterval ? remaining : pollInterval;
+        var effectivePollInterval = pollInterval > TimeSpan.Zero ? pollInterval : MinimumPollInterval;
+        return remaining < effectivePollInterval ? remaining : effectivePollInterval;
     }
 
     public static Task<ScreenReadResult<T>> PollUntilMatchAsync<T>(
@@ -152,7 +154,10 @@ internal static class ScreenReadPolling
 
     internal static TimeSpan GetEffectiveDelay(DateTimeOffset deadline, TimeSpan pollInterval, int consecutiveMisses, TimeProvider? timeProvider = null)
     {
-        var interval = pollInterval;
+        // A zero interval is useful for single-shot reads, but a repeating
+        // search must still yield between captures so an absent target cannot
+        // turn the timeout window into a tight CPU loop.
+        var interval = pollInterval > TimeSpan.Zero ? pollInterval : MinimumPollInterval;
         if (consecutiveMisses > BackoffAfterConsecutiveMisses)
         {
             var shift = Math.Min(consecutiveMisses - BackoffAfterConsecutiveMisses, MaximumBackoffShift);

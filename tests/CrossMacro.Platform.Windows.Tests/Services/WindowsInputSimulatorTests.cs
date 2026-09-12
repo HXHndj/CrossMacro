@@ -216,4 +216,28 @@ public sealed class WindowsInputSimulatorTests
         // Unknown evdev button codes cannot be mapped; no injection happens.
         simulator.MouseButtonClick(ushort.MaxValue - 1);
     }
+
+    [Fact]
+    public void MouseButtonClick_WhenOnlyDownIsAccepted_CompensatesAcceptedButton()
+    {
+        var calls = new List<(uint Count, InputStruct[] Inputs)>();
+        uint SendInput(uint count, InputStruct[] inputs, int _)
+        {
+            calls.Add((count, inputs.Take(checked((int)count)).ToArray()));
+            return 1u;
+        }
+
+        using var simulator = new WindowsInputSimulator(SendInput);
+
+        _ = Assert.Throws<InputInjectionFailedException>(
+            () => simulator.MouseButtonClick(InputEventCode.BTN_SIDE));
+
+        Assert.Equal(2, calls.Count);
+        Assert.Equal(2u, calls[0].Count);
+        Assert.Equal(MouseEventFlags.MOUSEEVENTF_XDOWN, calls[0].Inputs[0].U.mi.dwFlags);
+        Assert.Equal(User32.XBUTTON1, calls[0].Inputs[0].U.mi.mouseData);
+        Assert.Equal(1u, calls[1].Count);
+        Assert.Equal(MouseEventFlags.MOUSEEVENTF_XUP, calls[1].Inputs[0].U.mi.dwFlags);
+        Assert.Equal(User32.XBUTTON1, calls[1].Inputs[0].U.mi.mouseData);
+    }
 }

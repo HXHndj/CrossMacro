@@ -12,12 +12,14 @@ namespace CrossMacro.Platform.Windows.Services;
 internal sealed class WindowsInputEventDispatcher : IDisposable
 {
     internal const int DefaultCapacity = 4096;
+    internal const int ShutdownWaitMilliseconds = 1000;
 
     private readonly BlockingCollection<CapturedInputEventArgs> _queue;
     private readonly Action<CapturedInputEventArgs> _dispatch;
     private readonly Action<Exception> _reportError;
     private readonly Thread _thread;
     private int _accepting = 1;
+    private int _stopDispatching;
     private int _completed;
 
     public WindowsInputEventDispatcher(
@@ -76,9 +78,30 @@ internal sealed class WindowsInputEventDispatcher : IDisposable
             }
         }
 
-        if (!ReferenceEquals(Thread.CurrentThread, _thread) && _thread.IsAlive)
+        if (!ReferenceEquals(Thread.CurrentThread, _thread)
+            && _thread.IsAlive
+            && !_thread.Join(ShutdownWaitMilliseconds))
         {
-            _thread.Join();
+            // A managed subscriber may still be executing. There is no safe
+            // way to abort that delegate. Stop dispatching any remaining queued
+            // input once it returns, but leave the queue owned by the worker so
+            // it can finish and clean up asynchronously.
+            Volatile.Write(ref _stopDispatching, 1);
+            var droppedCount = 0;
+            try
+            {
+                while (_queue.TryTake(out _))
+                {
+                    droppedCount++;
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                // The worker finished between Join and the queue drain.
+            }
+
+            Debug.WriteLine(string.Create(CultureInfo.InvariantCulture,
+                $"[WindowsInputCapture] Input dispatch worker did not quiesce within {ShutdownWaitMilliseconds} ms; dropped {droppedCount} queued input event(s), and the worker retains queue ownership."));
         }
 
         GC.SuppressFinalize(this);
@@ -90,6 +113,11 @@ internal sealed class WindowsInputEventDispatcher : IDisposable
         {
             foreach (CapturedInputEventArgs inputEvent in _queue.GetConsumingEnumerable(CancellationToken.None))
             {
+                if (Volatile.Read(ref _stopDispatching) is not 0)
+                {
+                    break;
+                }
+
                 try
                 {
                     _dispatch(inputEvent);

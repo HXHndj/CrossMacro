@@ -66,4 +66,11 @@ internal static partial class Kernel32
     internal static partial uint WaitForSingleObject(
         SafeWaitHandle hHandle,
         uint dwMilliseconds);
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    internal static partial uint WaitForMultipleObjects(
+        uint nCount,
+        IntPtr[] lpHandles,
+        [MarshalAs(UnmanagedType.Bool)] bool bWaitAll,
+        uint dwMilliseconds);
 }

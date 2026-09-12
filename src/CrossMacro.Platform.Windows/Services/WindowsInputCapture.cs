@@ -37,15 +37,28 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
     private CancellationTokenRegistration _startCancellationRegistration;
     private readonly IWindowsHookInstaller _hookInstaller;
     private WindowsInputEventDispatcher? _inputDispatcher;
+    private WindowsInputEventDispatcher? _retiredDispatcher;
+    private readonly Lock _lifecycleLock = new();
+    private Thread? _messagePumpThread;
+    private int _disposed;
+    private int _stopRequested;
     private int _dispatchOverflowSignaled;
+    private readonly Func<ThreadStart, Thread> _threadFactory;
 
     public WindowsInputCapture()
-        : this(new DefaultWindowsHookInstaller()) { /* Empty */ }
+        : this(new DefaultWindowsHookInstaller(), static start => new Thread(start) { IsBackground = true }) { /* Empty */ }
 
     internal WindowsInputCapture(IWindowsHookInstaller hookInstaller)
+        : this(hookInstaller, static start => new Thread(start) { IsBackground = true }) { /* Empty */ }
+
+    internal WindowsInputCapture(
+        IWindowsHookInstaller hookInstaller,
+        Func<ThreadStart, Thread> threadFactory)
     {
         ArgumentNullException.ThrowIfNull(hookInstaller);
+        ArgumentNullException.ThrowIfNull(threadFactory);
         _hookInstaller = hookInstaller;
+        _threadFactory = threadFactory;
     }
 
     public void Configure(bool captureMouse, bool captureKeyboard)
@@ -69,12 +82,43 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
 
         var startupTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        var messagePumpThread = new Thread(() => RunMessagePumpThread(startupTcs, ct))
+        Thread messagePumpThread;
+        lock (_lifecycleLock)
         {
-            IsBackground = true,
-        };
+            ObjectDisposedException.ThrowIf(_disposed is not 0, this);
+            if (_messagePumpThread is not null
+                || Volatile.Read(ref _inputDispatcher) is not null
+                || (_retiredDispatcher is { } retiredDispatcher && !retiredDispatcher.IsCompleted))
+            {
+                throw new InvalidOperationException(
+                    "Windows input capture is already running or its previous dispatch worker is still stopping.");
+            }
 
-        messagePumpThread.Start();
+            // A completed retired worker is safe to forget before creating the
+            // next generation. An incomplete worker remains rooted here so an
+            // old callback cannot overlap a new dispatcher on this instance.
+            _retiredDispatcher = null;
+            Volatile.Write(ref _stopRequested, 0);
+            messagePumpThread = _threadFactory(() => RunMessagePumpThread(startupTcs, ct));
+            _messagePumpThread = messagePumpThread;
+
+            try
+            {
+                // Start while the reservation is still protected. A second
+                // StartAsync can therefore never observe a non-null but not
+                // yet started thread as available.
+                messagePumpThread.Start();
+            }
+            catch
+            {
+                if (ReferenceEquals(_messagePumpThread, messagePumpThread))
+                {
+                    _messagePumpThread = null;
+                }
+
+                throw;
+            }
+        }
 
         await _startCancellationRegistration.DisposeAsync().ConfigureAwait(false);
         _startCancellationRegistration = ct.Register(() =>
@@ -95,7 +139,9 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
             // The dispatcher must exist before the hooks are installed so the
             // callbacks can always enqueue. Managed processing then happens on
             // the dedicated dispatch thread, never inside the hook callback.
-            _inputDispatcher = new WindowsInputEventDispatcher(DispatchInputEvent, ReportDispatchError);
+            Volatile.Write(
+                ref _inputDispatcher,
+                new WindowsInputEventDispatcher(DispatchInputEvent, ReportDispatchError));
             _dispatchOverflowSignaled = 0;
 
             _mouseProc = MouseHookCallback;
@@ -111,6 +157,13 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
 
             RegisterSessionNotificationWindow();
             _ = startupTcs.TrySetResult();
+            if (Volatile.Read(ref _stopRequested) is not 0)
+            {
+                // StopCapture can race thread initialization before a native
+                // message queue exists. Re-issue the quit after initialization
+                // so that early stop requests cannot strand this thread.
+                WindowsMessagePump.RequestStop(_messagePumpThreadId);
+            }
             RunWindowsMessageLoop(ct);
         }
         catch (Exception ex) when (ex is not OutOfMemoryException)
@@ -129,11 +182,26 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
         {
             UnregisterSessionNotificationWindow();
             UninstallHooks();
-            // Hooks are gone, so no more enqueues can race the drain.
-            _inputDispatcher?.Dispose();
-            _inputDispatcher = null;
+            // Hooks are gone, so no more enqueues can race the drain. Keep a
+            // reference to an incomplete worker until it reports completion;
+            // this prevents a same-instance restart from overlapping its old
+            // queued callbacks with a new dispatcher.
+            var dispatcher = Volatile.Read(ref _inputDispatcher);
+            if (dispatcher is not null)
+            {
+                Volatile.Write(ref _retiredDispatcher, dispatcher);
+                dispatcher.Dispose();
+                Volatile.Write(ref _inputDispatcher, null);
+            }
             ReleaseRawInputBuffer();
             _messagePumpThreadId = 0;
+            lock (_lifecycleLock)
+            {
+                if (ReferenceEquals(_messagePumpThread, Thread.CurrentThread))
+                {
+                    _messagePumpThread = null;
+                }
+            }
         }
     }
 
@@ -174,6 +242,7 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
 
     public void StopCapture()
     {
+        Volatile.Write(ref _stopRequested, 1);
         _startCancellationRegistration.Dispose();
 
         if (_messagePumpThreadId != 0)
@@ -303,6 +372,11 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
 
     public void Dispose()
     {
+        if (Interlocked.Exchange(ref _disposed, 1) is not 0)
+        {
+            return;
+        }
+
         StopCapture();
     }
 
@@ -312,24 +386,60 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
     /// </summary>
     private void EnqueueInput(CapturedInputEventArgs args)
     {
-        var dispatcher = _inputDispatcher;
+        var dispatcher = Volatile.Read(ref _inputDispatcher);
         if (dispatcher is not null && !dispatcher.TryEnqueue(args))
         {
             HandleDispatchOverflow();
         }
     }
 
-    private void HandleDispatchOverflow()
+    internal void HandleDispatchOverflow()
     {
         if (Interlocked.Exchange(ref _dispatchOverflowSignaled, 1) is not 0)
         {
             return;
         }
 
-        CaptureError?.Invoke(this, new InputCaptureErrorEventArgs(
-            $"The Windows input event queue exceeded {WindowsInputEventDispatcher.DefaultCapacity} events; capture was stopped because the dispatch thread could not keep up."));
+        var message =
+            $"The Windows input event queue exceeded {WindowsInputEventDispatcher.DefaultCapacity} events; capture was stopped because the dispatch thread could not keep up.";
         StopCapture();
+        QueueCaptureError(message);
     }
+
+    private void QueueCaptureError(string message)
+    {
+        try
+        {
+            if (!ThreadPool.QueueUserWorkItem(
+                    static state =>
+                    {
+                        var notification = (CaptureErrorNotification)state!;
+                        notification.Capture.ReportCaptureError(notification.Message);
+                    },
+                    new CaptureErrorNotification(this, message)))
+            {
+                Debug.WriteLine("[WindowsInputCapture] Failed to queue capture error notification.");
+            }
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            Debug.WriteLine($"[WindowsInputCapture] Failed to queue capture error notification: {ex}");
+        }
+    }
+
+    private void ReportCaptureError(string message)
+    {
+        try
+        {
+            CaptureError?.Invoke(this, new InputCaptureErrorEventArgs(message));
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            Log.Warning(ex, "[WindowsInputCapture] Capture error subscriber threw");
+        }
+    }
+
+    private sealed record CaptureErrorNotification(WindowsInputCapture Capture, string Message);
 
     private void DispatchInputEvent(CapturedInputEventArgs args) => InputReceived?.Invoke(this, args);
 

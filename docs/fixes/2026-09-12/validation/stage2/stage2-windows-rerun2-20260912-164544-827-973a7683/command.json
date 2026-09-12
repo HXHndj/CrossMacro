@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "fileName": "dotnet",
+  "argumentList": [
+    "test",
+    "tests/CrossMacro.Platform.Windows.Tests/CrossMacro.Platform.Windows.Tests.csproj",
+    "--configuration",
+    "Debug",
+    "--no-restore",
+    "--disable-build-servers",
+    "--filter",
+    "FullyQualifiedName~WindowsInputCaptureTests|FullyQualifiedName~WindowsInputEventDispatcherTests|FullyQualifiedName~WindowsInputSimulatorTests|FullyQualifiedName~WindowsWaitableTimerDelayStrategyTests",
+    "--logger",
+    "trx;LogFileName=stage2-windows-rerun2.trx",
+    "--results-directory",
+    "D:\\Desktop\\网页设计\\Mouse\\docs\\fixes\\2026-09-12\\validation\\stage2",
+    "/m:1"
+  ],
+  "humanCommandLine": "dotnet test tests/CrossMacro.Platform.Windows.Tests/CrossMacro.Platform.Windows.Tests.csproj --configuration Debug --no-restore --disable-build-servers --filter FullyQualifiedName~WindowsInputCaptureTests|FullyQualifiedName~WindowsInputEventDispatcherTests|FullyQualifiedName~WindowsInputSimulatorTests|FullyQualifiedName~WindowsWaitableTimerDelayStrategyTests --logger trx;LogFileName=stage2-windows-rerun2.trx --results-directory D:\\Desktop\\网页设计\\Mouse\\docs\\fixes\\2026-09-12\\validation\\stage2 /m:1",
+  "workingDirectory": "D:\\Desktop\\网页设计\\Mouse",
+  "environmentIsolation": "Caller supplies isolated APPDATA/LOCALAPPDATA and other test-only variables when needed.",
+  "startRequestedUtc": "2026-09-12T08:45:44.8627463Z"
+}

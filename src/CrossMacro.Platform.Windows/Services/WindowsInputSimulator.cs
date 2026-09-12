@@ -10,6 +10,17 @@ public sealed class WindowsInputSimulator :
 {
     private const int BatchBufferSize = 128;
     private ScreenRect? _desktopBounds;
+    private readonly SendInputNative _sendInputNative;
+
+    internal delegate uint SendInputNative(uint inputCount, InputStruct[] inputs, int inputSize);
+
+    public WindowsInputSimulator()
+        : this(User32.SendInput) { }
+
+    internal WindowsInputSimulator(SendInputNative sendInputNative)
+    {
+        _sendInputNative = sendInputNative ?? throw new ArgumentNullException(nameof(sendInputNative));
+    }
 
     // ThreadStatic ensures each thread has its own buffer - thread-safe without locking
     [field: ThreadStatic]
@@ -218,7 +229,7 @@ public sealed class WindowsInputSimulator :
 
     public void Dispose() { /* Empty */ }
 
-    private static void SendKeyPress(int keyCode, bool pressed, long? marker)
+    private void SendKeyPress(int keyCode, bool pressed, long? marker)
     {
         if (TryCreateKeyboardInput(keyCode, pressed, marker, out var input))
         {
@@ -265,7 +276,7 @@ public sealed class WindowsInputSimulator :
         return TryCreateKeyboardInput(keyCode, pressed, marker: null, out input);
     }
 
-    private static void TypeTextCore(string text, long? marker)
+    private void TypeTextCore(string text, long? marker)
     {
         ArgumentNullException.ThrowIfNull(text);
 
@@ -310,32 +321,89 @@ public sealed class WindowsInputSimulator :
         return (int)Math.Round(offset * 65535d / (extent - 1L), MidpointRounding.AwayFromZero);
     }
 
-    private static void SendInput(InputStruct input)
+    private void SendInput(InputStruct input)
     {
         var buffer = InputBuffer;
         buffer[0] = input;
-        var injectedInputs = User32.SendInput(1, buffer, InputStruct.Size);
+        var injectedInputs = _sendInputNative(1, buffer, InputStruct.Size);
         if (injectedInputs is not 1)
         {
             EnsureInputWasAccepted(1, injectedInputs, Marshal.GetLastWin32Error());
         }
     }
 
-    private static void SendInputBatch(ReadOnlySpan<InputStruct> inputs)
+    private void SendInputBatch(ReadOnlySpan<InputStruct> inputs)
     {
         var buffer = InputBuffer;
         while (inputs.Length > 0)
         {
             var chunkLength = Math.Min(inputs.Length, buffer.Length);
             inputs[..chunkLength].CopyTo(buffer.AsSpan(0, chunkLength));
-            var injectedInputs = User32.SendInput((uint)chunkLength, buffer, InputStruct.Size);
+            var injectedInputs = _sendInputNative((uint)chunkLength, buffer, InputStruct.Size);
             if (injectedInputs != (uint)chunkLength)
             {
-                EnsureInputWasAccepted((uint)chunkLength, injectedInputs, Marshal.GetLastWin32Error());
+                var nativeErrorCode = Marshal.GetLastWin32Error();
+                var acceptedCount = (int)Math.Min(injectedInputs, (uint)chunkLength);
+                if (acceptedCount > 0)
+                {
+                    TryCompensateAcceptedMouseButtons(buffer.AsSpan(0, acceptedCount));
+                }
+
+                EnsureInputWasAccepted((uint)chunkLength, injectedInputs, nativeErrorCode);
             }
 
             inputs = inputs[chunkLength..];
         }
+    }
+
+    private void TryCompensateAcceptedMouseButtons(ReadOnlySpan<InputStruct> acceptedInputs)
+    {
+        // SendInput reports a prefix count. MouseButtonClick is the only
+        // current batch caller, so compensate only for accepted button-down
+        // records whose matching release can be derived exactly. Do not guess
+        // for moves, wheels, keyboards, or future mixed batches.
+        foreach (var acceptedInput in acceptedInputs)
+        {
+            if (!TryCreateCompensatingMouseRelease(acceptedInput, out var release))
+            {
+                continue;
+            }
+
+            var buffer = InputBuffer;
+            buffer[0] = release;
+            var releasedInputs = _sendInputNative(1, buffer, InputStruct.Size);
+            if (releasedInputs is not 1)
+            {
+                Log.Warning(
+                    "[WindowsInputSimulator] Failed to compensate an accepted mouse button-down; SendInput accepted {Accepted} of 1 release event.",
+                    releasedInputs);
+            }
+        }
+    }
+
+    internal static bool TryCreateCompensatingMouseRelease(InputStruct acceptedInput, out InputStruct release)
+    {
+        release = acceptedInput;
+        if (acceptedInput.type is not InputType.INPUT_MOUSE)
+        {
+            return false;
+        }
+
+        uint releaseFlags = acceptedInput.U.mi.dwFlags switch
+        {
+            MouseEventFlags.MOUSEEVENTF_LEFTDOWN => MouseEventFlags.MOUSEEVENTF_LEFTUP,
+            MouseEventFlags.MOUSEEVENTF_RIGHTDOWN => MouseEventFlags.MOUSEEVENTF_RIGHTUP,
+            MouseEventFlags.MOUSEEVENTF_MIDDLEDOWN => MouseEventFlags.MOUSEEVENTF_MIDDLEUP,
+            MouseEventFlags.MOUSEEVENTF_XDOWN => MouseEventFlags.MOUSEEVENTF_XUP,
+            _ => 0,
+        };
+        if (releaseFlags is 0)
+        {
+            return false;
+        }
+
+        release.U.mi.dwFlags = releaseFlags;
+        return true;
     }
 
     internal static void EnsureInputWasAccepted(uint requestedInputs, uint injectedInputs, int nativeErrorCode)
@@ -360,7 +428,7 @@ public sealed class WindowsInputSimulator :
             nativeErrorCode);
     }
 
-    private static void SendUnicodeInput(char codeUnit, bool keyUp, long? marker)
+    private void SendUnicodeInput(char codeUnit, bool keyUp, long? marker)
     {
         SendKeyboardInput(
             virtualKey: 0,
@@ -369,7 +437,7 @@ public sealed class WindowsInputSimulator :
             marker);
     }
 
-    private static void SendKeyboardInput(ushort virtualKey, ushort scanCode, uint flags, long? marker)
+    private void SendKeyboardInput(ushort virtualKey, ushort scanCode, uint flags, long? marker)
     {
         var input = new InputStruct
         {

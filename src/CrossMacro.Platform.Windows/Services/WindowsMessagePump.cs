@@ -10,7 +10,16 @@ internal static class WindowsMessagePump
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            if (User32.GetMessage(out var message, IntPtr.Zero, 0, 0))
+            var result = User32.GetMessage(out var message, IntPtr.Zero, 0, 0);
+            if (result is -1)
+            {
+                var error = Marshal.GetLastPInvokeError();
+                throw error is 0
+                    ? new InvalidOperationException("Windows GetMessage returned an error.")
+                    : new Win32Exception(error, "Windows GetMessage returned an error.");
+            }
+
+            if (result is > 0)
             {
                 if (message.message == User32.WM_QUIT)
                 {
@@ -20,7 +29,7 @@ internal static class WindowsMessagePump
                 _ = User32.TranslateMessage(ref message);
                 _ = User32.DispatchMessage(ref message);
             }
-            else
+            else // result == 0: WM_QUIT
             {
                 break;
             }

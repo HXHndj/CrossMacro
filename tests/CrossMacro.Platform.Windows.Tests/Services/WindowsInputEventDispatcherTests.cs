@@ -151,6 +151,39 @@ public sealed class WindowsInputEventDispatcherTests
     }
 
     [Fact]
+    public async Task Dispose_WhenSubscriberDoesNotQuiesceWithinBudget_DropsQueuedEventsAndReturns()
+    {
+        using var entered = new ManualResetEventSlim(initialState: false);
+        using var release = new ManualResetEventSlim(initialState: false);
+        var dispatched = 0;
+        var dispatcher = new WindowsInputEventDispatcher(
+            inputEvent =>
+            {
+                Interlocked.Increment(ref dispatched);
+                entered.Set();
+                _ = release.Wait(TimeSpan.FromSeconds(5), CancellationToken.None);
+            },
+            static _ => { },
+            capacity: 2);
+
+        Assert.True(dispatcher.TryEnqueue(CreateInput(1)));
+        Assert.True(dispatcher.TryEnqueue(CreateInput(2)));
+        Assert.True(entered.Wait(TimeSpan.FromSeconds(1), CancellationToken.None));
+
+        var disposeTask = Task.Run(dispatcher.Dispose, CancellationToken.None);
+        await disposeTask.WaitAsync(
+            TimeSpan.FromMilliseconds(WindowsInputEventDispatcher.ShutdownWaitMilliseconds + 500),
+            CancellationToken.None);
+
+        // The active callback cannot be aborted, but the queued second event
+        // must not be dispatched after the shutdown budget expires.
+        Assert.Equal(1, Volatile.Read(ref dispatched));
+
+        release.Set();
+        await SpinWaitAsync(() => dispatcher.IsCompleted, TimeSpan.FromSeconds(1));
+    }
+
+    [Fact]
     public void Dispose_WhenCalledFromSubscriber_DoesNotDeadlock()
     {
         using var completed = new ManualResetEventSlim(initialState: false);
@@ -175,4 +208,18 @@ public sealed class WindowsInputEventDispatcherTests
         Code = InputEventCode.KEY_A,
         Value = value,
     };
+
+    private static async Task SpinWaitAsync(Func<bool> condition, TimeSpan timeout)
+    {
+        var deadline = Stopwatch.GetTimestamp() + (long)(timeout.TotalSeconds * Stopwatch.Frequency);
+        while (!condition())
+        {
+            if (Stopwatch.GetTimestamp() >= deadline)
+            {
+                Assert.Fail("Condition did not become true before the timeout.");
+            }
+
+            await Task.Yield();
+        }
+    }
 }
