@@ -106,7 +106,9 @@ public static class ScreenFramePngEncoder
     private static async Task<uint> WriteFilteredScanlinesAsync(Stream deflate, ScreenFrame frame, CancellationToken cancellationToken)
     {
         uint a = 1, b = 0;
-        var pixels = frame.Pixels.ToArray();
+        // Carry the frame as Memory (hoistable across awaits) and take the span
+        // per row; this avoids the full-frame ToArray() copy of the old path.
+        var pixels = frame.Pixels;
         var bpp = ScreenFrame.GetBytesPerPixel(frame.PixelFormat);
         var hasAlpha = UsesAlpha(frame);
         var row = new byte[checked(frame.Width * (hasAlpha ? 4 : 3))];
@@ -118,7 +120,7 @@ public static class ScreenFramePngEncoder
             UpdateAdler(ref a, ref b, 0);
 
             var rowOffset = y * frame.Stride;
-            ConvertRowToPng(pixels, rowOffset, frame.Width, bpp, frame.PixelFormat, frame.AlphaMode, row);
+            ConvertRowToPng(pixels.Span, rowOffset, frame.Width, bpp, frame.PixelFormat, frame.AlphaMode, row);
             await deflate.WriteAsync(row, cancellationToken).ConfigureAwait(false);
 
             foreach (var value in row)

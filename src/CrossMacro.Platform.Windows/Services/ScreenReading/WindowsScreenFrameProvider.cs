@@ -60,12 +60,19 @@ public sealed class WindowsScreenFrameProvider : IScreenFrameProvider
                     captured.Stride,
                     captured.PixelFormat,
                     captured.Pixels,
+                    owner: captured.Owner,
                     alphaMode: ScreenAlphaMode.Opaque);
                 return ScreenReadResultFactory.Success(frame);
             }
             catch (Exception ex) when (ex is not OutOfMemoryException)
             {
                 frame?.Dispose();
+                if (frame is null)
+                {
+                    // The constructor threw before taking ownership of the buffer.
+                    captured.Owner?.Dispose();
+                }
+
                 throw;
             }
         }
@@ -86,5 +93,6 @@ public sealed class WindowsScreenFrameProvider : IScreenFrameProvider
     public void Dispose()
     {
         _disposed = true;
+        (_captureBackend as IDisposable)?.Dispose();
     }
 }

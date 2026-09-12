@@ -1,9 +1,20 @@
 
 namespace CrossMacro.Platform.Windows.Services.ScreenReading;
 
-internal sealed class GdiWindowsScreenCaptureBackend : IWindowsScreenCaptureBackend
+using System.Buffers;
+
+internal sealed class GdiWindowsScreenCaptureBackend : IWindowsScreenCaptureBackend, IDisposable
 {
     private const ushort BitsPerPixel = 32;
+
+    private readonly object _gate = new();
+    private IntPtr _memoryDc;
+    private IntPtr _bitmap;
+    private IntPtr _bits;
+    private IntPtr _previousObject;
+    private int _cachedWidth;
+    private int _cachedHeight;
+    private bool _disposed;
 
     public ScreenRect GetVirtualScreenBounds()
     {
@@ -24,32 +35,69 @@ internal sealed class GdiWindowsScreenCaptureBackend : IWindowsScreenCaptureBack
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var screenDc = User32.GetDC(IntPtr.Zero);
-        if (screenDc == IntPtr.Zero)
+        lock (_gate)
         {
-            throw CreateWin32Exception("GetDC(NULL) failed");
+            ObjectDisposedException.ThrowIf(_disposed, this);
+
+            var screenDc = User32.GetDC(IntPtr.Zero);
+            if (screenDc == IntPtr.Zero)
+            {
+                throw CreateWin32Exception("GetDC(NULL) failed");
+            }
+
+            try
+            {
+                // The memory DC and DIB section are the expensive parts of a GDI
+                // capture; reuse them across calls and rebuild only when the
+                // requested size changes. The output buffer comes from the shared
+                // array pool and is returned when the owning frame is disposed.
+                EnsureCompatibleResources(screenDc, region.Width, region.Height);
+
+                cancellationToken.ThrowIfCancellationRequested();
+                PerformCaptureBlt(screenDc, _memoryDc, region.X, region.Y, region.Width, region.Height);
+
+                var stride = checked(region.Width * ScreenFrame.GetBytesPerPixel(ScreenPixelFormat.Bgra8888));
+                var pixelCount = checked(stride * region.Height);
+                var buffer = new PooledBufferMemoryManager(pixelCount);
+                try
+                {
+                    unsafe
+                    {
+                        new ReadOnlySpan<byte>((void*)_bits, pixelCount).CopyTo(buffer.GetSpan());
+                    }
+
+                    return new WindowsScreenCaptureFrame(region, stride, ScreenPixelFormat.Bgra8888, buffer.BufferMemory, buffer);
+                }
+                catch
+                {
+                    ((IDisposable)buffer).Dispose();
+                    throw;
+                }
+            }
+            catch
+            {
+                // Any failure leaves the cached GDI objects in an unknown state.
+                ReleaseCachedResources();
+                throw;
+            }
+            finally
+            {
+                _ = User32.ReleaseDC(IntPtr.Zero, screenDc);
+            }
+        }
+    }
+
+    private void EnsureCompatibleResources(IntPtr screenDc, int width, int height)
+    {
+        if (_memoryDc != IntPtr.Zero && width == _cachedWidth && height == _cachedHeight)
+        {
+            return;
         }
 
-        IntPtr memoryDc = IntPtr.Zero;
-        IntPtr bitmap = IntPtr.Zero;
-        IntPtr previousObject = IntPtr.Zero;
-        try
-        {
-            CreateCaptureResources(screenDc, region.Width, region.Height, out memoryDc, out bitmap, out var bits, out previousObject);
-
-            cancellationToken.ThrowIfCancellationRequested();
-            PerformCaptureBlt(screenDc, memoryDc, region.X, region.Y, region.Width, region.Height);
-
-            var stride = checked(region.Width * ScreenFrame.GetBytesPerPixel(ScreenPixelFormat.Bgra8888));
-            var pixels = new byte[checked(stride * region.Height)];
-            Marshal.Copy(bits, pixels, 0, pixels.Length);
-
-            return new WindowsScreenCaptureFrame(region, stride, ScreenPixelFormat.Bgra8888, pixels);
-        }
-        finally
-        {
-            ReleaseCaptureResources(screenDc, memoryDc, bitmap, previousObject);
-        }
+        ReleaseCachedResources();
+        CreateCaptureResources(screenDc, width, height, out _memoryDc, out _bitmap, out _bits, out _previousObject);
+        _cachedWidth = width;
+        _cachedHeight = height;
     }
 
     private static void CreateCaptureResources(
@@ -78,7 +126,7 @@ internal sealed class GdiWindowsScreenCaptureBackend : IWindowsScreenCaptureBack
         if (bitmap == IntPtr.Zero || bits == IntPtr.Zero)
         {
             // No cleanup here: out params alias the caller's locals, so the caller's finally
-            // (ReleaseCaptureResources) would double-free anything deleted in this method.
+            // (ReleaseCachedResources) would double-free anything deleted in this method.
             throw CreateWin32Exception("CreateDIBSection failed");
         }
 
@@ -111,24 +159,38 @@ internal sealed class GdiWindowsScreenCaptureBackend : IWindowsScreenCaptureBack
         }
     }
 
-    private static void ReleaseCaptureResources(IntPtr screenDc, IntPtr memoryDc, IntPtr bitmap, IntPtr previousObject)
+    private void ReleaseCachedResources()
     {
-        if (previousObject != IntPtr.Zero && previousObject != Gdi32.HbitmapError && memoryDc != IntPtr.Zero)
+        if (_previousObject != IntPtr.Zero && _previousObject != Gdi32.HbitmapError && _memoryDc != IntPtr.Zero)
         {
-            _ = Gdi32.SelectObject(memoryDc, previousObject);
+            _ = Gdi32.SelectObject(_memoryDc, _previousObject);
         }
 
-        if (bitmap != IntPtr.Zero)
+        if (_bitmap != IntPtr.Zero)
         {
-            _ = Gdi32.DeleteObject(bitmap);
+            _ = Gdi32.DeleteObject(_bitmap);
         }
 
-        if (memoryDc != IntPtr.Zero)
+        if (_memoryDc != IntPtr.Zero)
         {
-            _ = Gdi32.DeleteDC(memoryDc);
+            _ = Gdi32.DeleteDC(_memoryDc);
         }
 
-        _ = User32.ReleaseDC(IntPtr.Zero, screenDc);
+        _memoryDc = IntPtr.Zero;
+        _bitmap = IntPtr.Zero;
+        _bits = IntPtr.Zero;
+        _previousObject = IntPtr.Zero;
+        _cachedWidth = 0;
+        _cachedHeight = 0;
+    }
+
+    public void Dispose()
+    {
+        lock (_gate)
+        {
+            _disposed = true;
+            ReleaseCachedResources();
+        }
     }
 
     private static BitmapInfo CreateBitmapInfo(int width, int height)

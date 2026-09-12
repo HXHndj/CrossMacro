@@ -3,6 +3,31 @@ namespace CrossMacro.Platform.Windows.Tests.Services.ScreenReading;
 
 public sealed class WindowsScreenFrameProviderTests
 {
+
+    [WindowsFact]
+    public async Task GdiBackend_RepeatedCapturesOfSameSize_ReuseResourcesAndPooledBuffers()
+    {
+        using var backend = new GdiWindowsScreenCaptureBackend();
+        var region = new ScreenRect(0, 0, 32, 32);
+
+        // First capture warms the GDI resources; second capture must succeed with
+        // the cached DC/DIB and a pooled buffer that survives dispose + re-rent.
+        using (var frame1 = backend.Capture(region, CancellationToken.None))
+        {
+            Assert.Equal(region, frame1.LogicalBounds);
+        }
+
+        using (var frame2 = backend.Capture(region, CancellationToken.None))
+        {
+            Assert.Equal(region, frame2.LogicalBounds);
+            Assert.Equal(32 * ScreenFrame.GetBytesPerPixel(ScreenPixelFormat.Bgra8888) * 32, frame2.Pixels.Length);
+        }
+
+        // Size change forces a DIB rebuild without leaking the old objects.
+        using var frame3 = backend.Capture(new ScreenRect(0, 0, 16, 16), CancellationToken.None);
+        Assert.Equal(16, frame3.LogicalBounds.Width);
+    }
+
     [Fact]
     public void ProviderName_IsExpected()
     {
