@@ -2,6 +2,77 @@ namespace CrossMacro.Infrastructure.Tests.Services.Playback;
 
 public sealed class MotionTrajectoryResamplerTests
 {
+
+    [Fact]
+    public void CreatePlan_LargeDenseTrajectory_CompletesInLinearTime()
+    {
+        // 60s @ ~1kHz source resampled to 500/s: the previous per-sample linear
+        // scan was O(n*m) (~1.8e9 inner iterations, seconds of CPU); the monotonic
+        // cursor keeps this in the milliseconds range.
+        var events = new List<MacroEvent>(60_000);
+        for (var index = 0; index < 60_000; index++)
+        {
+            events.Add(new MacroEvent
+            {
+                Type = EventType.MouseMove,
+                X = index,
+                Y = (index * 7) % 1000,
+                TimestampMicroseconds = index * 1_000L,
+                DelayMicroseconds = 1_000,
+            });
+        }
+
+        var macro = new MacroSequence { IsAbsoluteCoordinates = true };
+        macro.ReplaceEvents(events);
+
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        var plan = MotionTrajectoryResampler.CreatePlan(
+            macro,
+            speedMultiplier: 1,
+            new PlaybackOptions
+            {
+                MotionMode = MotionPlaybackMode.StrictSpeed,
+                StrictSpeedMotionEventsPerSecond = 500,
+            });
+        stopwatch.Stop();
+
+        _ = plan.ResampledSegmentCount.Should().BeGreaterThan(0);
+        _ = stopwatch.Elapsed.TotalSeconds.Should().BeLessThan(15);
+    }
+
+    [Fact]
+    public void CreatePlan_StrictSpeedMode_NonAdvancingSegmentsDoNotBreakInterpolation()
+    {
+        // Raw delays can be non-positive; those segments never match and the
+        // cursor must skip them without corrupting later interpolation.
+        var macro = new MacroSequence { IsAbsoluteCoordinates = true };
+        macro.ReplaceEvents(
+        [
+            new MacroEvent { Type = EventType.MouseMove, X = 0, Y = 0, DelayMicroseconds = 0, TimestampMicroseconds = 0 },
+            new MacroEvent { Type = EventType.MouseMove, X = 100, Y = 0, DelayMicroseconds = 10_000, TimestampMicroseconds = 10_000 },
+            new MacroEvent { Type = EventType.MouseMove, X = 200, Y = 0, DelayMicroseconds = -4_000, TimestampMicroseconds = 6_000 },
+            new MacroEvent { Type = EventType.MouseMove, X = 300, Y = 0, DelayMicroseconds = 6_000, TimestampMicroseconds = 12_000 },
+        ]);
+
+        var plan = MotionTrajectoryResampler.CreatePlan(
+            macro,
+            speedMultiplier: 1,
+            new PlaybackOptions
+            {
+                MotionMode = MotionPlaybackMode.StrictSpeed,
+                StrictSpeedMotionEventsPerSecond = 100,
+            });
+
+        // Monotonic timestamps and positive delays across the whole plan.
+        long previousTimestamp = -1;
+        foreach (var ev in plan.Events)
+        {
+            _ = ev.TimestampMicroseconds.Should().BeGreaterThanOrEqualTo(previousTimestamp);
+            _ = ev.DelayMicroseconds.Should().BeGreaterThanOrEqualTo(0);
+            previousTimestamp = ev.TimestampMicroseconds;
+        }
+    }
+
     [Fact]
     public void CreatePlan_PrecisionMode_PreservesEveryRecordedSample()
     {

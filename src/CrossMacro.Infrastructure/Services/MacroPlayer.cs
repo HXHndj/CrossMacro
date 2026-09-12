@@ -38,6 +38,18 @@ public sealed class MacroPlayer : IMacroPlayer, IPlaybackPauseToken, IRunScriptR
     private int _errorCount;
     private readonly IDictionary<string, string> _runtimeVariables;
 
+    // Single-slot trajectory plan cache: looped playback re-plans the identical
+    // (macro, speed, motion options) combination every iteration; cache it so
+    // "between loops" pauses from large re-sampling passes disappear.
+    private readonly Lock _trajectoryPlanCacheLock = new();
+    private bool _hasTrajectoryPlanCache;
+    private MacroSequence? _cachedPlanMacro;
+    private double _cachedPlanSpeedMultiplier;
+    private MotionPlaybackMode _cachedPlanMotionMode;
+    private int _cachedPlanStrictRate;
+    private double _cachedPlanMaximumErrorPixels;
+    private MotionTrajectoryResampler.Plan _cachedPlan;
+
     private const int MaxPlaybackErrors = 10;
     private const double MinCatchUpResetDriftMs = 30.0;
     private const double CatchUpResetDelayMultiplier = 2.0;
@@ -391,6 +403,39 @@ public sealed class MacroPlayer : IMacroPlayer, IPlaybackPauseToken, IRunScriptR
         }
     }
 
+    private MotionTrajectoryResampler.Plan GetOrCreateTrajectoryPlan(
+        MacroSequence macro,
+        double speedMultiplier,
+        PlaybackOptions options)
+    {
+        using (_trajectoryPlanCacheLock.EnterScope())
+        {
+            if (_hasTrajectoryPlanCache
+                && ReferenceEquals(_cachedPlanMacro, macro)
+                && _cachedPlanSpeedMultiplier == speedMultiplier
+                && _cachedPlanMotionMode == options.MotionMode
+                && _cachedPlanStrictRate == options.StrictSpeedMotionEventsPerSecond
+                && _cachedPlanMaximumErrorPixels == options.MaximumMotionErrorPixels)
+            {
+                return _cachedPlan;
+            }
+        }
+
+        var plan = MotionTrajectoryResampler.CreatePlan(macro, speedMultiplier, options);
+        using (_trajectoryPlanCacheLock.EnterScope())
+        {
+            _hasTrajectoryPlanCache = true;
+            _cachedPlanMacro = macro;
+            _cachedPlanSpeedMultiplier = speedMultiplier;
+            _cachedPlanMotionMode = options.MotionMode;
+            _cachedPlanStrictRate = options.StrictSpeedMotionEventsPerSecond;
+            _cachedPlanMaximumErrorPixels = options.MaximumMotionErrorPixels;
+            _cachedPlan = plan;
+        }
+
+        return plan;
+    }
+
     private async Task PlayOnceAsync(
         MacroSequence macro,
         double speedMultiplier,
@@ -403,7 +448,7 @@ public sealed class MacroPlayer : IMacroPlayer, IPlaybackPauseToken, IRunScriptR
             ObservedPauseResumeVersion = _session.PauseResumeVersion,
             AllowsCooperativeLogicalRelativeMovement = HasOnlyLogicalRelativeMouseMoves(macro),
         };
-        var trajectoryPlan = MotionTrajectoryResampler.CreatePlan(macro, speedMultiplier, options);
+        var trajectoryPlan = GetOrCreateTrajectoryPlan(macro, speedMultiplier, options);
         int totalEvents = trajectoryPlan.Events.Count;
         var playbackElapsedMilliseconds = _playbackElapsedMillisecondsFactory();
 

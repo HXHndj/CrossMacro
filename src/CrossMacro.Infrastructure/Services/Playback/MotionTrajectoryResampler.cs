@@ -246,11 +246,21 @@ internal static class MotionTrajectoryResampler
             delayMicroseconds: firstDelayMicroseconds);
         output.Add(first);
 
+        // Output sample times are strictly increasing, so a monotonic cursor over
+        // the source segments replaces the per-sample linear scan (O(n*m) -> O(n+m)).
+        int cursorUpperIndex = start + 1;
+        long cursorSegmentStartTime = 0;
         for (long sampleTime = sourceIntervalMicroseconds;
              sampleTime < durationMicroseconds;
              sampleTime = checked(sampleTime + sourceIntervalMicroseconds))
         {
-            var sample = Interpolate(events, start, end, sampleTime);
+            var sample = InterpolateWithCursor(
+                events,
+                start,
+                end,
+                sampleTime,
+                ref cursorUpperIndex,
+                ref cursorSegmentStartTime);
             SetTiming(
                 ref sample,
                 timestampMicroseconds: checked(firstTimestampMicroseconds + sampleTime),
@@ -493,31 +503,58 @@ internal static class MotionTrajectoryResampler
         return -1;
     }
 
+    /// <summary>
+    /// Monotonic-cursor variant of <see cref="Interpolate"/>: the cursor state
+    /// (current segment index and its start time on the raw-delay timeline) is
+    /// carried across calls with strictly increasing sample times. Segments that
+    /// cannot match an earlier sample time (already past, or non-advancing due to
+    /// non-positive raw delays) can never match a later one, so skipping them is
+    /// behavior-preserving.
+    /// </summary>
+    private static MacroEvent InterpolateWithCursor(
+        IList<MacroEvent> events,
+        int start,
+        int end,
+        long sampleTimeMicroseconds,
+        ref int cursorUpperIndex,
+        ref long cursorSegmentStartTime)
+    {
+        while (cursorUpperIndex <= end)
+        {
+            long segmentEndTime = checked(cursorSegmentStartTime + events[cursorUpperIndex].DelayMicroseconds);
+            if (sampleTimeMicroseconds <= segmentEndTime && segmentEndTime > cursorSegmentStartTime)
+            {
+                var lower = events[cursorUpperIndex - 1];
+                var upper = events[cursorUpperIndex];
+                double ratio = (sampleTimeMicroseconds - cursorSegmentStartTime)
+                    / (double)(segmentEndTime - cursorSegmentStartTime);
+                upper.X = InterpolateAxis(lower.X, upper.X, ratio);
+                upper.Y = InterpolateAxis(lower.Y, upper.Y, ratio);
+                return upper;
+            }
+
+            cursorSegmentStartTime = segmentEndTime;
+            cursorUpperIndex++;
+        }
+
+        return events[end];
+    }
+
     private static MacroEvent Interpolate(
         IList<MacroEvent> events,
         int start,
         int end,
         long sampleTimeMicroseconds)
     {
-        long segmentStartTime = 0;
-        for (int upperIndex = start + 1; upperIndex <= end; upperIndex++)
-        {
-            long segmentEndTime = checked(segmentStartTime + events[upperIndex].DelayMicroseconds);
-            if (sampleTimeMicroseconds <= segmentEndTime && segmentEndTime > segmentStartTime)
-            {
-                var lower = events[upperIndex - 1];
-                var upper = events[upperIndex];
-                double ratio = (sampleTimeMicroseconds - segmentStartTime)
-                    / (double)(segmentEndTime - segmentStartTime);
-                upper.X = InterpolateAxis(lower.X, upper.X, ratio);
-                upper.Y = InterpolateAxis(lower.Y, upper.Y, ratio);
-                return upper;
-            }
-
-            segmentStartTime = segmentEndTime;
-        }
-
-        return events[end];
+        int cursorUpperIndex = start + 1;
+        long cursorSegmentStartTime = 0;
+        return InterpolateWithCursor(
+            events,
+            start,
+            end,
+            sampleTimeMicroseconds,
+            ref cursorUpperIndex,
+            ref cursorSegmentStartTime);
     }
 
     private static double DistanceSquaredToSegment(MacroEvent point, MacroEvent start, MacroEvent end)
