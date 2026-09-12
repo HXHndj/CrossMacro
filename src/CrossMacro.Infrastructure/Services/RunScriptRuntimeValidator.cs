@@ -71,7 +71,12 @@ internal sealed class RunScriptRuntimeValidator(Func<RunScriptStep, RunScriptCom
 
         if (RunScriptSyntax.IsScreenReadingStep(trimmed))
         {
-            return RunScriptScreenReadingStepParser.TryValidateStep(trimmed, out var screenReadingError) && screenReadingError is not null
+            if (!RunScriptScreenReadingStepParser.TryValidateStep(trimmed, out var screenReadingError))
+            {
+                return RunScriptCompileResult.Fail($"{source}: Invalid screen-reading step syntax.");
+            }
+
+            return screenReadingError is not null
                 ? RunScriptCompileResult.Fail($"{source}: {screenReadingError}")
                 : RunScriptCompileResult.Ok(new MacroSequence(), initialDelayMicroseconds: 0);
         }

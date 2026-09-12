@@ -25,19 +25,116 @@ public sealed class ManageShortcut(IShortcutTaskOperations operations, IShortcut
     }
     private async Task<ShortcutTask> MutateAsync(ShortcutTask task, bool add, CancellationToken token)
     {
-        _ = await LoadAsync(token).ConfigureAwait(false);
+        ArgumentNullException.ThrowIfNull(task);
+        var tasks = await LoadAsync(token).ConfigureAwait(false);
         token.ThrowIfCancellationRequested();
-        if (add)
+
+        if (add && tasks.Any(candidate => candidate.Id == task.Id))
         {
-            _operations.AddTask(task);
+            throw new InvalidOperationException($"A shortcut task with id '{task.Id}' already exists.");
         }
-        else
-        {
-            _operations.UpdateTask(task);
-        }
+
+        var previous = add ? null : tasks.FirstOrDefault(candidate => candidate.Id == task.Id);
+        var previousSnapshot = previous is null ? null : Clone(previous);
         token.ThrowIfCancellationRequested();
-        await _store.SaveAsync().ConfigureAwait(false);
-        return task;
+        var mutationApplied = false;
+        try
+        {
+            // Mark the operation before entering the adapter so a partial
+            // synchronous mutation followed by an exception is recoverable.
+            mutationApplied = true;
+            if (add)
+            {
+                _operations.AddTask(task);
+            }
+            else
+            {
+                _operations.UpdateTask(task);
+            }
+
+            token.ThrowIfCancellationRequested();
+            await _store.SaveAsync().ConfigureAwait(false);
+            return task;
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            if (mutationApplied)
+            {
+                RollbackMutation(ex, () =>
+                {
+                    if (add)
+                    {
+                        _operations.RemoveTask(task.Id);
+                    }
+                    else if (previousSnapshot is not null)
+                    {
+                        _operations.UpdateTask(previousSnapshot);
+                    }
+                    else
+                    {
+                        // UpdateTask is normally a no-op for a missing id. Remove
+                        // defensively in case a non-standard adapter creates it.
+                        _operations.RemoveTask(task.Id);
+                    }
+                });
+            }
+
+            throw;
+        }
+    }
+
+    private static ShortcutTask Clone(ShortcutTask source)
+    {
+        var clone = new ShortcutTask
+        {
+            Id = source.Id,
+            Name = source.Name,
+            MacroFilePath = source.MacroFilePath,
+            HotkeyString = source.HotkeyString,
+            PlaybackSpeed = source.PlaybackSpeed,
+            IsEnabled = source.IsEnabled,
+            LoopEnabled = source.LoopEnabled,
+            RepeatCount = source.RepeatCount,
+            RepeatDelayMs = source.RepeatDelayMs,
+            UseRandomRepeatDelay = source.UseRandomRepeatDelay,
+            RepeatDelayMinMs = source.RepeatDelayMinMs,
+            RepeatDelayMaxMs = source.RepeatDelayMaxMs,
+            RunWhileHeld = source.RunWhileHeld,
+            LastStatus = source.LastStatus,
+            LastTriggeredTime = source.LastTriggeredTime,
+        };
+
+        foreach (var rule in source.WindowRules)
+        {
+            if (rule is null)
+            {
+                continue;
+            }
+
+            clone.WindowRules.Add(new ShortcutWindowRule
+            {
+                Field = rule.Field,
+                MatchMode = rule.MatchMode,
+                Value = rule.Value,
+            });
+        }
+
+        return clone;
+    }
+
+    private static void RollbackMutation(Exception original, Action rollback)
+    {
+        try
+        {
+            rollback();
+        }
+        catch (Exception rollbackException) when (rollbackException is not OutOfMemoryException)
+        {
+            throw new AggregateException(
+                "Task mutation failed and restoring the previous runtime state also failed.",
+                original,
+                rollbackException);
+        }
     }
 
     private async Task<ShortcutTask> RemoveCoreAsync(TaskRequest request, CancellationToken token)

@@ -54,16 +54,18 @@ internal sealed class RunScriptScreenReadExecutor(
 
         if (!RunScriptScreenReadingStepParser.TryParseCommand(trimmedStep, out var command, out var parts))
         {
+            if (RunScriptSyntax.IsScreenReadingStep(trimmedStep))
+            {
+                throw new InvalidOperationException($"Step {stepNumber.ToString(CultureInfo.InvariantCulture)}: Invalid screen-reading step syntax.");
+            }
+
             return;
         }
 
-        if ((command is RunScriptScreenReadingCommand.ImageSearch
-            or RunScriptScreenReadingCommand.ImageClick
-            or RunScriptScreenReadingCommand.WaitImage)
-            && (!RunScriptScreenReadingStepParser.TryValidateStep(trimmedStep, out var validationError)
-                || validationError is not null))
+        if (!RunScriptScreenReadingStepParser.TryValidateStep(trimmedStep, out var validationError)
+            || validationError is not null)
         {
-            throw new InvalidOperationException($"Step {stepNumber.ToString(CultureInfo.InvariantCulture)}: {command} failed: {validationError ?? "invalid image command"}");
+            throw new InvalidOperationException($"Step {stepNumber.ToString(CultureInfo.InvariantCulture)}: {command} failed: {validationError ?? "invalid screen-reading command"}");
         }
 
         if (command is RunScriptScreenReadingCommand.PixelColor)

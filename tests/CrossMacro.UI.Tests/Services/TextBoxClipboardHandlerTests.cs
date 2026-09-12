@@ -85,4 +85,59 @@ public sealed class TextBoxClipboardHandlerTests
         Assert.False(cut);
         Assert.Equal("250", textBox.Text);
     }
+
+    [Fact]
+    public async Task TryCutAsync_WhenSelectionChangesWhileClipboardIsPending_KeepsCurrentTextAndSelection()
+    {
+        var textBox = new TextBox { Text = "first second" };
+        textBox.SelectionStart = 0;
+        textBox.SelectionEnd = 5;
+        // No RunContinuationsAsynchronously: continuations must stay on the test
+        // thread that owns the TextBox (AvaloniaObject verifies thread access).
+        var clipboardStarted = new TaskCompletionSource<object?>();
+        var releaseClipboard = new TaskCompletionSource<object?>();
+
+        var cutTask = TextBoxClipboardHandler.TryCutAsync(
+            textBox,
+            async text =>
+            {
+                _ = clipboardStarted.TrySetResult(null);
+                await releaseClipboard.Task;
+            });
+
+        await clipboardStarted.Task;
+        textBox.SelectionStart = 6;
+        textBox.SelectionEnd = 12;
+        _ = releaseClipboard.TrySetResult(null);
+
+        Assert.False(await cutTask);
+        Assert.Equal("first second", textBox.Text);
+        Assert.Equal("second", textBox.SelectedText);
+    }
+
+    [Fact]
+    public async Task TryCutAsync_WhenTextChangesWhileClipboardIsPending_KeepsChangedText()
+    {
+        var textBox = new TextBox { Text = "original" };
+        textBox.SelectAll();
+        // No RunContinuationsAsynchronously: continuations must stay on the test
+        // thread that owns the TextBox (AvaloniaObject verifies thread access).
+        var clipboardStarted = new TaskCompletionSource<object?>();
+        var releaseClipboard = new TaskCompletionSource<object?>();
+
+        var cutTask = TextBoxClipboardHandler.TryCutAsync(
+            textBox,
+            async text =>
+            {
+                _ = clipboardStarted.TrySetResult(null);
+                await releaseClipboard.Task;
+            });
+
+        await clipboardStarted.Task;
+        textBox.Text = "user replacement";
+        _ = releaseClipboard.TrySetResult(null);
+
+        Assert.False(await cutTask);
+        Assert.Equal("user replacement", textBox.Text);
+    }
 }

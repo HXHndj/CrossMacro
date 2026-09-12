@@ -9,25 +9,11 @@ public sealed class ManageTrigger(ITriggerTaskOperations operations, ITriggerTas
     public async Task<TaskCollectionResult<TriggerTask>> ListAsync(CancellationToken cancellationToken = default) =>
         new(await LoadAndCheckAsync(cancellationToken).ConfigureAwait(false));
 
-    public async Task<TriggerTask> AddAsync(TriggerTask task, CancellationToken cancellationToken = default)
-    {
-        _ = await LoadAsync(cancellationToken).ConfigureAwait(false);
-        cancellationToken.ThrowIfCancellationRequested();
-        _operations.AddTask(task);
-        cancellationToken.ThrowIfCancellationRequested();
-        await _store.SaveAsync().ConfigureAwait(false);
-        return task;
-    }
+    public Task<TriggerTask> AddAsync(TriggerTask task, CancellationToken cancellationToken = default) =>
+        MutateAsync(task, add: true, cancellationToken);
 
-    public async Task<TriggerTask> UpdateAsync(TriggerTask task, CancellationToken cancellationToken = default)
-    {
-        _ = await LoadAsync(cancellationToken).ConfigureAwait(false);
-        cancellationToken.ThrowIfCancellationRequested();
-        _operations.UpdateTask(task);
-        cancellationToken.ThrowIfCancellationRequested();
-        await _store.SaveAsync().ConfigureAwait(false);
-        return task;
-    }
+    public Task<TriggerTask> UpdateAsync(TriggerTask task, CancellationToken cancellationToken = default) =>
+        MutateAsync(task, add: false, cancellationToken);
     public async Task<TriggerTask> RemoveAsync(TaskRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -73,6 +59,105 @@ public sealed class ManageTrigger(ITriggerTaskOperations operations, ITriggerTas
         cancellationToken.ThrowIfCancellationRequested();
         await _store.LoadAsync().ConfigureAwait(false);
         return _store.Tasks;
+    }
+
+    private async Task<TriggerTask> MutateAsync(
+        TriggerTask task,
+        bool add,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(task);
+        var tasks = await LoadAsync(cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (add && tasks.Any(candidate => candidate.Id == task.Id))
+        {
+            throw new InvalidOperationException($"A trigger task with id '{task.Id}' already exists.");
+        }
+
+        var previous = add ? null : tasks.FirstOrDefault(candidate => candidate.Id == task.Id);
+        var previousSnapshot = previous is null ? null : Clone(previous);
+        cancellationToken.ThrowIfCancellationRequested();
+        var mutationApplied = false;
+        try
+        {
+            // Mark the operation before entering the adapter so a partial
+            // synchronous mutation followed by an exception is recoverable.
+            mutationApplied = true;
+            if (add)
+            {
+                _operations.AddTask(task);
+            }
+            else
+            {
+                _operations.UpdateTask(task);
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            await _store.SaveAsync().ConfigureAwait(false);
+            return task;
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            if (mutationApplied)
+            {
+                RollbackMutation(ex, () =>
+                {
+                    if (add)
+                    {
+                        _operations.RemoveTask(task.Id);
+                    }
+                    else if (previousSnapshot is not null)
+                    {
+                        _operations.UpdateTask(previousSnapshot);
+                    }
+                    else
+                    {
+                        // UpdateTask is normally a no-op for a missing id. Remove
+                        // defensively in case a non-standard adapter creates it.
+                        _operations.RemoveTask(task.Id);
+                    }
+                });
+            }
+
+            throw;
+        }
+    }
+
+    private static TriggerTask Clone(TriggerTask source)
+    {
+        return new TriggerTask
+        {
+            Id = source.Id,
+            Name = source.Name,
+            Field = source.Field,
+            MatchMode = source.MatchMode,
+            Value = source.Value,
+            Action = source.Action,
+            TargetProfileId = source.TargetProfileId,
+            MacroFilePath = source.MacroFilePath,
+            FireMode = source.FireMode,
+            CooldownMs = source.CooldownMs,
+            DebounceMs = source.DebounceMs,
+            IsEnabled = source.IsEnabled,
+            LastTriggeredTime = source.LastTriggeredTime,
+            LastStatus = source.LastStatus,
+        };
+    }
+
+    private static void RollbackMutation(Exception original, Action rollback)
+    {
+        try
+        {
+            rollback();
+        }
+        catch (Exception rollbackException) when (rollbackException is not OutOfMemoryException)
+        {
+            throw new AggregateException(
+                "Task mutation failed and restoring the previous runtime state also failed.",
+                original,
+                rollbackException);
+        }
     }
 
     private async Task<IReadOnlyList<TriggerTask>> LoadAndCheckAsync(CancellationToken cancellationToken)

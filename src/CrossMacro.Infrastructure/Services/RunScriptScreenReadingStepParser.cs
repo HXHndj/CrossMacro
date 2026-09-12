@@ -77,7 +77,10 @@ internal static class RunScriptScreenReadingStepParser
 
     public static string[] SplitStep(string step)
     {
-        return step.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        // Keep command recognition and argument parsing on the same boundary
+        // rules as RunScriptSyntax: tabs, line breaks, and other Unicode
+        // whitespace are all separators.
+        return step.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     }
 
     public static PixelSearchVariableLayout GetPixelSearchVariableLayout(string[] parts)

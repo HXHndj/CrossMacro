@@ -344,6 +344,7 @@ public sealed class LinuxInputCapture : IInputCapture, IAsyncDisposable
             InputEventType.MouseMove => _captureMouse,
             InputEventType.MouseScroll => _captureMouse,
             InputEventType.Sync => _captureMouse,
+            InputEventType.MouseMove2D => false, // This backend maps raw events one axis at a time.
             InputEventType.Unknown => false,
             _ => false,
         };
