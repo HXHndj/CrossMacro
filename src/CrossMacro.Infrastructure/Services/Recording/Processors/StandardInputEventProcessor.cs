@@ -28,6 +28,7 @@ public class StandardInputEventProcessor(ICoordinateStrategy coordinateStrategy)
         switch (args.Type)
         {
             case InputEventType.MouseMove:
+            case InputEventType.MouseMove2D:
                 if (!_recordMouse)
                 {
                     return null;

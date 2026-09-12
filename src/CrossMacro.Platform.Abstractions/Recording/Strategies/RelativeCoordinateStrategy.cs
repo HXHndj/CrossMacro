@@ -38,6 +38,13 @@ public sealed class RelativeCoordinateStrategy(bool producesLogicalCoordinates =
 
                 return CoordinateSample.None;
 
+            case InputEventType.MouseMove2D:
+                // Single-event movement: both deltas arrive together, so the
+                // event itself completes the report (no separate Sync follows).
+                _pendingX += e.Value;
+                _pendingY += e.ValueY;
+                return FlushPendingDelta();
+
             case InputEventType.Sync:
                 return FlushPendingDelta();
 

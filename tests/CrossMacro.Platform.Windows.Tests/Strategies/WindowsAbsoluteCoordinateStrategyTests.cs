@@ -34,6 +34,26 @@ public sealed class WindowsAbsoluteCoordinateStrategyTests
     }
 
     [Fact]
+    public async Task ProcessPosition_WhenMouseMove2DEmitSingleAxisPair_ReturnsSampleImmediately()
+    {
+        var provider = Substitute.For<IMousePositionProvider>();
+        _ = provider.GetAbsolutePositionAsync().Returns((10, 20));
+        var strategy = new WindowsAbsoluteCoordinateStrategy(provider);
+        await strategy.InitializeAsync(CancellationToken.None);
+
+        var sample = strategy.ProcessPosition(new CapturedInputEvent
+        {
+            Type = InputEventType.MouseMove2D,
+            Code = InputEventCode.ABS_X,
+            Value = -120,
+            ValueY = 450,
+        });
+
+        Assert.Equal(CoordinateSample.Create(-120, 450), sample);
+        _ = provider.Received(1).GetAbsolutePositionAsync();
+    }
+
+    [Fact]
     public async Task ProcessPosition_WhenCaptureProvidesAbsoluteAxes_UsesEventCoordinatesWithoutRequerying()
     {
         var provider = Substitute.For<IMousePositionProvider>();

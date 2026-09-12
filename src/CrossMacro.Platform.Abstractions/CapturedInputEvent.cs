@@ -8,6 +8,9 @@ public readonly struct CapturedInputEvent : IEquatable<CapturedInputEvent>
 
     public int Value { get; init; }
 
+    /// <summary>Second axis for <see cref="InputEventType.MouseMove2D"/> events (Y or dy); otherwise 0.</summary>
+    public int ValueY { get; init; }
+
     public long Timestamp { get; init; }
 
     /// <summary>Optional monotonic timestamp supplied by the capture backend.</summary>
@@ -19,13 +22,14 @@ public readonly struct CapturedInputEvent : IEquatable<CapturedInputEvent>
         Type == other.Type
         && Code == other.Code
         && Value == other.Value
+        && ValueY == other.ValueY
         && Timestamp == other.Timestamp
         && TimestampMicroseconds == other.TimestampMicroseconds
         && string.Equals(DeviceName, other.DeviceName, StringComparison.Ordinal);
 
     public override bool Equals([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] object? obj) => obj is CapturedInputEvent other && Equals(other);
 
-    public override int GetHashCode() => HashCode.Combine(Type, Code, Value, Timestamp, TimestampMicroseconds, DeviceName);
+    public override int GetHashCode() => HashCode.Combine(Type, Code, Value, ValueY, Timestamp, TimestampMicroseconds, DeviceName);
 
     public static bool operator ==(CapturedInputEvent left, CapturedInputEvent right) => left.Equals(right);
 

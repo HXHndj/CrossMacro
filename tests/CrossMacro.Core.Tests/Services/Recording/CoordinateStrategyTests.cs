@@ -36,6 +36,28 @@ public sealed class CoordinateStrategyTests
     }
 
     [Fact]
+    public void RelativeCoordinateStrategy_ProcessPosition_MouseMove2D_ShouldFlushImmediately()
+    {
+        // Arrange
+        var strategy = new RelativeCoordinateStrategy();
+        var movementEvent = new CapturedInputEvent
+        {
+            Type = InputEventType.MouseMove2D,
+            Code = InputEventCode.REL_X,
+            Value = 10,
+            ValueY = 20,
+        };
+
+        // Act - the 2D event is a complete report; no Sync follows it.
+        var result = strategy.ProcessPosition(movementEvent);
+
+        // Assert
+        _ = result.HasValue.Should().BeTrue();
+        _ = result.X.Should().Be(10);
+        _ = result.Y.Should().Be(20);
+    }
+
+    [Fact]
     public void RelativeCoordinateStrategy_ProcessPosition_Sync_ShouldFlushAccumulatedDeltas()
     {
         // Arrange

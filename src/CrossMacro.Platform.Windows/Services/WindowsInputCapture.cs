@@ -392,44 +392,19 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
         long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         long timestampMicroseconds = GetMonotonicTimestampMicroseconds();
 
-        if (_useAbsoluteCoordinates || movement.XValue is not 0)
+        // The hook already carries both axes; emit one MouseMove2D event instead
+        // of separate X/Y/Sync events (3x pipeline cost per physical move).
+        var movementArgs = new CapturedInputEvent
         {
-            var xArgs = new CapturedInputEvent
-            {
-                Type = InputEventType.MouseMove,
-                Code = movement.XCode,
-                Value = movement.XValue,
-                Timestamp = timestamp,
-                TimestampMicroseconds = timestampMicroseconds,
-                DeviceName = "VirtualMouse",
-            };
-            EnqueueInput(new CapturedInputEventArgs(xArgs));
-        }
-
-        if (_useAbsoluteCoordinates || movement.YValue is not 0)
-        {
-            var yArgs = new CapturedInputEvent
-            {
-                Type = InputEventType.MouseMove,
-                Code = movement.YCode,
-                Value = movement.YValue,
-                Timestamp = timestamp,
-                TimestampMicroseconds = timestampMicroseconds,
-                DeviceName = "VirtualMouse",
-            };
-            EnqueueInput(new CapturedInputEventArgs(yArgs));
-        }
-
-        var syncArgs = new CapturedInputEvent
-        {
-            Type = InputEventType.Sync,
-            Code = 0,
-            Value = 0,
+            Type = InputEventType.MouseMove2D,
+            Code = movement.XCode,
+            Value = movement.XValue,
+            ValueY = movement.YValue,
             Timestamp = timestamp,
             TimestampMicroseconds = timestampMicroseconds,
             DeviceName = "VirtualMouse",
         };
-        EnqueueInput(new CapturedInputEventArgs(syncArgs));
+        EnqueueInput(new CapturedInputEventArgs(movementArgs));
     }
 
     internal static (ushort XCode, int XValue, ushort YCode, int YValue) ResolveMouseMovement(
@@ -556,37 +531,14 @@ public sealed class WindowsInputCapture : IInputCapture, IMouseCoordinateModeInp
     {
         long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         long timestampMicroseconds = GetMonotonicTimestampMicroseconds();
-        if (deltaX is not 0)
-        {
-            EnqueueInput(new CapturedInputEventArgs(new CapturedInputEvent
-            {
-                Type = InputEventType.MouseMove,
-                Code = InputEventCode.REL_X,
-                Value = deltaX,
-                Timestamp = timestamp,
-                TimestampMicroseconds = timestampMicroseconds,
-                DeviceName = "RawMouse",
-            }));
-        }
 
-        if (deltaY is not 0)
-        {
-            EnqueueInput(new CapturedInputEventArgs(new CapturedInputEvent
-            {
-                Type = InputEventType.MouseMove,
-                Code = InputEventCode.REL_Y,
-                Value = deltaY,
-                Timestamp = timestamp,
-                TimestampMicroseconds = timestampMicroseconds,
-                DeviceName = "RawMouse",
-            }));
-        }
-
+        // Raw input carries both axes per report; emit one MouseMove2D event.
         EnqueueInput(new CapturedInputEventArgs(new CapturedInputEvent
         {
-            Type = InputEventType.Sync,
-            Code = 0,
-            Value = 0,
+            Type = InputEventType.MouseMove2D,
+            Code = InputEventCode.REL_X,
+            Value = deltaX,
+            ValueY = deltaY,
             Timestamp = timestamp,
             TimestampMicroseconds = timestampMicroseconds,
             DeviceName = "RawMouse",

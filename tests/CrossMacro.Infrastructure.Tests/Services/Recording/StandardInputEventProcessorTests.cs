@@ -3,6 +3,34 @@ namespace CrossMacro.Infrastructure.Tests.Services.Recording;
 
 public sealed class StandardInputEventProcessorTests
 {
+
+    [Fact]
+    public void Process_MouseMove2D_ShouldRecordAsMoveEvent()
+    {
+        // Arrange
+        var strategy = Substitute.For<ICoordinateStrategy>();
+        _ = strategy.ProcessPosition(Arg.Any<CapturedInputEvent>()).Returns(CoordinateSample.Create(30, 40));
+        var processor = new StandardInputEventProcessor(strategy);
+        processor.Configure(recordMouse: true, recordKeyboard: true, ignoredKeys: null, isAbsoluteCoordinates: true);
+
+        var movement = new CapturedInputEvent
+        {
+            Type = InputEventType.MouseMove2D,
+            Code = InputEventCode.ABS_X,
+            Value = 30,
+            ValueY = 40,
+        };
+
+        // Act
+        var result = processor.Process(movement, timestamp: 1_000);
+
+        // Assert
+        _ = result.Should().NotBeNull();
+        _ = result!.Value.Type.Should().Be(EventType.MouseMove);
+        _ = result.Value.X.Should().Be(30);
+        _ = result.Value.Y.Should().Be(40);
+    }
+
     private readonly ICoordinateStrategy _strategy;
     private readonly StandardInputEventProcessor _processor;
 

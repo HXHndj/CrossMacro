@@ -37,6 +37,16 @@ public sealed class WindowsAbsoluteCoordinateStrategy(IMousePositionProvider pos
 
     public CoordinateSample ProcessPosition(CapturedInputEvent e)
     {
+        if (e.Type is InputEventType.MouseMove2D)
+        {
+            // Single-event movement: both axes arrive together, no Sync needed.
+            _lastX = e.Value;
+            _lastY = e.ValueY;
+            _hasPendingAbsoluteCoordinate = true;
+            _hasPendingMovement = false;
+            return CoordinateSample.Create(_lastX, _lastY);
+        }
+
         if (e.Type is InputEventType.Sync)
         {
             if (!_hasPendingMovement)
