@@ -1,8 +1,7 @@
-
-namespace CrossMacro.Platform.Windows.Services;
-
 using CrossMacro.Platform.Windows.Native;
 using Microsoft.Win32.SafeHandles;
+
+namespace CrossMacro.Platform.Windows.Services;
 
 /// <summary>
 /// Coarse delay strategy backed by a high-resolution waitable timer
@@ -24,18 +23,18 @@ internal sealed class WindowsWaitableTimerDelayStrategy : ICoarseDelayStrategy, 
     {
         var desiredAccess = Kernel32.SYNCHRONIZE | Kernel32.TIMER_QUERY_STATE | Kernel32.TIMER_MODIFY_STATE;
         var timer = Kernel32.CreateWaitableTimerEx(
-            IntPtr.Zero,
-            null,
+            lpTimerAttributes: IntPtr.Zero,
+            lpTimerName: null,
             Kernel32.CREATE_WAITABLE_TIMER_MANUAL_RESET | Kernel32.CREATE_WAITABLE_TIMER_HIGH_RESOLUTION,
-            desiredAccess);
+            dwDesiredAccess: desiredAccess);
         if (timer.IsInvalid)
         {
             timer.Dispose();
             timer = Kernel32.CreateWaitableTimerEx(
-                IntPtr.Zero,
-                null,
+                lpTimerAttributes: IntPtr.Zero,
+                lpTimerName: null,
                 Kernel32.CREATE_WAITABLE_TIMER_MANUAL_RESET,
-                desiredAccess);
+                dwDesiredAccess: desiredAccess);
         }
 
         _timer = timer.IsInvalid ? null : timer;
@@ -63,14 +62,20 @@ internal sealed class WindowsWaitableTimerDelayStrategy : ICoarseDelayStrategy, 
             // Negative due time = relative to now, in 100 ns units. Re-arming a
             // manual-reset timer also clears its signaled state.
             var dueTime = -(long)millisecondsDelay * 10_000L;
-            if (!Kernel32.SetWaitableTimer(timer, in dueTime, 0, IntPtr.Zero, IntPtr.Zero, false))
+            if (!Kernel32.SetWaitableTimer(
+                    timer,
+                    in dueTime,
+                    lPeriod: 0,
+                    pfnCompletionRoutine: IntPtr.Zero,
+                    lpArgToCompletionRoutine: IntPtr.Zero,
+                    fResume: false))
             {
                 throw new System.ComponentModel.Win32Exception(System.Runtime.InteropServices.Marshal.GetLastWin32Error());
             }
 
             var waitResult = Kernel32.WaitForSingleObject(
-                timer,
-                unchecked((uint)(millisecondsDelay + WaitSlackMilliseconds)));
+                hHandle: timer,
+                dwMilliseconds: unchecked((uint)(millisecondsDelay + WaitSlackMilliseconds)));
             if (waitResult is not (Kernel32.WAIT_OBJECT_0 or Kernel32.WAIT_TIMEOUT))
             {
                 throw new System.ComponentModel.Win32Exception(System.Runtime.InteropServices.Marshal.GetLastWin32Error());

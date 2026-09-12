@@ -410,12 +410,17 @@ public sealed class MacroPlayer : IMacroPlayer, IPlaybackPauseToken, IRunScriptR
     {
         using (_trajectoryPlanCacheLock.EnterScope())
         {
+            // S1244: bit-identical doubles are exactly the right cache-identity
+            // test here; any tolerance would wrongly reuse a plan built for a
+            // different speed or error budget.
+#pragma warning disable S1244
             if (_hasTrajectoryPlanCache
                 && ReferenceEquals(_cachedPlanMacro, macro)
                 && _cachedPlanSpeedMultiplier == speedMultiplier
                 && _cachedPlanMotionMode == options.MotionMode
                 && _cachedPlanStrictRate == options.StrictSpeedMotionEventsPerSecond
                 && _cachedPlanMaximumErrorPixels == options.MaximumMotionErrorPixels)
+#pragma warning restore S1244
             {
                 return _cachedPlan;
             }

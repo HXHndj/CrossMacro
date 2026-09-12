@@ -323,7 +323,6 @@ public sealed class WindowsInputSimulator :
 
     private static void SendInputBatch(ReadOnlySpan<InputStruct> inputs)
     {
-        ArgumentOutOfRangeException.ThrowIfZero(inputs.Length);
         var buffer = InputBuffer;
         while (inputs.Length > 0)
         {

@@ -1,13 +1,16 @@
+using System.Buffers;
 
 namespace CrossMacro.Platform.Windows.Services.ScreenReading;
 
-using System.Buffers;
+// S6640: the DIB pointer is only readable through unsafe pointer math; the
+// copy length is derived from the DIB that owns the pointer and cannot overrun.
+#pragma warning disable S6640
 
 internal sealed class GdiWindowsScreenCaptureBackend : IWindowsScreenCaptureBackend, IDisposable
 {
     private const ushort BitsPerPixel = 32;
 
-    private readonly object _gate = new();
+    private readonly Lock _gate = new();
     private IntPtr _memoryDc;
     private IntPtr _bitmap;
     private IntPtr _bits;
@@ -192,6 +195,8 @@ internal sealed class GdiWindowsScreenCaptureBackend : IWindowsScreenCaptureBack
             ReleaseCachedResources();
         }
     }
+
+#pragma warning restore S6640
 
     private static BitmapInfo CreateBitmapInfo(int width, int height)
     {

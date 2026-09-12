@@ -461,14 +461,11 @@ public sealed class MacroRecorder(
         Log.Information("[MacroRecorder] Recording completed: Duration={Duration:F2}s, TotalEvents={Events}, MouseMoves={Moves}, Buttons={Buttons}",
             stopwatch.Elapsed.TotalSeconds, sequence.Events.Count, mouseMoveCount, buttonCount);
 
-        if (sampleMoves.Count > 0)
+        if (sampleMoves.Count > 0 && Log.IsEnabled(CoreLogLevel.Debug))
         {
             foreach (var m in sampleMoves)
             {
-                if (Log.IsEnabled(CoreLogLevel.Debug))
-                {
-                    Log.Debug("[MacroRecorder] Sample Move: X={X}, Y={Y}", m.X, m.Y);
-                }
+                Log.Debug("[MacroRecorder] Sample Move: X={X}, Y={Y}", m.X, m.Y);
             }
         }
         else if (mouseMoveCount > 0)

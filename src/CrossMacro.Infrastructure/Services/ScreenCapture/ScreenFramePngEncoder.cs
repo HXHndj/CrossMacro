@@ -171,13 +171,13 @@ public static class ScreenFramePngEncoder
         var channels = hasAlpha ? 4 : 3;
         var row = new byte[checked(frame.Width * channels)];
         var filtered = new byte[row.Length];
+        Span<byte> filterByte = stackalloc byte[1];
 
         for (var y = 0; y < frame.Height; y++)
         {
             var rowOffset = y * frame.Stride;
             ConvertRowToPng(pixels, rowOffset, frame.Width, bpp, frame.PixelFormat, frame.AlphaMode, row);
             var filterType = TrySubFilterRow(row, filtered, channels, out var encodedRow);
-            Span<byte> filterByte = stackalloc byte[1];
             filterByte[0] = filterType;
             deflate.WriteByte(filterType);
             AdlerChunk(ref a, ref b, filterByte);

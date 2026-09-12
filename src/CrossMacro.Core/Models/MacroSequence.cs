@@ -62,9 +62,10 @@ public class MacroSequence
         }
 
         target.Clear();
-        if (events is ICollection<MacroEvent> { Count: > 0 } collection)
+        if (events is ICollection<MacroEvent> { Count: > 0 } collection
+            && collection.Count > target.Capacity)
         {
-            target.EnsureCapacity(collection.Count);
+            target.Capacity = collection.Count;
         }
         foreach (var macroEvent in events)
         {

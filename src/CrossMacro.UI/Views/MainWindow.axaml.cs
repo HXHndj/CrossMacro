@@ -44,12 +44,12 @@ public partial class MainWindow : Window
 
     private void UpdateResizeHotZonesHitTestability()
     {
-        ResizeHotZones.IsHitTestVisible = WindowState == WindowState.Normal;
+        ResizeHotZones.IsHitTestVisible = WindowState is WindowState.Normal;
     }
 
     private void OnResizeGripPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (WindowState != WindowState.Normal
+        if (WindowState is not WindowState.Normal
             || sender is not Border { Tag: string edgeName }
             || !Enum.TryParse<WindowEdge>(edgeName, out var edge)
             || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
@@ -78,7 +78,7 @@ public partial class MainWindow : Window
             var preference = DWMWCP_ROUND;
             _ = DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, ref preference, sizeof(int));
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or System.Runtime.InteropServices.ExternalException)
         {
             Log.Warning(ex, "[MainWindow] Rounded window corners are unavailable");
         }

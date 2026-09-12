@@ -419,7 +419,8 @@ internal sealed class RunScriptScreenReadExecutor(
         }
 
         if (_imageAssetDecodeCache is not null
-            && _imageAssetDecodeCache.TryGetFrame(imageName, base64Png, out var cached))
+            && _imageAssetDecodeCache.TryGetFrame(imageName, base64Png, out var cached)
+            && cached is not null)
         {
             return cached;
         }

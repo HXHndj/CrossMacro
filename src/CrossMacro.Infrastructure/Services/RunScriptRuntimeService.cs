@@ -12,7 +12,7 @@ public sealed class RunScriptRuntimeService(
     private readonly IKeyCodeMapper _keyCodeMapper = keyCodeMapper ?? throw new ArgumentNullException(nameof(keyCodeMapper));
     private readonly IMousePositionProvider? _mousePositionProvider = mousePositionProvider;
     private readonly Func<TimeSpan, CancellationToken, Task>? _delayAsync = delayAsync
-        ?? ((delay, cancellationToken) => HighResolutionDelay.WaitAsync(delay, cancellationToken, coarseDelayStrategy));
+        ?? ((delay, cancellationToken) => HighResolutionDelay.WaitAsync(delay, coarseDelayStrategy, cancellationToken));
 
     public async Task<RunExecutionResult> ExecuteAsync(
         RunExecutionRequest request,

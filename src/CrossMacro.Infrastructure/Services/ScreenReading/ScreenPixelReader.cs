@@ -252,7 +252,7 @@ public sealed class ScreenPixelReader(IScreenFrameProvider frameProvider) : IScr
         _frameProvider.Dispose();
     }
 
-    bool IImageAssetDecodeCache.TryGetFrame(string imageName, string base64Png, out ScreenFrame frame)
+    bool IImageAssetDecodeCache.TryGetFrame(string imageName, string base64Png, out ScreenFrame? frame)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         return _decodeCache.TryGetFrame(imageName, base64Png, out frame);

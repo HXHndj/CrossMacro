@@ -256,7 +256,6 @@ internal static class MotionTrajectoryResampler
         {
             var sample = InterpolateWithCursor(
                 events,
-                start,
                 end,
                 sampleTime,
                 ref cursorUpperIndex,
@@ -513,7 +512,6 @@ internal static class MotionTrajectoryResampler
     /// </summary>
     private static MacroEvent InterpolateWithCursor(
         IList<MacroEvent> events,
-        int start,
         int end,
         long sampleTimeMicroseconds,
         ref int cursorUpperIndex,
@@ -540,22 +538,6 @@ internal static class MotionTrajectoryResampler
         return events[end];
     }
 
-    private static MacroEvent Interpolate(
-        IList<MacroEvent> events,
-        int start,
-        int end,
-        long sampleTimeMicroseconds)
-    {
-        int cursorUpperIndex = start + 1;
-        long cursorSegmentStartTime = 0;
-        return InterpolateWithCursor(
-            events,
-            start,
-            end,
-            sampleTimeMicroseconds,
-            ref cursorUpperIndex,
-            ref cursorSegmentStartTime);
-    }
 
     private static double DistanceSquaredToSegment(MacroEvent point, MacroEvent start, MacroEvent end)
     {

@@ -11,9 +11,9 @@ namespace CrossMacro.Infrastructure.Services;
 /// from the physical capture with the session itself as the sender so
 /// consumer-side "is current capture" checks keep working.
 /// </summary>
-internal sealed class InputCaptureSessionCoordinator : IDisposable
+internal sealed class InputCaptureSessionCoordinator(
+    InputCaptureSessionFactory physicalFactory) : IDisposable
 {
-    private readonly InputCaptureSessionFactory _physicalFactory;
     private readonly Lock _lock = new();
     private readonly SemaphoreSlim _stateGate = new(1, 1);
     private readonly List<InputCaptureSession> _sessions = [];
@@ -24,14 +24,10 @@ internal sealed class InputCaptureSessionCoordinator : IDisposable
     private (bool Mouse, bool Keyboard) _runningConfig;
     private (bool Absolute, bool Logical)? _runningMode;
     private bool _physicalUnhealthy;
-    private int _generation;
     private bool _disposed;
     private int _recomputationQueued;
 
-    public InputCaptureSessionCoordinator(InputCaptureSessionFactory physicalFactory)
-    {
-        _physicalFactory = physicalFactory ?? throw new ArgumentNullException(nameof(physicalFactory));
-    }
+
 
     public IInputCapture CreateSession()
     {
@@ -95,21 +91,25 @@ internal sealed class InputCaptureSessionCoordinator : IDisposable
             return;
         }
 
-        _ = Task.Run(async () =>
-        {
-            try
+        // The convergence worker is deliberately not cancellable by callers; the
+        // explicit None token documents that opt-out.
+        _ = Task.Run(
+            async () =>
             {
-                await ConvergeAsync(CancellationToken.None).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (ex is not OutOfMemoryException and not ObjectDisposedException)
-            {
-                Log.LogError(ex, "[InputCaptureSessionCoordinator] Background capture convergence failed");
-            }
-            finally
-            {
-                _ = Interlocked.Exchange(ref _recomputationQueued, 0);
-            }
-        });
+                try
+                {
+                    await ConvergeAsync(CancellationToken.None).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (ex is not OutOfMemoryException and not ObjectDisposedException)
+                {
+                    Log.LogError(ex, "[InputCaptureSessionCoordinator] Background capture convergence failed");
+                }
+                finally
+                {
+                    _ = Interlocked.Exchange(ref _recomputationQueued, 0);
+                }
+            },
+            CancellationToken.None);
     }
 
     private async Task ConvergeAsync(CancellationToken cancellationToken)
@@ -151,7 +151,7 @@ internal sealed class InputCaptureSessionCoordinator : IDisposable
         }
         finally
         {
-            _stateGate.Release();
+            _ = _stateGate.Release();
         }
     }
 
@@ -218,7 +218,6 @@ internal sealed class InputCaptureSessionCoordinator : IDisposable
             _physicalUnhealthy = false;
             _runningConfig = default;
             _runningMode = null;
-            _generation++;
         }
 
         if (physical is null)
@@ -270,7 +269,7 @@ internal sealed class InputCaptureSessionCoordinator : IDisposable
 
     private async Task StartPhysicalAsync(DesiredState desired, CancellationToken cancellationToken)
     {
-        var physical = _physicalFactory();
+        var physical = physicalFactory();
         physical.Configure(desired.Mouse, desired.Keyboard);
         if (desired.Mode is { } mode && physical is IMouseCoordinateModeInputCapture modeAware)
         {
@@ -417,19 +416,14 @@ internal sealed class InputCaptureSessionCoordinator : IDisposable
     }
 
     /// <summary>Lightweight per-consumer view over the shared physical capture.</summary>
-    private sealed class InputCaptureSession : IInputCapture, IMouseCoordinateModeInputCapture
+    private sealed class InputCaptureSession(InputCaptureSessionCoordinator owner)
+        : IInputCapture, IMouseCoordinateModeInputCapture
     {
-        private readonly InputCaptureSessionCoordinator _owner;
-
-        public InputCaptureSession(InputCaptureSessionCoordinator owner)
-        {
-            _owner = owner;
-        }
 
         public event EventHandler<CapturedInputEventArgs>? InputReceived;
         public event EventHandler<InputCaptureErrorEventArgs>? CaptureError;
 
-        public string ProviderName => _owner.ProviderName;
+        public string ProviderName => owner.ProviderName;
 
         /// <summary>Delegated to the physical capture once it exists; sessions themselves are always constructible.</summary>
         public bool IsSupported => true;
@@ -447,35 +441,35 @@ internal sealed class InputCaptureSessionCoordinator : IDisposable
             CaptureKeyboard = captureKeyboard;
             if (IsActive)
             {
-                _owner.OnSessionConfigured();
+                owner.OnSessionConfigured();
             }
         }
 
         public void ConfigureCoordinateMode(bool useAbsoluteCoordinates, bool useLogicalCoordinates)
         {
-            _owner.EnsureExclusiveCoordinateMode(this);
+            owner.EnsureExclusiveCoordinateMode(this);
             UseAbsoluteCoordinates = useAbsoluteCoordinates;
             UseLogicalCoordinates = useLogicalCoordinates;
             HasCoordinateMode = true;
             if (IsActive)
             {
-                _owner.OnSessionConfigured();
+                owner.OnSessionConfigured();
             }
         }
 
         public Task StartAsync(CancellationToken ct)
         {
             ct.ThrowIfCancellationRequested();
-            return _owner.StartSessionAsync(this, ct);
+            return owner.StartSessionAsync(this, ct);
         }
 
-        public void StopCapture() => _owner.StopSession(this);
+        public void StopCapture() => owner.StopSession(this);
 
         public void Dispose()
         {
             IsActive = false;
-            _owner.RemoveSession(this);
-            _owner.QueueRecompute();
+            owner.RemoveSession(this);
+            owner.QueueRecompute();
         }
 
         internal void Deactivate() => IsActive = false;

@@ -17,17 +17,5 @@ public interface ICoarseDelayStrategy
     /// <summary>Waits for approximately <paramref name="millisecondsDelay"/> milliseconds.</summary>
     /// <param name="millisecondsDelay">Delay in milliseconds; always at least 1.</param>
     /// <param name="cancellationToken">Observed between internally chunked waits; cancellation latency is bounded by the chunk length.</param>
-    ValueTask WaitAsync(int millisecondsDelay, CancellationToken cancellationToken);
-}
-
-/// <summary>Default coarse delay backed by <see cref="Task.Delay"/> (system timer granularity).</summary>
-public sealed class TaskDelayCoarseDelayStrategy : ICoarseDelayStrategy
-{
-    public static TaskDelayCoarseDelayStrategy Instance { get; } = new();
-
-    async ValueTask ICoarseDelayStrategy.WaitAsync(int millisecondsDelay, CancellationToken cancellationToken)
-    {
-        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(millisecondsDelay, 0);
-        await Task.Delay(millisecondsDelay, cancellationToken).ConfigureAwait(false);
-    }
+    public ValueTask WaitAsync(int millisecondsDelay, CancellationToken cancellationToken);
 }

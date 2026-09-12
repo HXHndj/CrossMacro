@@ -1,7 +1,6 @@
+using Microsoft.Win32.SafeHandles;
 
 namespace CrossMacro.Platform.Windows.Native;
-
-using Microsoft.Win32.SafeHandles;
 
 internal static partial class Kernel32
 {

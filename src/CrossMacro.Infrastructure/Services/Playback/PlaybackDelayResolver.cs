@@ -1,4 +1,8 @@
 
+// CA5394: playback jitter is deliberately non-cryptographic; using a shared
+// fast PRNG here removes a crypto syscall per randomized event.
+#pragma warning disable CA5394
+
 namespace CrossMacro.Infrastructure.Services.Playback;
 
 /// <summary>

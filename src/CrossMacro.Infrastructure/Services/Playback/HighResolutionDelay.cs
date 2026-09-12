@@ -7,12 +7,12 @@ internal static class HighResolutionDelay
     private const int MaximumCoarseDelayMilliseconds = 50;
 
     public static Task WaitAsync(TimeSpan delay, CancellationToken cancellationToken) =>
-        WaitAsync(delay, cancellationToken, coarseDelayStrategy: null);
+        WaitAsync(delay, coarseDelayStrategy: null, cancellationToken);
 
     public static async Task WaitAsync(
         TimeSpan delay,
-        CancellationToken cancellationToken,
-        ICoarseDelayStrategy? coarseDelayStrategy)
+        ICoarseDelayStrategy? coarseDelayStrategy,
+        CancellationToken cancellationToken)
     {
         if (delay <= TimeSpan.Zero)
         {

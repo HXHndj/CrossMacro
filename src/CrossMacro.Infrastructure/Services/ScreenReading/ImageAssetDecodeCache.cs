@@ -1,21 +1,5 @@
 namespace CrossMacro.Infrastructure.Services.ScreenReading;
 
-using System.IO.Hashing;
-
-/// <summary>
-/// Caches decoded template frames for playback image steps keyed by asset
-/// name plus content hash. Loop-heavy scripts otherwise re-inflate and
-/// re-unfilter the same embedded PNG on every iteration.
-/// </summary>
-internal interface IImageAssetDecodeCache
-{
-    /// <summary>Returns a read-only wrapper sharing the cached pixels; the wrapper carries no ownership.</summary>
-    bool TryGetFrame(string imageName, string base64Png, out ScreenFrame frame);
-
-    /// <summary>Stores the decoded frame; the cache takes over ownership (dispose happens on eviction/shutdown).</summary>
-    void Store(string imageName, string base64Png, ScreenFrame frame);
-}
-
 internal sealed class ImageAssetDecodeCache : IImageAssetDecodeCache, IDisposable
 {
     private const int Capacity = 8;
@@ -24,11 +8,11 @@ internal sealed class ImageAssetDecodeCache : IImageAssetDecodeCache, IDisposabl
     private readonly Dictionary<(string Name, long Hash), LinkedListNode<CacheEntry>> _entries = [];
     private readonly LinkedList<CacheEntry> _lru = [];
 
-    public bool TryGetFrame(string imageName, string base64Png, out ScreenFrame frame)
+    public bool TryGetFrame(string imageName, string base64Png, out ScreenFrame? frame)
     {
         ArgumentNullException.ThrowIfNull(imageName);
         ArgumentNullException.ThrowIfNull(base64Png);
-        frame = null!;
+        frame = null;
 
         var key = (imageName, ImageAssetCacheKey.Compute(base64Png));
         lock (_lock)
@@ -87,25 +71,4 @@ internal sealed class ImageAssetDecodeCache : IImageAssetDecodeCache, IDisposabl
     }
 
     private readonly record struct CacheEntry((string Name, long Hash) Key, ScreenFrame Frame);
-}
-
-internal static class ImageAssetCacheKey
-{
-    /// <summary>Allocation-free content hash over the UTF-16 base64 payload bytes.</summary>
-    public static long Compute(string base64Png) =>
-        XxHash128.Hash(MemoryMarshal.Cast<char, byte>(base64Png.AsSpan())) is { Length: 16 } hash ? BitConverter.ToInt64(hash) : 0L;
-}
-
-internal static class ScreenFrameWrapperExtensions
-{
-    /// <summary>Builds an equivalent frame over the same pixel memory without ownership.</summary>
-    public static ScreenFrame CreateNonOwningWrapper(this ScreenFrame source) => new(
-        source.LogicalBounds,
-        source.Stride,
-        source.PixelFormat,
-        source.Pixels,
-        owner: null,
-        source.ValidPixelMask,
-        validityIndex: null,
-        source.AlphaMode);
 }

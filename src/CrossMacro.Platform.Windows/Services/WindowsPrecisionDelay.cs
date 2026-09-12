@@ -1,3 +1,4 @@
+using System.Threading;
 
 namespace CrossMacro.Platform.Windows.Services;
 
@@ -14,26 +15,8 @@ internal static class WindowsPrecisionDelay
 
     // Lazily created; the waitable timer handle is process-scoped and the
     // strategy serializes access internally, so one shared instance is enough.
+    // A rare double-factory race would only leak one finalizer-reclaimed handle.
     private static WindowsWaitableTimerDelayStrategy? _strategy;
-
-    private static WindowsWaitableTimerDelayStrategy Strategy
-    {
-        get
-        {
-            var strategy = Volatile.Read(ref _strategy);
-            if (strategy is null)
-            {
-                strategy = new WindowsWaitableTimerDelayStrategy();
-                if (Interlocked.CompareExchange(ref _strategy, strategy, null) is { } existing)
-                {
-                    strategy.Dispose();
-                    strategy = existing;
-                }
-            }
-
-            return strategy;
-        }
-    }
 
     public static async Task WaitUntilAsync(long deadlineTicks, CancellationToken cancellationToken)
     {
@@ -52,7 +35,10 @@ internal static class WindowsPrecisionDelay
                 Math.Max(0, Convert.ToInt32(Math.Floor(remainingMilliseconds - FinalSpinWindowMilliseconds))));
             if (coarseDelayMilliseconds > 0)
             {
-                await Strategy.WaitAsync(coarseDelayMilliseconds, cancellationToken).ConfigureAwait(false);
+                var strategy = LazyInitializer.EnsureInitialized(
+                    ref _strategy,
+                    static () => new WindowsWaitableTimerDelayStrategy());
+                await strategy.WaitAsync(coarseDelayMilliseconds, cancellationToken).ConfigureAwait(false);
                 continue;
             }
 

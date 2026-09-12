@@ -42,7 +42,7 @@ public sealed class PooledBufferMemoryManager : MemoryManager<byte>
 
     protected override void Dispose(bool disposing)
     {
-        var buffer = Interlocked.Exchange(ref _buffer, null);
+        var buffer = Interlocked.Exchange(ref _buffer, value: null);
         if (buffer is not null)
         {
             if (_clearOnReturn)
