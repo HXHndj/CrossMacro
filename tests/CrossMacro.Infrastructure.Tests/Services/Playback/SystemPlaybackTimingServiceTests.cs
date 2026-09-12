@@ -44,10 +44,10 @@ public sealed class SystemPlaybackTimingServiceTests
         var service = new SystemPlaybackTimingService(strategy);
         var pauseToken = new FakePauseToken();
 
-        await service.WaitAsync(60, pauseToken, CancellationToken.None);
+        // 120 ms guarantees at least two coarse chunks even when the fake's
+        // Task.Delay wakes a full system-tick (~15.6 ms) late on the first chunk.
+        await service.WaitAsync(120, pauseToken, CancellationToken.None);
 
-        // A 60 ms wait is chunked into coarse chunks of at most 50 ms, so the
-        // strategy must be consulted at least twice with positive delays.
         _ = strategy.RequestedDelays.Should().NotBeEmpty();
         _ = strategy.RequestedDelays.Should().OnlyContain(delay => delay >= 1);
         _ = strategy.CallCount.Should().BeGreaterThanOrEqualTo(2);
