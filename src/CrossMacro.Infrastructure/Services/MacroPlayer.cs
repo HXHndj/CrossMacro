@@ -760,7 +760,8 @@ public sealed class MacroPlayer : IMacroPlayer, IPlaybackPauseToken, IRunScriptR
             imageClickMovementResolver: _imageClickMovementResolver,
             inputSimulator: _inputSimulator,
             imageAssetCodec: _imageAssetCodec,
-            flushPendingCursorMovementAsync: token => FlushPendingCursorMovementAsync(state, token));
+            flushPendingCursorMovementAsync: token => FlushPendingCursorMovementAsync(state, token),
+            imageAssetDecodeCache: _screenPixelReader as IImageAssetDecodeCache);
         var windowExecutor = new RunScriptWindowExecutor(_windowManager);
         var clipboardExecutor = new RunScriptClipboardExecutor(_clipboardService);
         var shellExecutor = new RunScriptShellExecutor(_shellCommandRunner, _timingService, this);
@@ -1140,7 +1141,7 @@ public sealed class MacroPlayer : IMacroPlayer, IPlaybackPauseToken, IRunScriptR
             throw new InvalidOperationException("Screen-reading script steps require an IScreenPixelReader runtime service.");
         }
 
-        var executor = new RunScriptScreenReadExecutor(_screenPixelReader, _positionProvider, imageClickMovementResolver: _imageClickMovementResolver, inputSimulator: _inputSimulator, imageAssetCodec: _imageAssetCodec);
+        var executor = new RunScriptScreenReadExecutor(_screenPixelReader, _positionProvider, imageClickMovementResolver: _imageClickMovementResolver, inputSimulator: _inputSimulator, imageAssetCodec: _imageAssetCodec, imageAssetDecodeCache: _screenPixelReader as IImageAssetDecodeCache);
         await executor.ExecuteAsync(macro, _runtimeVariables, cancellationToken).ConfigureAwait(false);
     }
 

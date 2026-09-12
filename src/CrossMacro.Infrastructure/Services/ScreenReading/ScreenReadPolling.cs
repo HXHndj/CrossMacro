@@ -5,6 +5,12 @@ internal static class ScreenReadPolling
     private const int StableCenterTolerance = 2;
     private const int StableSizeTolerance = 1;
 
+    // Back off when the screen keeps missing: the first polls stay responsive,
+    // long waits exponentially shed CPU (capped).
+    private const int BackoffAfterConsecutiveMisses = 10;
+    private const int MaximumBackoffShift = 4;
+    private static readonly TimeSpan MaximumBackoffInterval = TimeSpan.FromMilliseconds(500);
+
     public static DateTimeOffset GetDeadline(TimeSpan timeout, TimeProvider? timeProvider = null) =>
         (timeProvider ?? TimeProvider.System).GetUtcNow() + timeout;
 
@@ -83,6 +89,7 @@ internal static class ScreenReadPolling
         var hasPrevious = false;
         T? previous = default;
         ScreenReadResult<T>? lastFailure = null;
+        var consecutiveMisses = 0;
 
         while (true)
         {
@@ -92,6 +99,7 @@ internal static class ScreenReadPolling
                 var result = await searchOnceAsync(GetRemaining(deadline, timeProvider), cancellationToken).ConfigureAwait(false);
                 if (result.IsSuccess)
                 {
+                    consecutiveMisses = 0;
                     if (consistency is null
                         || (hasPrevious && consistency(previous!, result.Value!)))
                     {
@@ -103,6 +111,7 @@ internal static class ScreenReadPolling
                 }
                 else
                 {
+                    consecutiveMisses++;
                     hasPrevious = false;
                     previous = default;
                     if (result.ErrorKind is not ScreenReadErrorKind.CaptureTimeout)
@@ -127,7 +136,10 @@ internal static class ScreenReadPolling
                             "Screen read polling timed out.");
                 }
 
-                await Task.Delay(GetDelay(deadline, pollInterval, timeProvider), timeProvider, cancellationToken).ConfigureAwait(false);
+                await Task.Delay(
+                    GetEffectiveDelay(deadline, pollInterval, consecutiveMisses, timeProvider),
+                    timeProvider,
+                    cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -136,6 +148,21 @@ internal static class ScreenReadPolling
                     canceledMessage);
             }
         }
+    }
+
+    internal static TimeSpan GetEffectiveDelay(DateTimeOffset deadline, TimeSpan pollInterval, int consecutiveMisses, TimeProvider? timeProvider = null)
+    {
+        var interval = pollInterval;
+        if (consecutiveMisses > BackoffAfterConsecutiveMisses)
+        {
+            var shift = Math.Min(consecutiveMisses - BackoffAfterConsecutiveMisses, MaximumBackoffShift);
+            interval = TimeSpan.FromMilliseconds(Math.Min(
+                pollInterval.TotalMilliseconds * (1 << shift),
+                MaximumBackoffInterval.TotalMilliseconds));
+        }
+
+        var remaining = GetRemaining(deadline, timeProvider);
+        return remaining < interval ? remaining : interval;
     }
 
     private static bool IsConsistent(ScreenImageMatch first, ScreenImageMatch second)

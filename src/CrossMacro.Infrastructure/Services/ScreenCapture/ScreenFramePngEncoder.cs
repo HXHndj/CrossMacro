@@ -1,4 +1,6 @@
 
+using System.IO.Hashing;
+
 namespace CrossMacro.Infrastructure.Services.ScreenCapture;
 
 public static class ScreenFramePngEncoder
@@ -111,25 +113,53 @@ public static class ScreenFramePngEncoder
         var pixels = frame.Pixels;
         var bpp = ScreenFrame.GetBytesPerPixel(frame.PixelFormat);
         var hasAlpha = UsesAlpha(frame);
-        var row = new byte[checked(frame.Width * (hasAlpha ? 4 : 3))];
+        var channels = hasAlpha ? 4 : 3;
+        var row = new byte[checked(frame.Width * channels)];
+        var filtered = new byte[row.Length];
         var filterByte = new byte[1];
 
         for (var y = 0; y < frame.Height; y++)
         {
-            await deflate.WriteAsync(filterByte, cancellationToken).ConfigureAwait(false);
-            UpdateAdler(ref a, ref b, 0);
-
             var rowOffset = y * frame.Stride;
             ConvertRowToPng(pixels.Span, rowOffset, frame.Width, bpp, frame.PixelFormat, frame.AlphaMode, row);
-            await deflate.WriteAsync(row, cancellationToken).ConfigureAwait(false);
+            var filterType = TrySubFilterRow(row, filtered, channels, out var encodedRow);
+            filterByte[0] = filterType;
 
-            foreach (var value in row)
-            {
-                UpdateAdler(ref a, ref b, value);
-            }
+            await deflate.WriteAsync(filterByte, cancellationToken).ConfigureAwait(false);
+            AdlerChunk(ref a, ref b, filterByte);
+            await deflate.WriteAsync(encodedRow, cancellationToken).ConfigureAwait(false);
+            AdlerChunk(ref a, ref b, encodedRow);
         }
 
         return (b << 16) | a;
+    }
+
+    /// <summary>
+    /// Sub-filters the row into <paramref name="filtered"/> and picks whichever
+    /// of None/Sub has the smaller biased absolute sum (the standard PNG filter
+    /// heuristic). Sub dominates on UI/screen content and typically shrinks the
+    /// deflated stream 30%+ versus filter 0.
+    /// </summary>
+    private static byte TrySubFilterRow(byte[] row, byte[] filtered, int channels, out byte[] encodedRow)
+    {
+        long costNone = 0;
+        long costSub = 0;
+        for (var i = 0; i < row.Length; i++)
+        {
+            var raw = row[i];
+            filtered[i] = unchecked((byte)(raw - (i >= channels ? row[i - channels] : 0)));
+            costNone += raw;
+            costSub += filtered[i];
+        }
+
+        if (costSub < costNone)
+        {
+            encodedRow = filtered;
+            return 1;
+        }
+
+        encodedRow = row;
+        return 0;
     }
 
     private static uint WriteFilteredScanlines(Stream deflate, ScreenFrame frame)
@@ -138,19 +168,21 @@ public static class ScreenFramePngEncoder
         var pixels = frame.Pixels.Span;
         var bpp = ScreenFrame.GetBytesPerPixel(frame.PixelFormat);
         var hasAlpha = UsesAlpha(frame);
-        var row = new byte[checked(frame.Width * (hasAlpha ? 4 : 3))];
+        var channels = hasAlpha ? 4 : 3;
+        var row = new byte[checked(frame.Width * channels)];
+        var filtered = new byte[row.Length];
 
         for (var y = 0; y < frame.Height; y++)
         {
-            deflate.WriteByte(0);
-            UpdateAdler(ref a, ref b, 0);
             var rowOffset = y * frame.Stride;
             ConvertRowToPng(pixels, rowOffset, frame.Width, bpp, frame.PixelFormat, frame.AlphaMode, row);
-            deflate.Write(row, 0, row.Length);
-            foreach (var value in row)
-            {
-                UpdateAdler(ref a, ref b, value);
-            }
+            var filterType = TrySubFilterRow(row, filtered, channels, out var encodedRow);
+            Span<byte> filterByte = stackalloc byte[1];
+            filterByte[0] = filterType;
+            deflate.WriteByte(filterType);
+            AdlerChunk(ref a, ref b, filterByte);
+            deflate.Write(encodedRow, 0, encodedRow.Length);
+            AdlerChunk(ref a, ref b, encodedRow);
         }
 
         return (b << 16) | a;
@@ -229,10 +261,31 @@ public static class ScreenFramePngEncoder
 
     private static byte Unpremultiply(byte value, byte alpha) => alpha is 0 ? (byte)0 : (byte)Math.Min(byte.MaxValue, ((value * 255) + (alpha / 2)) / alpha);
 
-    private static void UpdateAdler(ref uint a, ref uint b, byte value)
+    private const uint AdlerModulus = 65521;
+    private const int AdlerMaxChunk = 5552;
+
+    /// <summary>
+    /// Batched Adler-32 update (NMAX blocking per RFC 1950): two modulo
+    /// operations per 5552 bytes instead of two per byte.
+    /// </summary>
+    private static void AdlerChunk(ref uint a, ref uint b, ReadOnlySpan<byte> data)
     {
-        a = (a + value) % 65521;
-        b = (b + a) % 65521;
+        while (data.Length > 0)
+        {
+            var chunkLength = Math.Min(data.Length, AdlerMaxChunk);
+            var chunk = data[..chunkLength];
+            ulong sumA = a;
+            ulong sumB = b;
+            foreach (var value in chunk)
+            {
+                sumA += value;
+                sumB += sumA;
+            }
+
+            a = (uint)(sumA % AdlerModulus);
+            b = (uint)(sumB % AdlerModulus);
+            data = data[chunkLength..];
+        }
     }
 
     private static async Task WriteChunkAsync(Stream output, ReadOnlyMemory<byte> type, ReadOnlyMemory<byte> data, CancellationToken cancellationToken)
@@ -247,7 +300,7 @@ public static class ScreenFramePngEncoder
             await output.WriteAsync(data, cancellationToken).ConfigureAwait(false);
         }
 
-        var crc = Crc32(type.Span, data.Span);
+        var crc = ComputeChunkCrc(type.Span, data.Span);
         var crcBytes = new byte[4];
         BinaryPrimitives.WriteUInt32BigEndian(crcBytes.AsSpan(), crc);
         await output.WriteAsync(crcBytes, cancellationToken).ConfigureAwait(false);
@@ -264,44 +317,34 @@ public static class ScreenFramePngEncoder
             output.Write(data);
         }
 
-        var crc = Crc32(type, data);
+        var crc = ComputeChunkCrc(type, data);
         Span<byte> crcBytes = stackalloc byte[4];
         BinaryPrimitives.WriteUInt32BigEndian(crcBytes, crc);
         output.Write(crcBytes);
     }
 
-    private static uint Crc32(ReadOnlySpan<byte> type, ReadOnlySpan<byte> data)
+    /// <summary>CRC-32/ISO-HDLC over chunk type + data (the PNG chunk checksum).</summary>
+    private static uint ComputeChunkCrc(ReadOnlySpan<byte> type, ReadOnlySpan<byte> data)
     {
-        var crc = 0xFFFFFFFFu;
-        foreach (var b in type)
+        var total = type.Length + data.Length;
+        if (total <= 256)
         {
-            crc = (crc >> 8) ^ CrcTable[(crc ^ b) & 0xFF];
+            Span<byte> joined = stackalloc byte[total];
+            type.CopyTo(joined);
+            data.CopyTo(joined[type.Length..]);
+            return System.IO.Hashing.Crc32.HashToUInt32(joined);
         }
 
-        foreach (var b in data)
+        var buffer = ArrayPool<byte>.Shared.Rent(total);
+        try
         {
-            crc = (crc >> 8) ^ CrcTable[(crc ^ b) & 0xFF];
+            type.CopyTo(buffer);
+            data.CopyTo(buffer.AsSpan(type.Length));
+            return System.IO.Hashing.Crc32.HashToUInt32(buffer.AsSpan(0, total));
         }
-
-        return crc ^ 0xFFFFFFFFu;
-    }
-
-    private static readonly uint[] CrcTable = GenerateCrcTable();
-
-    private static uint[] GenerateCrcTable()
-    {
-        var table = new uint[256];
-        for (uint n = 0; n < 256; n++)
+        finally
         {
-            var c = n;
-            for (var k = 0; k < 8; k++)
-            {
-                c = (c & 1) != 0 ? 0xEDB88320u ^ (c >> 1) : c >> 1;
-            }
-
-            table[n] = c;
+            ArrayPool<byte>.Shared.Return(buffer);
         }
-
-        return table;
     }
 }

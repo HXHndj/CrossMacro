@@ -1,10 +1,11 @@
 
 namespace CrossMacro.Infrastructure.Services.ScreenReading;
 
-public sealed class ScreenPixelReader(IScreenFrameProvider frameProvider) : IScreenPixelReader, IScreenImageSearchReader
+public sealed class ScreenPixelReader(IScreenFrameProvider frameProvider) : IScreenPixelReader, IScreenImageSearchReader, IImageAssetDecodeCache
 {
     private readonly IScreenFrameProvider _frameProvider = frameProvider ?? throw new ArgumentNullException(nameof(frameProvider));
     private readonly ScreenImageMatcher _imageMatcher = new();
+    private readonly ImageAssetDecodeCache _decodeCache = new();
     private bool _disposed;
 
     public string ProviderName => _frameProvider.ProviderName;
@@ -246,8 +247,21 @@ public sealed class ScreenPixelReader(IScreenFrameProvider frameProvider) : IScr
         }
 
         _disposed = true;
+        _decodeCache.Dispose();
         _imageMatcher.Dispose();
         _frameProvider.Dispose();
+    }
+
+    bool IImageAssetDecodeCache.TryGetFrame(string imageName, string base64Png, out ScreenFrame frame)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        return _decodeCache.TryGetFrame(imageName, base64Png, out frame);
+    }
+
+    void IImageAssetDecodeCache.Store(string imageName, string base64Png, ScreenFrame frame)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        _decodeCache.Store(imageName, base64Png, frame);
     }
 
     private async Task<ScreenReadResult<ScreenFrame>> CaptureFrameAsync(ScreenRect? region, ScreenReadOptions options)

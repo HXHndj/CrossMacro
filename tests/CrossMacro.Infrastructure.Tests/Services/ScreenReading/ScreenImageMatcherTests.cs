@@ -754,10 +754,13 @@ public sealed class ScreenImageMatcherTests : IDisposable
     [Fact]
     public void FindMatch_WhenTemplateCacheIsFull_EvictsLeastRecentlyUsedTemplate()
     {
+        // Entry size now counts only the normalized pixels (the content bytes no
+        // longer live in the key); a 2x1 RGB template is 6 bytes, so a 6-byte
+        // budget holds exactly one entry and every re-search re-normalizes.
         using var matcher = new ScreenImageMatcher(maxTemplateCacheBytes: 6);
-        using var frame = CreateFrame(new ScreenRect(0, 0, 1, 1), ScreenPixelFormat.Rgb24, [[Red]]);
-        using var firstTemplate = CreateFrame(new ScreenRect(0, 0, 1, 1), ScreenPixelFormat.Rgb24, [[Red]]);
-        using var secondTemplate = CreateFrame(new ScreenRect(0, 0, 1, 1), ScreenPixelFormat.Rgb24, [[Green]]);
+        using var frame = CreateFrame(new ScreenRect(0, 0, 2, 1), ScreenPixelFormat.Rgb24, [[Red, Red]]);
+        using var firstTemplate = CreateFrame(new ScreenRect(0, 0, 2, 1), ScreenPixelFormat.Rgb24, [[Red, Red]]);
+        using var secondTemplate = CreateFrame(new ScreenRect(0, 0, 2, 1), ScreenPixelFormat.Rgb24, [[Green, Green]]);
 
         _ = matcher.FindMatch(frame, firstTemplate, cancellationToken: NonCancelableToken);
         _ = matcher.FindMatch(frame, secondTemplate, cancellationToken: NonCancelableToken);

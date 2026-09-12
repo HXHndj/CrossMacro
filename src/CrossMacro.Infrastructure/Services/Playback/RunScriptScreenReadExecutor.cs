@@ -8,7 +8,8 @@ internal sealed class RunScriptScreenReadExecutor(
     IImageClickMovementResolver? imageClickMovementResolver = null,
     IInputSimulator? inputSimulator = null,
     IImageAssetCodec? imageAssetCodec = null,
-    Func<CancellationToken, Task>? flushPendingCursorMovementAsync = null)
+    Func<CancellationToken, Task>? flushPendingCursorMovementAsync = null,
+    IImageAssetDecodeCache? imageAssetDecodeCache = null)
 {
     private readonly IScreenPixelReader _screenPixelReader = screenPixelReader ?? throw new ArgumentNullException(nameof(screenPixelReader));
     private readonly IMousePositionProvider? _mousePositionProvider = mousePositionProvider;
@@ -17,6 +18,7 @@ internal sealed class RunScriptScreenReadExecutor(
     private readonly IInputSimulator? _inputSimulator = inputSimulator;
     private readonly IImageAssetCodec _imageAssetCodec = imageAssetCodec ?? new ImageAssetCodec();
     private readonly Func<CancellationToken, Task>? _flushPendingCursorMovementAsync = flushPendingCursorMovementAsync;
+    private readonly IImageAssetDecodeCache? _imageAssetDecodeCache = imageAssetDecodeCache;
 
     public async Task ExecuteAsync(
         MacroSequence macro,
@@ -416,9 +418,25 @@ internal sealed class RunScriptScreenReadExecutor(
             throw new InvalidOperationException($"Step {stepNumber.ToString(CultureInfo.InvariantCulture)}: {command} failed: image asset '{imageName}' is not defined.");
         }
 
+        if (_imageAssetDecodeCache is not null
+            && _imageAssetDecodeCache.TryGetFrame(imageName, base64Png, out var cached))
+        {
+            return cached;
+        }
+
         try
         {
-            return await _imageAssetCodec.DecodeBase64PngAsync(base64Png, imageName, cancellationToken).ConfigureAwait(false);
+            var decoded = await _imageAssetCodec.DecodeBase64PngAsync(base64Png, imageName, cancellationToken).ConfigureAwait(false);
+            if (_imageAssetDecodeCache is not null)
+            {
+                _imageAssetDecodeCache.Store(imageName, base64Png, decoded);
+
+                // The cache owns the decoded frame now; hand out a non-owning
+                // wrapper so the caller's `using` cannot retire the cache entry.
+                return decoded.CreateNonOwningWrapper();
+            }
+
+            return decoded;
         }
         catch (InvalidDataException ex) when (ex.Message.Contains("not valid Base64", StringComparison.Ordinal))
         {

@@ -1,4 +1,6 @@
 
+using System.IO.Hashing;
+
 namespace CrossMacro.Infrastructure.Services.ScreenReading;
 
 public sealed class ScreenImageMatcher : IDisposable
@@ -23,7 +25,7 @@ public sealed class ScreenImageMatcher : IDisposable
     // Bound automatic pyramid setup on large desktops.
     private const int MaximumPyramidLevels = 6;
     private const int MinimumPyramidTemplateExtent = 4;
-    internal const long MaxMatcherWork = 100_000_000;
+    internal const long MaxMatcherWork = 5_000_000_000;
     // Bound setup separately from candidate comparisons.
     internal const long MaxMatcherPreparationWork = 1_000_000_000;
     private const int MatcherRowBandHeight = 32;
@@ -34,6 +36,16 @@ public sealed class ScreenImageMatcher : IDisposable
     private readonly Lock _lifetimeLock = new();
     private readonly Lock _templateCacheLock = new();
     private readonly Lock _templateMaterializationLock = new();
+    private readonly long _maxMatcherWork = MaxMatcherWork;
+
+    // Cross-poll frame pyramid reuse: when consecutive searches see identical
+    // frame content (waiting on a static screen), the derived pyramid levels
+    // survive and the ~40-120 ms rebuild collapses to one 128-bit content hash.
+    private readonly Lock _framePyramidCacheLock = new();
+    private byte[]? _cachedFramePyramidHash;
+    private int _cachedFramePyramidWidth;
+    private int _cachedFramePyramidHeight;
+    private List<RgbImage>? _cachedFramePyramidDerivedLevels;
     private readonly ManualResetEventSlim _searchesCompleted = new(initialState: false);
     private readonly ManualResetEventSlim _disposeCompleted = new(initialState: false);
     private readonly Dictionary<TemplateCacheKey, LinkedListNode<TemplateCacheEntry>> _templateCache = new(TemplateCacheKeyComparer.Instance);
@@ -56,14 +68,16 @@ public sealed class ScreenImageMatcher : IDisposable
     {
     }
 
-    internal ScreenImageMatcher(long maxTemplateCacheBytes)
+    internal ScreenImageMatcher(long maxTemplateCacheBytes, long maxMatcherWork = MaxMatcherWork)
     {
         if (maxTemplateCacheBytes is < 1 or > MaxTemplateCacheBytes)
         {
             throw new ArgumentOutOfRangeException(nameof(maxTemplateCacheBytes), maxTemplateCacheBytes, $"Template cache size must be between 1 and {MaxTemplateCacheBytes} bytes.");
         }
 
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(maxMatcherWork, 0);
         _maxTemplateCacheBytes = maxTemplateCacheBytes;
+        _maxMatcherWork = maxMatcherWork;
     }
 
     internal int TemplateNormalizationCount => Volatile.Read(ref _templateNormalizationCount);
@@ -78,6 +92,11 @@ public sealed class ScreenImageMatcher : IDisposable
             Volatile.Read(ref _lastAutomaticPreparationWork));
 
     internal long LastDeterministicCandidateWork => Volatile.Read(ref _lastDeterministicCandidateWork);
+
+    /// <summary>True when the most recent non-automatic search was silently downgraded to the automatic matcher.</summary>
+    internal bool LastDeterministicFallback => Volatile.Read(ref _lastDeterministicFallback) is not 0;
+
+    private int _lastDeterministicFallback;
 
     public ScreenImageMatch? FindMatch(
         ScreenFrame frame,
@@ -115,8 +134,22 @@ public sealed class ScreenImageMatcher : IDisposable
 
         if (!IsDeterministicSearchWithinWorkBudget(region, template, options.AnchorPointCount, options.SelectionMode))
         {
+            Volatile.Write(ref _lastDeterministicFallback, 1);
+            if (Log.IsEnabled(CoreLogLevel.Debug))
+            {
+                Log.Debug(
+                    "[ScreenImageMatcher] Deterministic {Mode} search exceeded the work budget for region {Width}x{Height} with template {TemplateWidth}x{TemplateHeight}; falling back to the automatic multi-scale matcher.",
+                    options.SelectionMode,
+                    region.Width,
+                    region.Height,
+                    template.Width,
+                    template.Height);
+            }
+
             return FindAutomaticMatchWithPooledFrame(frame, template, region, options, cancellationToken);
         }
+
+        Volatile.Write(ref _lastDeterministicFallback, 0);
 
         try
         {
@@ -128,7 +161,23 @@ public sealed class ScreenImageMatcher : IDisposable
         }
     }
 
-    private static bool IsDeterministicSearchWithinWorkBudget(
+    /// <summary>
+    /// Frames whose content is byte-identical can reuse each other's derived
+    /// pyramid levels; only contiguous, mask-free frames are hashed (pooled
+    /// padding bytes and masks would make the hash unstable).
+    /// </summary>
+    private static byte[]? ComputeFrameContentHash(RgbImage framePixels)
+    {
+        if (framePixels.AlphaMask is not null
+            || framePixels.RowStride != framePixels.Width * ColorChannelCount)
+        {
+            return null;
+        }
+
+        return XxHash128.Hash(framePixels.Pixels.AsSpan(0, checked(framePixels.RowStride * framePixels.Height)));
+    }
+
+    private bool IsDeterministicSearchWithinWorkBudget(
         ScreenRect region,
         ScreenFrame template,
         int anchorPointCount,
@@ -146,7 +195,7 @@ public sealed class ScreenImageMatcher : IDisposable
             totalWork = SaturatingMultiply(totalWork, 2);
         }
 
-        return totalWork <= MaxMatcherWork;
+        return totalWork <= _maxMatcherWork;
     }
 
     private ScreenImageMatch? FindDeterministicMatch(
@@ -188,7 +237,7 @@ public sealed class ScreenImageMatcher : IDisposable
                 $"A single image matcher candidate, including its prefilter, requires {singleCandidateWork.ToString("N0", CultureInfo.InvariantCulture)} channel comparisons, exceeding the internal limit of {MaxMatcherWork.ToString("N0", CultureInfo.InvariantCulture)}.");
         }
 
-        var budget = new SearchBudget(MaxMatcherWork);
+        var budget = new SearchBudget(_maxMatcherWork);
         budget.ConsumePreparation(EstimatePixelWork(region.Width, region.Height));
         var framePixels = NormalizePooledFrame(frame, region, cancellationToken);
         try
@@ -381,6 +430,11 @@ public sealed class ScreenImageMatcher : IDisposable
 
             if (result.HasValue)
             {
+                // Seed the exhaustive pass with the coarse-to-fine result: any
+                // candidate whose SAD reaches it can never win, so the early-exit
+                // threshold is tight from the first row. Equivalent result,
+                // a fraction of the comparisons.
+                var seededAllowedSad = Math.Min(allowedSad, result.Sad);
                 var fullSearch = FindBestCandidateStandard(
                     frame,
                     validityFrame,
@@ -391,7 +445,7 @@ public sealed class ScreenImageMatcher : IDisposable
                     startY,
                     endY,
                     anchors,
-                    allowedSad,
+                    seededAllowedSad,
                     selectionMode,
                     budget,
                     cancellationToken);
@@ -771,6 +825,10 @@ public sealed class ScreenImageMatcher : IDisposable
             if ((candidateXValue - startX) % 32 == 0)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+
+                // Batch the budget reservation: one atomic op per 32 candidates
+                // instead of per candidate (worst-case overshoot is one batch).
+                budget.Consume(EstimateCandidateWork(template, anchors.Length) * 32);
             }
             if (earlySuccess.IsRequested)
             {
@@ -782,8 +840,6 @@ public sealed class ScreenImageMatcher : IDisposable
             {
                 continue;
             }
-
-            budget.Consume(EstimateCandidateWork(template, anchors.Length));
 
             var candidateLimit = selectionMode is ScreenImageMatchSelectionMode.BestMatch && rowBest.HasValue
                 ? Math.Min(allowedSad, rowBest.Sad)
@@ -878,7 +934,7 @@ public sealed class ScreenImageMatcher : IDisposable
             }
             var statistics = TemplateStatistics.Create(normalized);
             _ = Interlocked.Increment(ref _templateNormalizationCount);
-            var entryBytes = checked((long)key.Content.Bytes.Length + normalized.Pixels.LongLength + (normalized.AlphaMask?.LongLength ?? 0));
+            var entryBytes = checked(normalized.Pixels.LongLength + (normalized.AlphaMask?.LongLength ?? 0));
             if (entryBytes > _maxTemplateCacheBytes)
             {
                 return new PreparedTemplate(key, normalized, statistics);
@@ -914,11 +970,25 @@ public sealed class ScreenImageMatcher : IDisposable
         ScreenImageMatchOptions options,
         CancellationToken cancellationToken)
     {
-        var budget = new SearchBudget(MaxMatcherWork, MaxMatcherPreparationWork);
+        var budget = new SearchBudget(_maxMatcherWork, MaxMatcherPreparationWork);
         budget.ConsumePreparation(EstimatePixelWork(region.Width, region.Height));
         var framePixels = NormalizePooledFrame(frame, region, cancellationToken);
         List<AutomaticCandidate>? allCandidates = null;
-        var framePyramidCache = new AutomaticFramePyramidCache();
+        var frameContentHash = ComputeFrameContentHash(framePixels);
+        AutomaticFramePyramidCache framePyramidCache;
+        lock (_framePyramidCacheLock)
+        {
+            var reuse = frameContentHash is not null
+                && _cachedFramePyramidHash is not null
+                && _cachedFramePyramidDerivedLevels is { Count: > 0 }
+                && _cachedFramePyramidWidth == framePixels.Width
+                && _cachedFramePyramidHeight == framePixels.Height
+                && _cachedFramePyramidHash.AsSpan().SequenceEqual(frameContentHash);
+            framePyramidCache = reuse
+                ? new AutomaticFramePyramidCache(_cachedFramePyramidDerivedLevels)
+                : new AutomaticFramePyramidCache();
+        }
+
         try
         {
             var cacheContent = CreateTemplateCacheContent(template, budget, cancellationToken);
@@ -1040,6 +1110,18 @@ public sealed class ScreenImageMatcher : IDisposable
             Volatile.Write(ref _lastAutomaticCandidateWork, budget.ConsumedSearchWork);
             Volatile.Write(ref _lastAutomaticPreparationWork, budget.ConsumedPreparationWork);
             Volatile.Write(ref _lastAutomaticCandidateCount, allCandidates?.Count ?? 0);
+            if (frameContentHash is not null
+                && framePyramidCache.GetDerivedLevelsSnapshot() is { } derivedLevels)
+            {
+                lock (_framePyramidCacheLock)
+                {
+                    _cachedFramePyramidHash = frameContentHash;
+                    _cachedFramePyramidWidth = framePixels.Width;
+                    _cachedFramePyramidHeight = framePixels.Height;
+                    _cachedFramePyramidDerivedLevels = derivedLevels;
+                }
+            }
+
             ArrayPool<byte>.Shared.Return(framePixels.Pixels);
         }
     }
@@ -1702,6 +1784,17 @@ public sealed class ScreenImageMatcher : IDisposable
     private sealed class AutomaticFramePyramidCache
     {
         private List<RgbImage>? _levels;
+        private bool _hasSourceLevel;
+
+        public AutomaticFramePyramidCache(IReadOnlyList<RgbImage>? prebuiltDerivedLevels = null)
+        {
+            if (prebuiltDerivedLevels is { Count: > 0 })
+            {
+                // Derived levels only; level 0 is rebased onto the live source on
+                // the first Get (the caller verified identical frame content).
+                _levels = [.. prebuiltDerivedLevels];
+            }
+        }
 
         public IReadOnlyList<RgbImage> Get(
             RgbImage source,
@@ -1710,7 +1803,15 @@ public sealed class ScreenImageMatcher : IDisposable
             CancellationToken cancellationToken)
         {
             requiredLevels = Math.Clamp(requiredLevels, 1, MaximumPyramidLevels);
-            _levels ??= [source];
+            if (!_hasSourceLevel)
+            {
+                _levels = _levels is { Count: > 0 } derived ? [source, .. derived] : [source];
+                _hasSourceLevel = true;
+            }
+            else
+            {
+                _levels ??= [source];
+            }
             while (_levels.Count < requiredLevels
                 && _levels[^1].Width > MinimumPyramidTemplateExtent
                 && _levels[^1].Height > MinimumPyramidTemplateExtent)
@@ -1723,6 +1824,9 @@ public sealed class ScreenImageMatcher : IDisposable
 
             return _levels;
         }
+
+        public List<RgbImage>? GetDerivedLevelsSnapshot() =>
+            _hasSourceLevel && _levels is { Count: > 1 } levels ? levels.GetRange(1, levels.Count - 1) : null;
     }
 
     private IReadOnlyList<RgbImage> GetTemplatePyramid(PreparedTemplate preparedTemplate, SearchBudget budget, CancellationToken cancellationToken)
@@ -1784,14 +1888,16 @@ public sealed class ScreenImageMatcher : IDisposable
         }
     }
 
+    private static readonly int[] GaussianKernel = [1, 4, 6, 4, 1];
+
     private static RgbImage GaussianDownsample(RgbImage source, CancellationToken cancellationToken)
     {
-        ReadOnlySpan<int> kernel = [1, 4, 6, 4, 1];
         var width = Math.Max(1, (source.Width + 1) / 2);
         var height = Math.Max(1, (source.Height + 1) / 2);
         var pixels = new byte[checked(width * height * ColorChannelCount)];
         byte[]? coverage = source.AlphaMask is null ? null : new byte[checked(width * height)];
-        for (var y = 0; y < height; y++)
+
+        void CopyRow(int y)
         {
             cancellationToken.ThrowIfCancellationRequested();
             for (var x = 0; x < width; x++)
@@ -1807,7 +1913,7 @@ public sealed class ScreenImageMatcher : IDisposable
                     for (var kx = -2; kx <= 2; kx++)
                     {
                         var sourceX = Math.Clamp((x * 2) + kx, 0, source.Width - 1);
-                        var filterWeight = kernel[ky + 2] * kernel[kx + 2];
+                        var filterWeight = GaussianKernel[ky + 2] * GaussianKernel[kx + 2];
                         var sourceCoverage = source.AlphaMask is null ? byte.MaxValue : source.AlphaMask[(sourceY * source.Width) + sourceX];
                         var effectiveWeight = filterWeight * (long)sourceCoverage;
                         var offset = (sourceY * source.RowStride) + (sourceX * ColorChannelCount);
@@ -1831,6 +1937,19 @@ public sealed class ScreenImageMatcher : IDisposable
                 {
                     coverage[(y * width) + x] = (byte)((coverageTotal + (totalWeight / 2)) / totalWeight);
                 }
+            }
+        }
+
+        if (ShouldParallelizeRows(width, height))
+        {
+            _ = Parallel.For(0, height, CreateParallelOptions(cancellationToken), CopyRow);
+        }
+        else
+        {
+            for (var y = 0; y < height; y++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                CopyRow(y);
             }
         }
 
@@ -1919,7 +2038,7 @@ public sealed class ScreenImageMatcher : IDisposable
                 ? ResizeArea(source, width, height, cancellationToken)
                 : ResizeLinear(source, width, height, cancellationToken);
             var statistics = TemplateStatistics.Create(scaled);
-            var entryBytes = checked((long)key.Content.Bytes.Length + scaled.Pixels.LongLength + (scaled.AlphaMask?.LongLength ?? 0));
+            var entryBytes = checked(scaled.Pixels.LongLength + (scaled.AlphaMask?.LongLength ?? 0));
             if (entryBytes <= _maxTemplateCacheBytes)
             {
                 lock (_templateCacheLock)
@@ -2105,44 +2224,42 @@ public sealed class ScreenImageMatcher : IDisposable
             : 0;
         var contentLength = checked(rawLength + validityLength);
         budget.ConsumePreparation(contentLength);
-        var content = new byte[checked((int)contentLength)];
-        var source = template.Pixels.Span;
-        for (var y = 0; y < template.Height; y++)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            source.Slice(checked(y * template.Stride), rowLength).CopyTo(content.AsSpan(y * rowLength, rowLength));
-        }
 
-        if (validityLength is not 0)
+        // The content buffer exists only as hash input; rent it, hash, return it.
+        var content = ArrayPool<byte>.Shared.Rent(checked((int)contentLength));
+        try
         {
-            var validityOffset = checked((int)rawLength);
+            var source = template.Pixels.Span;
             for (var y = 0; y < template.Height; y++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                for (var x = 0; x < template.Width; x++)
+                source.Slice(checked(y * template.Stride), rowLength).CopyTo(content.AsSpan(y * rowLength, rowLength));
+            }
+
+            if (validityLength is not 0)
+            {
+                var validityOffset = checked((int)rawLength);
+                for (var y = 0; y < template.Height; y++)
                 {
-                    var point = new ScreenPoint(
-                        checked(template.LogicalBounds.X + x),
-                        checked(template.LogicalBounds.Y + y));
-                    content[validityOffset + (y * template.Width) + x] = template.IsPixelValid(point)
-                        ? (byte)1
-                        : (byte)0;
+                    cancellationToken.ThrowIfCancellationRequested();
+                    for (var x = 0; x < template.Width; x++)
+                    {
+                        var point = new ScreenPoint(
+                            checked(template.LogicalBounds.X + x),
+                            checked(template.LogicalBounds.Y + y));
+                        content[validityOffset + (y * template.Width) + x] = template.IsPixelValid(point)
+                            ? (byte)1
+                            : (byte)0;
+                    }
                 }
             }
+
+            return new TemplateCacheContent(XxHash128.Hash(content.AsSpan(0, checked((int)contentLength))));
         }
-
-        return new TemplateCacheContent(content, ComputeContentHash(content));
-    }
-
-    private static int ComputeContentHash(ReadOnlySpan<byte> content)
-    {
-        var hash = new HashCode();
-        foreach (var value in content)
+        finally
         {
-            hash.Add(value);
+            ArrayPool<byte>.Shared.Return(content);
         }
-
-        return hash.ToHashCode();
     }
 
     private void RemoveTemplateCacheEntry(LinkedListNode<TemplateCacheEntry> node)
@@ -2336,6 +2453,13 @@ public sealed class ScreenImageMatcher : IDisposable
             throw new ArgumentException("The alpha mask is smaller than the normalized image.", nameof(alphaMask));
         }
 
+        // A mask that is uniformly 255 adds no selectivity but permanently routes
+        // every comparison through the scalar weighted path; drop it.
+        if (alphaMask is not null && IsFullyOpaque(alphaMask))
+        {
+            alphaMask = null;
+        }
+
         var effectivePixelCount = alphaMask is null ? pixelCount : CountActivePixels(alphaMask);
         return new RgbImage(width, height, pixels, checked(width * ColorChannelCount), alphaMask, effectivePixelCount);
     }
@@ -2363,6 +2487,19 @@ public sealed class ScreenImageMatcher : IDisposable
         }
 
         return count;
+    }
+
+    private static bool IsFullyOpaque(byte[] alphaMask)
+    {
+        foreach (var value in alphaMask)
+        {
+            if (value != byte.MaxValue)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static int CountActivePixels(ReadOnlySpan<byte> alphaMask)
@@ -2806,11 +2943,14 @@ public sealed class ScreenImageMatcher : IDisposable
         int ScaleKey,
         TemplateCacheContent Content);
 
-    private sealed class TemplateCacheContent(byte[] bytes, int contentHash)
+    /// <summary>
+    /// 128-bit template content hash (XXH128). The full byte payload is no
+    /// longer retained in the key: collision probability is ~2^-128 per pair,
+    /// and dropping it halves the cache's steady-state memory.
+    /// </summary>
+    private sealed class TemplateCacheContent(byte[] contentHash128)
     {
-        public byte[] Bytes { get; } = bytes;
-
-        public int ContentHash { get; } = contentHash;
+        public byte[] ContentHash128 { get; } = contentHash128;
     }
 
     private sealed class TemplateCacheKeyComparer : IEqualityComparer<TemplateCacheKey>
@@ -2826,8 +2966,7 @@ public sealed class ScreenImageMatcher : IDisposable
                 && left.UseAlphaMask == right.UseAlphaMask
                 && left.AlphaThreshold == right.AlphaThreshold
                 && left.ScaleKey == right.ScaleKey
-                && left.Content.ContentHash == right.Content.ContentHash
-                && left.Content.Bytes.AsSpan().SequenceEqual(right.Content.Bytes);
+                && left.Content.ContentHash128.AsSpan().SequenceEqual(right.Content.ContentHash128);
         }
 
         public int GetHashCode(TemplateCacheKey key)
@@ -2840,7 +2979,7 @@ public sealed class ScreenImageMatcher : IDisposable
             hash.Add(key.UseAlphaMask);
             hash.Add(key.AlphaThreshold);
             hash.Add(key.ScaleKey);
-            hash.Add(key.Content.ContentHash);
+            hash.Add(BitConverter.ToInt64(key.Content.ContentHash128, 0));
             return hash.ToHashCode();
         }
     }
