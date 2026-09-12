@@ -11,6 +11,9 @@ public sealed class CapturedInputEventArgs : EventArgs
 
     public int Value { get; init; }
 
+    /// <summary>Second axis for <see cref="InputEventType.MouseMove2D"/> events (Y or dy); otherwise 0.</summary>
+    public int ValueY { get; init; }
+
     public long Timestamp { get; init; }
 
     /// <summary>Optional monotonic capture timestamp in microseconds.</summary>
@@ -23,6 +26,7 @@ public sealed class CapturedInputEventArgs : EventArgs
         Type = Type,
         Code = Code,
         Value = Value,
+        ValueY = ValueY,
         Timestamp = Timestamp,
         TimestampMicroseconds = TimestampMicroseconds,
         DeviceName = DeviceName,
@@ -37,6 +41,7 @@ public sealed class CapturedInputEventArgs : EventArgs
         Type = inputEvent.Type;
         Code = inputEvent.Code;
         Value = inputEvent.Value;
+        ValueY = inputEvent.ValueY;
         Timestamp = inputEvent.Timestamp;
         TimestampMicroseconds = inputEvent.TimestampMicroseconds;
         DeviceName = inputEvent.DeviceName;
