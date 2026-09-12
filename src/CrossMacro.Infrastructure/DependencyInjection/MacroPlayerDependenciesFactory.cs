@@ -13,12 +13,13 @@ internal sealed class MacroPlayerDependenciesFactory(
     internal MacroPlayerDependencies Create()
     {
         var positionProvider = _serviceProvider.GetRequiredService<IMousePositionProvider>();
+        var coarseDelayStrategy = _serviceProvider.GetService<ICoarseDelayStrategy>();
         var dependencies = new MacroPlayerDependencies(
             positionProvider,
-            new SystemPlaybackTimingService(),
+            new SystemPlaybackTimingService(coarseDelayStrategy),
             Task.Delay,
             CreateRuntimeElapsedMillisecondsProvider,
-            () => new DefaultPlaybackCoordinator(positionProvider),
+            () => new DefaultPlaybackCoordinator(positionProvider, coarseDelayStrategy),
             () => new ButtonStateTracker(),
             () => new KeyStateTracker(),
             new DefaultPlaybackMouseButtonMapper(),

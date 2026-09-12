@@ -8,7 +8,8 @@ public sealed class ScreenImageAutomation(
     Func<IInputSimulator>? inputSimulatorFactory,
     IInputSimulatorPool? simulatorPool,
     IImageClickMovementResolver movementResolver,
-    TimeProvider? timeProvider = null) : IScreenImageAutomation
+    TimeProvider? timeProvider = null,
+    ICoarseDelayStrategy? coarseDelayStrategy = null) : IScreenImageAutomation
 {
     private readonly IScreenPixelReader _screenPixelReader = screenPixelReader ?? throw new ArgumentNullException(nameof(screenPixelReader));
     private readonly IImageAssetCodec _imageAssetCodec = imageAssetCodec ?? throw new ArgumentNullException(nameof(imageAssetCodec));
@@ -17,6 +18,7 @@ public sealed class ScreenImageAutomation(
     private readonly IInputSimulatorPool? _simulatorPool = simulatorPool;
     private readonly IImageClickMovementResolver _movementResolver = movementResolver ?? throw new ArgumentNullException(nameof(movementResolver));
     private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
+    private readonly ICoarseDelayStrategy? _coarseDelayStrategy = coarseDelayStrategy;
 
     public string ProviderName => _screenPixelReader.ProviderName;
 
@@ -129,7 +131,8 @@ public sealed class ScreenImageAutomation(
                         _mousePositionProvider,
                         movement.X,
                         movement.Y,
-                        cancellationToken).ConfigureAwait(false);
+                        cancellationToken,
+                        _coarseDelayStrategy).ConfigureAwait(false);
                     if (!settleResult.IsSettled)
                     {
                         return ScreenImageAutomationResult.Failure(

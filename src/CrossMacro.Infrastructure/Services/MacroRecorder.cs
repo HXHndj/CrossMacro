@@ -7,7 +7,8 @@ public sealed class MacroRecorder(
     Func<ICoordinateStrategy, IInputEventProcessor> processorFactory,
     Func<IInputSimulator>? inputSimulatorFactory = null,
     IMousePositionProvider? positionProvider = null,
-    IInputSimulatorPool? inputSimulatorPool = null) : IMacroRecorder
+    IInputSimulatorPool? inputSimulatorPool = null,
+    ICoarseDelayStrategy? coarseDelayStrategy = null) : IMacroRecorder
 {
     private MacroSequence? _currentSequence;
     private ScreenRect? _recordingDesktopBounds;
@@ -22,6 +23,7 @@ public sealed class MacroRecorder(
     private readonly Func<IInputCapture>? _inputCaptureFactory = inputCaptureFactory;
     private readonly ICoordinateStrategyFactory _coordinateStrategyFactory = coordinateStrategyFactory;
     private readonly Func<ICoordinateStrategy, IInputEventProcessor> _processorFactory = processorFactory;
+    private readonly ICoarseDelayStrategy? _coarseDelayStrategy = coarseDelayStrategy;
 
     private readonly Func<IInputSimulator>? _inputSimulatorFactory = inputSimulatorFactory;
     private readonly IMousePositionProvider? _positionProvider = positionProvider;
@@ -561,7 +563,8 @@ public sealed class MacroRecorder(
                     _positionProvider,
                     expected.X,
                     expected.Y,
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken,
+                    _coarseDelayStrategy).ConfigureAwait(false);
                 if (!settleResult.IsSettled)
                 {
                     Log.Warning(

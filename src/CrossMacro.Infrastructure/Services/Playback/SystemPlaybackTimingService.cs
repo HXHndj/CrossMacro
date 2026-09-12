@@ -1,10 +1,14 @@
 namespace CrossMacro.Infrastructure.Services.Playback;
 
 /// <summary>Runtime-owned high-precision playback timing implementation.</summary>
-internal sealed class SystemPlaybackTimingService : IPlaybackTimingService
+internal sealed class SystemPlaybackTimingService(
+    ICoarseDelayStrategy? coarseDelayStrategy = null) : IPlaybackTimingService
 {
     private const int MaxDelayChunkMs = 50;
-    private const double FinalSpinWindowMs = 1.0;
+    private const double FinalSpinWindowMs = 0.5;
+
+    private readonly ICoarseDelayStrategy _coarseDelayStrategy =
+        coarseDelayStrategy ?? TaskDelayCoarseDelayStrategy.Instance;
 
     public async Task WaitAsync(
         double delayMilliseconds,
@@ -53,7 +57,7 @@ internal sealed class SystemPlaybackTimingService : IPlaybackTimingService
                 Math.Max(0, Convert.ToInt32(Math.Floor(remainingMilliseconds - FinalSpinWindowMs))));
             if (coarseDelayMilliseconds > 0)
             {
-                await Task.Delay(coarseDelayMilliseconds, cancellationToken).ConfigureAwait(false);
+                await _coarseDelayStrategy.WaitAsync(coarseDelayMilliseconds, cancellationToken).ConfigureAwait(false);
                 continue;
             }
 

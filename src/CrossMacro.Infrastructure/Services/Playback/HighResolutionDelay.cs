@@ -3,16 +3,23 @@ namespace CrossMacro.Infrastructure.Services.Playback;
 /// <summary>Provides cancellation-aware high-resolution delays.</summary>
 internal static class HighResolutionDelay
 {
-    private const double FinalSpinWindowMilliseconds = 1d;
+    private const double FinalSpinWindowMilliseconds = 0.5d;
     private const int MaximumCoarseDelayMilliseconds = 50;
 
-    public static async Task WaitAsync(TimeSpan delay, CancellationToken cancellationToken)
+    public static Task WaitAsync(TimeSpan delay, CancellationToken cancellationToken) =>
+        WaitAsync(delay, cancellationToken, coarseDelayStrategy: null);
+
+    public static async Task WaitAsync(
+        TimeSpan delay,
+        CancellationToken cancellationToken,
+        ICoarseDelayStrategy? coarseDelayStrategy)
     {
         if (delay <= TimeSpan.Zero)
         {
             return;
         }
 
+        var coarse = coarseDelayStrategy ?? TaskDelayCoarseDelayStrategy.Instance;
         cancellationToken.ThrowIfCancellationRequested();
         var deadlineTicks = Stopwatch.GetTimestamp() + ToStopwatchTicks(delay);
 
@@ -28,13 +35,10 @@ internal static class HighResolutionDelay
             var remainingMilliseconds = remainingTicks * 1_000d / Stopwatch.Frequency;
             var coarseDelayMilliseconds = Math.Min(
                 MaximumCoarseDelayMilliseconds,
-                Math.Max(0d, Math.Floor(remainingMilliseconds - FinalSpinWindowMilliseconds)));
-            if (coarseDelayMilliseconds >= 1d)
+                Math.Max(0, Convert.ToInt32(Math.Floor(remainingMilliseconds - FinalSpinWindowMilliseconds))));
+            if (coarseDelayMilliseconds >= 1)
             {
-                await Task.Delay(
-                    TimeSpan.FromMilliseconds(coarseDelayMilliseconds),
-                    TimeProvider.System,
-                    cancellationToken).ConfigureAwait(false);
+                await coarse.WaitAsync(coarseDelayMilliseconds, cancellationToken).ConfigureAwait(false);
                 continue;
             }
 

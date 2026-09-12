@@ -4,7 +4,7 @@ namespace CrossMacro.Daemon.Services;
 internal static class DaemonPrecisionDelay
 {
     private const long MicrosecondsPerMillisecond = 1_000;
-    private const long FinalSpinWindowMicroseconds = 1_000;
+    private const long FinalSpinWindowMicroseconds = 500;
 
     public static async Task WaitAsync(long delayMicroseconds, CancellationToken cancellationToken)
     {

@@ -10,21 +10,24 @@ internal static class AbsoluteCursorPositionSynchronizer
         IMousePositionProvider? positionProvider,
         int expectedX,
         int expectedY,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        ICoarseDelayStrategy? coarseDelayStrategy = null)
     {
         return WaitUntilAsync(
             positionProvider,
             position => Math.Abs((long)position.X - expectedX) <= PositionTolerance
                 && Math.Abs((long)position.Y - expectedY) <= PositionTolerance,
             SettleTimeout,
-            cancellationToken);
+            cancellationToken,
+            coarseDelayStrategy);
     }
 
     public static async Task<AbsoluteCursorSettleResult> WaitUntilAsync(
         IMousePositionProvider? positionProvider,
         Func<(int X, int Y), bool> isSettled,
         TimeSpan timeout,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        ICoarseDelayStrategy? coarseDelayStrategy = null)
     {
         ArgumentNullException.ThrowIfNull(isSettled);
         ArgumentOutOfRangeException.ThrowIfLessThan(timeout, TimeSpan.Zero);
@@ -34,6 +37,7 @@ internal static class AbsoluteCursorPositionSynchronizer
             return new AbsoluteCursorSettleResult(IsSettled: true, LastObservedPosition: null);
         }
 
+        var coarse = coarseDelayStrategy ?? TaskDelayCoarseDelayStrategy.Instance;
         (int X, int Y)? lastObservedPosition = null;
         var startedAt = Stopwatch.GetTimestamp();
 
@@ -61,10 +65,12 @@ internal static class AbsoluteCursorPositionSynchronizer
                 break;
             }
 
-            await Task.Delay(
-                remaining < PollInterval ? remaining : PollInterval,
-                TimeProvider.System,
-                cancellationToken).ConfigureAwait(false);
+            var pollDelay = remaining < PollInterval ? remaining : PollInterval;
+            var pollDelayMilliseconds = Convert.ToInt32(Math.Floor(pollDelay.TotalMilliseconds));
+            if (pollDelayMilliseconds >= 1)
+            {
+                await coarse.WaitAsync(pollDelayMilliseconds, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         return new AbsoluteCursorSettleResult(IsSettled: false, lastObservedPosition);

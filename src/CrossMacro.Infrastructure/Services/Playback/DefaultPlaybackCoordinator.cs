@@ -5,15 +5,19 @@ namespace CrossMacro.Infrastructure.Services.Playback;
 /// Default playback coordinator implementation.
 /// Handles Corner Reset for relative mode and position sync for absolute mode.
 /// </summary>
-public class DefaultPlaybackCoordinator(IMousePositionProvider? positionProvider = null) : IPlaybackCoordinator
+public class DefaultPlaybackCoordinator(
+    IMousePositionProvider? positionProvider = null,
+    ICoarseDelayStrategy? coarseDelayStrategy = null) : IPlaybackCoordinator
 {
     private static readonly TimeSpan CornerPositionSettleTimeout = TimeSpan.FromMilliseconds(250);
     private const int CornerPositionTolerance = 1;
-    private static readonly TimeSpan RawMovementPositionRefreshInterval = TimeSpan.FromMilliseconds(4);
+    private const int RawMovementPositionRefreshIntervalMilliseconds = 4;
     private const int RawMovementPositionRefreshAttempts = 5;
     private const int RawMovementMinimumRefreshAttemptsWithoutReference = 3;
 
     private readonly IMousePositionProvider? _positionProvider = positionProvider;
+    private readonly ICoarseDelayStrategy _coarseDelayStrategy =
+        coarseDelayStrategy ?? TaskDelayCoarseDelayStrategy.Instance;
     public int CurrentX { get; private set; }
     public int CurrentY { get; private set; }
     public bool HasKnownPosition { get; private set; }
@@ -97,7 +101,8 @@ public class DefaultPlaybackCoordinator(IMousePositionProvider? positionProvider
             _positionProvider,
             expectedX,
             expectedY,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken,
+            _coarseDelayStrategy).ConfigureAwait(false);
         if (result.IsSettled)
         {
             return true;
@@ -259,7 +264,8 @@ public class DefaultPlaybackCoordinator(IMousePositionProvider? positionProvider
             _positionProvider,
             position => IsCornerResetPosition(position, previousPosition, expectedPosition),
             CornerPositionSettleTimeout,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken,
+            _coarseDelayStrategy).ConfigureAwait(false);
 
         if (result.IsSettled)
         {
@@ -381,9 +387,8 @@ public class DefaultPlaybackCoordinator(IMousePositionProvider? positionProvider
 
             if (attempt + 1 < RawMovementPositionRefreshAttempts)
             {
-                await Task.Delay(
-                    RawMovementPositionRefreshInterval,
-                    TimeProvider.System,
+                await _coarseDelayStrategy.WaitAsync(
+                    RawMovementPositionRefreshIntervalMilliseconds,
                     cancellationToken).ConfigureAwait(false);
             }
         }

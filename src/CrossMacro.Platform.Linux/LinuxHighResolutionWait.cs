@@ -4,7 +4,7 @@ namespace CrossMacro.Platform.Linux;
 internal static class LinuxHighResolutionWait
 {
     private const long MicrosecondsPerMillisecond = 1_000;
-    private const long FinalSpinWindowMicroseconds = 1_000;
+    private const long FinalSpinWindowMicroseconds = 500;
     private const int MaximumCoarseSleepMilliseconds = 50;
 
     public static void Wait(long delayMicroseconds)

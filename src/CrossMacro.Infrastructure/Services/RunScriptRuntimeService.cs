@@ -5,12 +5,14 @@ public sealed class RunScriptRuntimeService(
     Func<IMacroPlayer> macroPlayerFactory,
     IKeyCodeMapper keyCodeMapper,
     IMousePositionProvider? mousePositionProvider = null,
-    Func<TimeSpan, CancellationToken, Task>? delayAsync = null) : IRunExecutionService
+    Func<TimeSpan, CancellationToken, Task>? delayAsync = null,
+    ICoarseDelayStrategy? coarseDelayStrategy = null) : IRunExecutionService
 {
     private readonly Func<IMacroPlayer> _macroPlayerFactory = macroPlayerFactory ?? throw new ArgumentNullException(nameof(macroPlayerFactory));
     private readonly IKeyCodeMapper _keyCodeMapper = keyCodeMapper ?? throw new ArgumentNullException(nameof(keyCodeMapper));
     private readonly IMousePositionProvider? _mousePositionProvider = mousePositionProvider;
-    private readonly Func<TimeSpan, CancellationToken, Task>? _delayAsync = delayAsync;
+    private readonly Func<TimeSpan, CancellationToken, Task>? _delayAsync = delayAsync
+        ?? ((delay, cancellationToken) => HighResolutionDelay.WaitAsync(delay, cancellationToken, coarseDelayStrategy));
 
     public async Task<RunExecutionResult> ExecuteAsync(
         RunExecutionRequest request,
