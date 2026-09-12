@@ -1,0 +1,138 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Page structure vocabulary. Pages compose these classes instead of hand-rolling
+         borders/typography so hierarchy, radii and spacing stay consistent app-wide.
+         Radii scale: cards 12, inputs/rows 8, chips/badges 6 (circles keep 10). -->
+
+    <!-- L2 container: the single card level used by every page section. -->
+    <Style Selector="Border.page-card">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Padding" Value="16"/>
+    </Style>
+
+    <Style Selector="Border.page-card.compact">
+        <Setter Property="Padding" Value="12"/>
+    </Style>
+
+    <!-- Small Surface tile for stat strips (recording status row). -->
+    <Style Selector="Border.mini-card">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="12,8"/>
+    </Style>
+
+    <!-- L3 nested panel inside a card: inverted (BackgroundBrush) for a recessed look. -->
+    <Style Selector="Border.nested-panel">
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="12,8"/>
+    </Style>
+
+    <!-- Centered icon + title + hint block shown when a page has no content. -->
+    <Style Selector="Border.empty-state">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Padding" Value="32"/>
+    </Style>
+
+    <Style Selector="TextBlock.empty-title">
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- Standard settings row: title (optional hint) on the left, control on the right.
+         Pages still declare ColumnDefinitions="*,Auto" inline (not styleable); this class
+         only normalizes the gap between title and control. -->
+    <Style Selector="Grid.setting-row">
+        <Setter Property="ColumnSpacing" Value="12"/>
+    </Style>
+
+    <!-- Field group: label + input (+ hint) stack. -->
+    <Style Selector="StackPanel.field">
+        <Setter Property="Spacing" Value="6"/>
+    </Style>
+
+    <!-- Round "?" help badge with a tooltip. -->
+    <Style Selector="Border.help-badge">
+        <Setter Property="Width" Value="20"/>
+        <Setter Property="Height" Value="20"/>
+        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="Border.help-badge TextBlock">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- Small tag (hotkey, mode, meta). Accent variant tints the text with the primary color. -->
+    <Style Selector="Border.chip">
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding" Value="6,2"/>
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+        <Setter Property="HorizontalAlignment" Value="Left"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="Border.chip TextBlock">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+    </Style>
+
+    <Style Selector="Border.chip.accent TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+    </Style>
+
+    <!-- Selectable list row used by shortcut/trigger/schedule lists. The 3px left
+         accent border is always reserved so text never shifts on selection. -->
+    <Style Selector="Border.task-row">
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="10,8"/>
+        <Setter Property="Margin" Value="0,2"/>
+        <Setter Property="BorderThickness" Value="3,0,0,0"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="Border.task-row:pointerover">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+    </Style>
+
+    <Style Selector="Border.task-row.selected">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+    </Style>
+
+    <!-- Read-only display box (action type, resolved key name). -->
+    <Style Selector="Border.value-display">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding" Value="8,6"/>
+    </Style>
+
+    <Style Selector="Border.value-display TextBlock">
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- Centered tip line at the bottom of a page ("Tip: ..."). -->
+    <Style Selector="StackPanel.footer-tip">
+        <Setter Property="Orientation" Value="Horizontal"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="Spacing" Value="4"/>
+    </Style>
+
+    <!-- Dialog surface: content card inside the borderless dialog window. -->
+    <Style Selector="Border.dialog-card">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Padding" Value="24"/>
+    </Style>
+</Styles>

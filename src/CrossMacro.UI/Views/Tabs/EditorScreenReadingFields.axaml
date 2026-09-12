@@ -21,9 +21,9 @@
     <StackPanel>
         <!-- Pixel color -->
         <StackPanel Spacing="6" IsVisible="{Binding ShowPixelColorFields}">
-            <TextBlock Text="{localization:Loc Editor_PixelColorAction}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+            <TextBlock Classes="field-label" Text="{localization:Loc Editor_PixelColorAction}"/>
             <StackPanel Spacing="4">
-                <TextBlock Text="{localization:Loc Editor_CoordinateMode}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+                <TextBlock Classes="field-hint" Text="{localization:Loc Editor_CoordinateMode}"/>
                 <StackPanel Orientation="Horizontal" Spacing="12">
                      <RadioButton GroupName="ScreenReadingCoordMode"
                                   IsChecked="{Binding SelectedActionIsAbsolute, Mode=TwoWay}"
@@ -37,23 +37,13 @@
                      </RadioButton>
                 </StackPanel>
             </StackPanel>
-            <TextBlock Text="{localization:Loc Editor_ScreenPoint}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+            <TextBlock Classes="field-hint" Text="{localization:Loc Editor_ScreenPoint}"/>
             <Grid ColumnDefinitions="*,8,*">
                 <TextBox Text="{Binding SelectedAction.ScreenX, Converter={StaticResource NullableIntConverter}, UpdateSourceTrigger=PropertyChanged}"
-                         PlaceholderText="X"
-                         Background="{DynamicResource SurfaceHoverBrush}"
-                         Foreground="{DynamicResource TextPrimaryBrush}"
-                         BorderThickness="0"
-                         CornerRadius="4"
-                         Padding="8,6"/>
+                         PlaceholderText="X"/>
                 <TextBox Grid.Column="2"
                          Text="{Binding SelectedAction.ScreenY, Converter={StaticResource NullableIntConverter}, UpdateSourceTrigger=PropertyChanged}"
-                         PlaceholderText="Y"
-                         Background="{DynamicResource SurfaceHoverBrush}"
-                         Foreground="{DynamicResource TextPrimaryBrush}"
-                         BorderThickness="0"
-                         CornerRadius="4"
-                         Padding="8,6"/>
+                         PlaceholderText="Y"/>
             </Grid>
             <Button Command="{Binding CaptureMouseAsync}"
                     Classes="primary compact"
@@ -76,34 +66,19 @@
                 </StackPanel>
             </Button>
             <TextBox Text="{Binding SelectedAction.ScreenColorVariableName, UpdateSourceTrigger=PropertyChanged}"
-                     PlaceholderText="{localization:Loc Editor_ColorVariableNamePlaceholder}"
-                     Background="{DynamicResource SurfaceHoverBrush}"
-                     Foreground="{DynamicResource TextPrimaryBrush}"
-                     BorderThickness="0"
-                     CornerRadius="4"
-                     Padding="8,6"/>
+                     PlaceholderText="{localization:Loc Editor_ColorVariableNamePlaceholder}"/>
         </StackPanel>
 
         <!-- Wait color -->
         <StackPanel Spacing="6" IsVisible="{Binding ShowWaitColorFields}">
-            <TextBlock Text="{localization:Loc Editor_WaitColorAction}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
-            <TextBlock Text="{localization:Loc Editor_ScreenPoint}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+            <TextBlock Classes="field-label" Text="{localization:Loc Editor_WaitColorAction}"/>
+            <TextBlock Classes="field-hint" Text="{localization:Loc Editor_ScreenPoint}"/>
             <Grid ColumnDefinitions="*,8,*">
                 <TextBox Text="{Binding SelectedAction.ScreenX, Converter={StaticResource NullableIntConverter}, UpdateSourceTrigger=PropertyChanged}"
-                         PlaceholderText="X"
-                         Background="{DynamicResource SurfaceHoverBrush}"
-                         Foreground="{DynamicResource TextPrimaryBrush}"
-                         BorderThickness="0"
-                         CornerRadius="4"
-                         Padding="8,6"/>
+                         PlaceholderText="X"/>
                 <TextBox Grid.Column="2"
                          Text="{Binding SelectedAction.ScreenY, Converter={StaticResource NullableIntConverter}, UpdateSourceTrigger=PropertyChanged}"
-                         PlaceholderText="Y"
-                         Background="{DynamicResource SurfaceHoverBrush}"
-                         Foreground="{DynamicResource TextPrimaryBrush}"
-                         BorderThickness="0"
-                         CornerRadius="4"
-                         Padding="8,6"/>
+                         PlaceholderText="Y"/>
             </Grid>
             <Button Command="{Binding CaptureMouseAsync}"
                     Classes="primary compact"
@@ -125,11 +100,9 @@
                     <TextBlock Text="{localization:Loc Editor_CancelCapture}"/>
                 </StackPanel>
             </Button>
-            <TextBlock Text="{localization:Loc Editor_TargetColorSource}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+            <TextBlock Classes="field-hint" Text="{localization:Loc Editor_TargetColorSource}"/>
             <ComboBox ItemsSource="{Binding ScreenTargetColorSources}"
                       SelectedItem="{Binding SelectedAction.ScreenTargetColorSource}"
-                      Background="{DynamicResource SurfaceHoverBrush}"
-                      Foreground="{DynamicResource TextPrimaryBrush}"
                       HorizontalAlignment="Stretch">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
@@ -137,7 +110,7 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-            <TextBlock Text="{localization:Loc Editor_TargetColorHex}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" IsVisible="{Binding ShowScreenTargetColorHexInput}"/>
+            <TextBlock Classes="field-hint" Text="{localization:Loc Editor_TargetColorHex}" IsVisible="{Binding ShowScreenTargetColorHexInput}"/>
              <Grid ColumnDefinitions="Auto,8,*,8,Auto" IsVisible="{Binding ShowScreenTargetColorHexInput}">
                    <Border Width="32"
                           Height="32"
@@ -149,11 +122,6 @@
                 <TextBox Grid.Column="2"
                           Text="{Binding SelectedAction.ScreenColorHex, UpdateSourceTrigger=PropertyChanged}"
                           PlaceholderText="RRGGBB"
-                         Background="{DynamicResource SurfaceHoverBrush}"
-                         Foreground="{DynamicResource TextPrimaryBrush}"
-                         BorderThickness="0"
-                         CornerRadius="4"
-                          Padding="8,6"
                           MaxLength="6"/>
                 <Button Grid.Column="4"
                         Command="{Binding CaptureTargetColorAsync}"
@@ -176,87 +144,50 @@
                     </StackPanel>
                 </Button>
               </Grid>
-            <TextBlock Text="{localization:Loc Editor_TargetColorVariable}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" IsVisible="{Binding ShowScreenTargetColorVariableInput}"/>
+            <TextBlock Classes="field-hint" Text="{localization:Loc Editor_TargetColorVariable}" IsVisible="{Binding ShowScreenTargetColorVariableInput}"/>
             <TextBox Text="{Binding SelectedAction.ScreenTargetColorVariableName, UpdateSourceTrigger=PropertyChanged}"
                      PlaceholderText="{localization:Loc Editor_ColorVariableNamePlaceholder}"
-                     IsVisible="{Binding ShowScreenTargetColorVariableInput}"
-                     Background="{DynamicResource SurfaceHoverBrush}"
-                     Foreground="{DynamicResource TextPrimaryBrush}"
-                     BorderThickness="0"
-                     CornerRadius="4"
-                     Padding="8,6"/>
+                     IsVisible="{Binding ShowScreenTargetColorVariableInput}"/>
             <ComboBox ItemsSource="{Binding AvailableColorVariableNames}"
                       SelectedItem="{Binding SelectedScreenTargetColorVariableSuggestion}"
                       IsVisible="{Binding ShowScreenTargetColorVariablePicker}"
-                      Background="{DynamicResource SurfaceHoverBrush}"
-                      Foreground="{DynamicResource TextPrimaryBrush}"
                       HorizontalAlignment="Stretch"/>
             <StackPanel Spacing="3">
-                <TextBlock Text="{localization:Loc Editor_TimeoutMs}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+                <TextBlock Classes="field-hint" Text="{localization:Loc Editor_TimeoutMs}"/>
                 <TextBox Text="{Binding SelectedAction.ScreenTimeoutMs, Converter={StaticResource NullableIntConverter}, UpdateSourceTrigger=PropertyChanged}"
-                         PlaceholderText="5000"
-                         Background="{DynamicResource SurfaceHoverBrush}"
-                         Foreground="{DynamicResource TextPrimaryBrush}"
-                         BorderThickness="0"
-                         CornerRadius="4"
-                         Padding="8,6"/>
+                         PlaceholderText="5000"/>
             </StackPanel>
-            <TextBlock Text="{localization:Loc Editor_ResultVariableName}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+            <TextBlock Classes="field-hint" Text="{localization:Loc Editor_ResultVariableName}"/>
             <TextBox Text="{Binding SelectedAction.ScreenColorVariableName, UpdateSourceTrigger=PropertyChanged}"
-                     PlaceholderText="wait_ok"
-                     Background="{DynamicResource SurfaceHoverBrush}"
-                     Foreground="{DynamicResource TextPrimaryBrush}"
-                     BorderThickness="0"
-                     CornerRadius="4"
-                     Padding="8,6"/>
+                     PlaceholderText="wait_ok"/>
         </StackPanel>
 
         <!-- Pixel search -->
         <StackPanel Spacing="6" IsVisible="{Binding ShowPixelSearchFields}">
-            <TextBlock Text="{localization:Loc Editor_PixelSearchAction}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
-            <TextBlock Text="{localization:Loc Editor_SearchRegion}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+            <TextBlock Classes="field-label" Text="{localization:Loc Editor_PixelSearchAction}"/>
+            <TextBlock Classes="field-hint" Text="{localization:Loc Editor_SearchRegion}"/>
              <Grid ColumnDefinitions="*,8,*">
                 <StackPanel Spacing="3">
-                    <TextBlock Text="{localization:Loc Editor_Left}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10"/>
+                    <TextBlock Classes="field-hint" Text="{localization:Loc Editor_Left}"/>
                     <TextBox Text="{Binding SelectedAction.ScreenLeft, Converter={StaticResource NullableIntConverter}, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="{localization:Loc Editor_Left}"
-                             Background="{DynamicResource SurfaceHoverBrush}"
-                             Foreground="{DynamicResource TextPrimaryBrush}"
-                             BorderThickness="0"
-                             CornerRadius="4"
-                             Padding="8,6"/>
+                             PlaceholderText="{localization:Loc Editor_Left}"/>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Spacing="3">
-                    <TextBlock Text="{localization:Loc Editor_Top}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10"/>
+                    <TextBlock Classes="field-hint" Text="{localization:Loc Editor_Top}"/>
                     <TextBox Text="{Binding SelectedAction.ScreenTop, Converter={StaticResource NullableIntConverter}, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="{localization:Loc Editor_Top}"
-                             Background="{DynamicResource SurfaceHoverBrush}"
-                             Foreground="{DynamicResource TextPrimaryBrush}"
-                             BorderThickness="0"
-                             CornerRadius="4"
-                             Padding="8,6"/>
+                             PlaceholderText="{localization:Loc Editor_Top}"/>
                 </StackPanel>
             </Grid>
             <Grid ColumnDefinitions="*,8,*">
                 <StackPanel Spacing="3">
-                    <TextBlock Text="{localization:Loc Editor_Width}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10"/>
+                    <TextBlock Classes="field-hint" Text="{localization:Loc Editor_Width}"/>
                     <TextBox Text="{Binding SelectedAction.ScreenWidth, Converter={StaticResource NullableIntConverter}, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="{localization:Loc Editor_Width}"
-                             Background="{DynamicResource SurfaceHoverBrush}"
-                             Foreground="{DynamicResource TextPrimaryBrush}"
-                             BorderThickness="0"
-                             CornerRadius="4"
-                             Padding="8,6"/>
+                             PlaceholderText="{localization:Loc Editor_Width}"/>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Spacing="3">
-                    <TextBlock Text="{localization:Loc Editor_Height}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10"/>
+                    <TextBlock Classes="field-hint" Text="{localization:Loc Editor_Height}"/>
                     <TextBox Text="{Binding SelectedAction.ScreenHeight, Converter={StaticResource NullableIntConverter}, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="{localization:Loc Editor_Height}"
-                             Background="{DynamicResource SurfaceHoverBrush}"
-                             Foreground="{DynamicResource TextPrimaryBrush}"
-                             BorderThickness="0"
-                             CornerRadius="4"
-                             Padding="8,6"/>
+                             PlaceholderText="{localization:Loc Editor_Height}"/>
                 </StackPanel>
              </Grid>
             <Grid ColumnDefinitions="*,8,*">
@@ -303,11 +234,9 @@
                     </StackPanel>
                 </Button>
             </Grid>
-            <TextBlock Text="{localization:Loc Editor_TargetColorSource}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+            <TextBlock Classes="field-hint" Text="{localization:Loc Editor_TargetColorSource}"/>
             <ComboBox ItemsSource="{Binding ScreenTargetColorSources}"
                       SelectedItem="{Binding SelectedAction.ScreenTargetColorSource}"
-                      Background="{DynamicResource SurfaceHoverBrush}"
-                      Foreground="{DynamicResource TextPrimaryBrush}"
                       HorizontalAlignment="Stretch">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
@@ -315,7 +244,7 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-            <TextBlock Text="{localization:Loc Editor_TargetColorHex}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" IsVisible="{Binding ShowScreenTargetColorHexInput}"/>
+            <TextBlock Classes="field-hint" Text="{localization:Loc Editor_TargetColorHex}" IsVisible="{Binding ShowScreenTargetColorHexInput}"/>
             <Grid ColumnDefinitions="Auto,8,*,8,Auto" IsVisible="{Binding ShowScreenTargetColorHexInput}">
                 <Border Width="32"
                         Height="32"
@@ -327,11 +256,6 @@
                 <TextBox Grid.Column="2"
                           Text="{Binding SelectedAction.ScreenColorHex, UpdateSourceTrigger=PropertyChanged}"
                          PlaceholderText="RRGGBB"
-                         Background="{DynamicResource SurfaceHoverBrush}"
-                         Foreground="{DynamicResource TextPrimaryBrush}"
-                         BorderThickness="0"
-                         CornerRadius="4"
-                          Padding="8,6"
                           MaxLength="6"/>
                 <Button Grid.Column="4"
                         Command="{Binding CaptureTargetColorAsync}"
@@ -354,78 +278,44 @@
                     </StackPanel>
                 </Button>
             </Grid>
-            <TextBlock Text="{localization:Loc Editor_TargetColorVariable}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" IsVisible="{Binding ShowScreenTargetColorVariableInput}"/>
+            <TextBlock Classes="field-hint" Text="{localization:Loc Editor_TargetColorVariable}" IsVisible="{Binding ShowScreenTargetColorVariableInput}"/>
             <TextBox Text="{Binding SelectedAction.ScreenTargetColorVariableName, UpdateSourceTrigger=PropertyChanged}"
                      PlaceholderText="{localization:Loc Editor_ColorVariableNamePlaceholder}"
-                     IsVisible="{Binding ShowScreenTargetColorVariableInput}"
-                     Background="{DynamicResource SurfaceHoverBrush}"
-                     Foreground="{DynamicResource TextPrimaryBrush}"
-                     BorderThickness="0"
-                     CornerRadius="4"
-                     Padding="8,6"/>
+                     IsVisible="{Binding ShowScreenTargetColorVariableInput}"/>
             <ComboBox ItemsSource="{Binding AvailableColorVariableNames}"
                       SelectedItem="{Binding SelectedScreenTargetColorVariableSuggestion}"
                       IsVisible="{Binding ShowScreenTargetColorVariablePicker}"
-                      Background="{DynamicResource SurfaceHoverBrush}"
-                      Foreground="{DynamicResource TextPrimaryBrush}"
                       HorizontalAlignment="Stretch"/>
-            <TextBlock Text="{localization:Loc Editor_FoundVariables}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+            <TextBlock Classes="field-hint" Text="{localization:Loc Editor_FoundVariables}"/>
             <Grid ColumnDefinitions="*,8,*">
                 <StackPanel Spacing="3">
-                    <TextBlock Text="{localization:Loc Editor_FoundXVariableNamePlaceholder}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10"/>
+                    <TextBlock Classes="field-hint" Text="{localization:Loc Editor_FoundXVariableNamePlaceholder}"/>
                     <TextBox Text="{Binding SelectedAction.ScreenFoundXVariableName, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="{localization:Loc Editor_FoundXVariableNamePlaceholder}"
-                             Background="{DynamicResource SurfaceHoverBrush}"
-                             Foreground="{DynamicResource TextPrimaryBrush}"
-                             BorderThickness="0"
-                             CornerRadius="4"
-                             Padding="8,6"/>
+                             PlaceholderText="{localization:Loc Editor_FoundXVariableNamePlaceholder}"/>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Spacing="3">
-                    <TextBlock Text="{localization:Loc Editor_FoundYVariableNamePlaceholder}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10"/>
+                    <TextBlock Classes="field-hint" Text="{localization:Loc Editor_FoundYVariableNamePlaceholder}"/>
                     <TextBox Text="{Binding SelectedAction.ScreenFoundYVariableName, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="{localization:Loc Editor_FoundYVariableNamePlaceholder}"
-                             Background="{DynamicResource SurfaceHoverBrush}"
-                             Foreground="{DynamicResource TextPrimaryBrush}"
-                             BorderThickness="0"
-                             CornerRadius="4"
-                             Padding="8,6"/>
+                             PlaceholderText="{localization:Loc Editor_FoundYVariableNamePlaceholder}"/>
                 </StackPanel>
             </Grid>
-            <TextBlock Text="{localization:Loc Editor_FoundVariableName}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10"/>
+            <TextBlock Classes="field-hint" Text="{localization:Loc Editor_FoundVariableName}"/>
             <TextBox Text="{Binding SelectedAction.ScreenFoundVariableName, UpdateSourceTrigger=PropertyChanged}"
-                      PlaceholderText="found"
-                      Background="{DynamicResource SurfaceHoverBrush}"
-                      Foreground="{DynamicResource TextPrimaryBrush}"
-                      BorderThickness="0"
-                      CornerRadius="4"
-                      Padding="8,6"/>
-            <TextBlock Text="{localization:Loc Editor_Tolerance}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10"/>
+                      PlaceholderText="found"/>
+            <TextBlock Classes="field-hint" Text="{localization:Loc Editor_Tolerance}"/>
             <TextBox Text="{Binding SelectedAction.ScreenTolerance, Converter={StaticResource NullableIntConverter}, UpdateSourceTrigger=PropertyChanged}"
-                     PlaceholderText="{localization:Loc Editor_Tolerance}"
-                     Background="{DynamicResource SurfaceHoverBrush}"
-                     Foreground="{DynamicResource TextPrimaryBrush}"
-                     BorderThickness="0"
-                     CornerRadius="4"
-                     Padding="8,6"/>
-            <TextBlock Text="{localization:Loc Editor_TimeoutMs}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10"/>
+                     PlaceholderText="{localization:Loc Editor_Tolerance}"/>
+            <TextBlock Classes="field-hint" Text="{localization:Loc Editor_TimeoutMs}"/>
             <TextBox Text="{Binding SelectedAction.ScreenTimeoutMs, Converter={StaticResource NullableIntConverter}, UpdateSourceTrigger=PropertyChanged}"
-                     PlaceholderText="5000"
-                     Background="{DynamicResource SurfaceHoverBrush}"
-                     Foreground="{DynamicResource TextPrimaryBrush}"
-                     BorderThickness="0"
-                     CornerRadius="4"
-                     Padding="8,6"/>
+                     PlaceholderText="5000"/>
         </StackPanel>
 
         <!-- Image search -->
         <StackPanel Spacing="6" IsVisible="{Binding ShowImageSearchFields}">
-             <TextBlock Text="{localization:Loc Editor_ImageSearchAction}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
-             <TextBlock Text="{localization:Loc Editor_ImageMatchMode}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+             <TextBlock Classes="field-label" Text="{localization:Loc Editor_ImageSearchAction}"/>
+             <TextBlock Classes="field-hint" Text="{localization:Loc Editor_ImageMatchMode}"/>
              <ComboBox ItemsSource="{Binding ImageMatchModes}"
                        SelectedItem="{Binding SelectedImageSearchMatchMode, Mode=TwoWay}"
-                       Background="{DynamicResource SurfaceHoverBrush}"
-                       Foreground="{DynamicResource TextPrimaryBrush}"
                        HorizontalAlignment="Stretch">
                  <ComboBox.ItemTemplate>
                      <DataTemplate>
@@ -442,17 +332,15 @@
                     <TextBlock Text="{localization:Loc Editor_ImportImageAsset}"/>
                 </StackPanel>
             </Button>
-            <TextBlock Text="{localization:Loc Editor_ImageAsset}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+            <TextBlock Classes="field-hint" Text="{localization:Loc Editor_ImageAsset}"/>
             <ComboBox ItemsSource="{Binding ImageAssetNames}"
                       SelectedItem="{Binding SelectedAction.ImageAssetName, Mode=TwoWay}"
                       IsVisible="{Binding HasImageAssets}"
-                      Background="{DynamicResource SurfaceHoverBrush}"
-                      Foreground="{DynamicResource TextPrimaryBrush}"
                       HorizontalAlignment="Stretch"/>
             <StackPanel Spacing="4" IsVisible="{Binding ShowSelectedImageAssetPreview}">
-                <TextBlock Text="{localization:Loc Editor_ImageAssetPreview}"
-                           Foreground="{DynamicResource TextSecondaryBrush}"
-                           FontSize="11"/>
+                <TextBlock Classes="field-hint" Text="{localization:Loc Editor_ImageAssetPreview}"
+                          
+                          />
                 <Border Classes="notice-card"
                         HorizontalAlignment="Left"
                         MaxWidth="640"
@@ -468,49 +356,29 @@
                        Classes="caption"
                        TextWrapping="Wrap"
                        IsVisible="{Binding !HasImageAssets}"/>
-            <TextBlock Text="{localization:Loc Editor_SearchRegion}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+            <TextBlock Classes="field-hint" Text="{localization:Loc Editor_SearchRegion}"/>
             <Grid ColumnDefinitions="*,8,*">
                 <StackPanel Spacing="3">
-                    <TextBlock Text="{localization:Loc Editor_Left}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10"/>
+                    <TextBlock Classes="field-hint" Text="{localization:Loc Editor_Left}"/>
                     <TextBox Text="{Binding SelectedAction.ScreenLeft, Converter={StaticResource NullableIntConverter}, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="{localization:Loc Editor_Left}"
-                             Background="{DynamicResource SurfaceHoverBrush}"
-                             Foreground="{DynamicResource TextPrimaryBrush}"
-                             BorderThickness="0"
-                             CornerRadius="4"
-                             Padding="8,6"/>
+                             PlaceholderText="{localization:Loc Editor_Left}"/>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Spacing="3">
-                    <TextBlock Text="{localization:Loc Editor_Top}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10"/>
+                    <TextBlock Classes="field-hint" Text="{localization:Loc Editor_Top}"/>
                     <TextBox Text="{Binding SelectedAction.ScreenTop, Converter={StaticResource NullableIntConverter}, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="{localization:Loc Editor_Top}"
-                             Background="{DynamicResource SurfaceHoverBrush}"
-                             Foreground="{DynamicResource TextPrimaryBrush}"
-                             BorderThickness="0"
-                             CornerRadius="4"
-                             Padding="8,6"/>
+                             PlaceholderText="{localization:Loc Editor_Top}"/>
                 </StackPanel>
             </Grid>
             <Grid ColumnDefinitions="*,8,*">
                 <StackPanel Spacing="3">
-                    <TextBlock Text="{localization:Loc Editor_Width}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10"/>
+                    <TextBlock Classes="field-hint" Text="{localization:Loc Editor_Width}"/>
                     <TextBox Text="{Binding SelectedAction.ScreenWidth, Converter={StaticResource NullableIntConverter}, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="{localization:Loc Editor_Width}"
-                             Background="{DynamicResource SurfaceHoverBrush}"
-                             Foreground="{DynamicResource TextPrimaryBrush}"
-                             BorderThickness="0"
-                             CornerRadius="4"
-                             Padding="8,6"/>
+                             PlaceholderText="{localization:Loc Editor_Width}"/>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Spacing="3">
-                    <TextBlock Text="{localization:Loc Editor_Height}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10"/>
+                    <TextBlock Classes="field-hint" Text="{localization:Loc Editor_Height}"/>
                     <TextBox Text="{Binding SelectedAction.ScreenHeight, Converter={StaticResource NullableIntConverter}, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="{localization:Loc Editor_Height}"
-                             Background="{DynamicResource SurfaceHoverBrush}"
-                             Foreground="{DynamicResource TextPrimaryBrush}"
-                             BorderThickness="0"
-                             CornerRadius="4"
-                             Padding="8,6"/>
+                             PlaceholderText="{localization:Loc Editor_Height}"/>
                 </StackPanel>
              </Grid>
              <Grid ColumnDefinitions="*,8,*">
@@ -557,56 +425,31 @@
                      </StackPanel>
                  </Button>
              </Grid>
-             <TextBlock Text="{localization:Loc Editor_FoundVariables}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" IsVisible="{Binding ShowImageOutputVariableFields}"/>
+             <TextBlock Classes="field-hint" Text="{localization:Loc Editor_FoundVariables}" IsVisible="{Binding ShowImageOutputVariableFields}"/>
             <Grid ColumnDefinitions="*,8,*" IsVisible="{Binding ShowImageOutputVariableFields}">
                 <StackPanel Spacing="3">
-                    <TextBlock Text="{localization:Loc Editor_FoundXVariableNamePlaceholder}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10"/>
+                    <TextBlock Classes="field-hint" Text="{localization:Loc Editor_FoundXVariableNamePlaceholder}"/>
                     <TextBox Text="{Binding SelectedAction.ScreenFoundXVariableName, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="{localization:Loc Editor_FoundXVariableNamePlaceholder}"
-                             Background="{DynamicResource SurfaceHoverBrush}"
-                             Foreground="{DynamicResource TextPrimaryBrush}"
-                             BorderThickness="0"
-                             CornerRadius="4"
-                             Padding="8,6"/>
+                             PlaceholderText="{localization:Loc Editor_FoundXVariableNamePlaceholder}"/>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Spacing="3">
-                    <TextBlock Text="{localization:Loc Editor_FoundYVariableNamePlaceholder}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10"/>
+                    <TextBlock Classes="field-hint" Text="{localization:Loc Editor_FoundYVariableNamePlaceholder}"/>
                     <TextBox Text="{Binding SelectedAction.ScreenFoundYVariableName, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="{localization:Loc Editor_FoundYVariableNamePlaceholder}"
-                             Background="{DynamicResource SurfaceHoverBrush}"
-                             Foreground="{DynamicResource TextPrimaryBrush}"
-                             BorderThickness="0"
-                             CornerRadius="4"
-                             Padding="8,6"/>
+                             PlaceholderText="{localization:Loc Editor_FoundYVariableNamePlaceholder}"/>
                 </StackPanel>
             </Grid>
-            <TextBlock Text="{localization:Loc Editor_FoundVariableName}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10" IsVisible="{Binding ShowImageOutputVariableFields}"/>
+            <TextBlock Classes="field-hint" Text="{localization:Loc Editor_FoundVariableName}" IsVisible="{Binding ShowImageOutputVariableFields}"/>
             <TextBox Text="{Binding SelectedAction.ScreenFoundVariableName, UpdateSourceTrigger=PropertyChanged}"
                      PlaceholderText="found"
-                     Background="{DynamicResource SurfaceHoverBrush}"
-                     Foreground="{DynamicResource TextPrimaryBrush}"
-                     BorderThickness="0"
-                     CornerRadius="4"
-                     Padding="8,6"
                      IsVisible="{Binding ShowImageOutputVariableFields}"/>
-            <TextBlock Text="{localization:Loc Editor_TimeoutMs}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10" IsVisible="{Binding ShowImageWaitTimeoutField}"/>
+            <TextBlock Classes="field-hint" Text="{localization:Loc Editor_TimeoutMs}" IsVisible="{Binding ShowImageWaitTimeoutField}"/>
             <TextBox Text="{Binding SelectedAction.ScreenTimeoutMs, Converter={StaticResource NullableIntConverter}, UpdateSourceTrigger=PropertyChanged}"
                      PlaceholderText="5000"
-                     Background="{DynamicResource SurfaceHoverBrush}"
-                     Foreground="{DynamicResource TextPrimaryBrush}"
-                     BorderThickness="0"
-                     CornerRadius="4"
-                     Padding="8,6"
                      IsVisible="{Binding ShowImageWaitTimeoutField}"/>
             <StackPanel Spacing="3">
-                <TextBlock Text="{localization:Loc Editor_ImageSearchSimilarity}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10"/>
+                <TextBlock Classes="field-hint" Text="{localization:Loc Editor_ImageSearchSimilarity}"/>
                 <TextBox Text="{Binding SelectedAction.ImageSearchSimilarity, Converter={StaticResource NullableDoubleConverter}, UpdateSourceTrigger=PropertyChanged}"
-                         PlaceholderText="0.95"
-                         Background="{DynamicResource SurfaceHoverBrush}"
-                         Foreground="{DynamicResource TextPrimaryBrush}"
-                         BorderThickness="0"
-                         CornerRadius="4"
-                         Padding="8,6"/>
+                         PlaceholderText="0.95"/>
             </StackPanel>
          </StackPanel>
     </StackPanel>

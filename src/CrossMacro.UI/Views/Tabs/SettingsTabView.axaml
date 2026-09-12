@@ -16,14 +16,14 @@
     </Design.DataContext>
 
     <Panel>
-        <ScrollViewer Padding="10" 
+        <ScrollViewer Padding="0" 
                       VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="20">
 
                 <!-- Hotkey Info -->
-                <Border Background="{DynamicResource SurfaceColor}" CornerRadius="8" Padding="12">
+                <Border Classes="page-card">
                     <StackPanel Spacing="12">
-                        <TextBlock Text="{localization:Loc Settings_GlobalHotkeys}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Classes="card-title" Text="{localization:Loc Settings_GlobalHotkeys}"/>
 
                         <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" Margin="0,4,0,0">
                              <controls:HotkeyCapture Grid.Row="0" Grid.Column="0"
@@ -57,14 +57,13 @@
                 </Border>
                 
                 <!-- Tray Icon Settings -->
-                <Border Background="{DynamicResource SurfaceColor}" CornerRadius="8" Padding="12">
+                <Border Classes="page-card">
                     <StackPanel Spacing="16">
                         <!-- Tray Icon (hidden in Flatpak - D-Bus StatusNotifierItem not supported) -->
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" IsVisible="{Binding IsTraySettingsVisible}">
+                        <Grid Classes="setting-row" ColumnDefinitions="*,Auto" ColumnSpacing="12" IsVisible="{Binding IsTraySettingsVisible}">
                             <TextBlock Grid.Column="0"
                                        Text="{localization:Loc Settings_EnableTrayIcon}"
-                                       FontWeight="Medium"
-                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       Classes="row-title"
                                        TextWrapping="Wrap"
                                        VerticalAlignment="Center"/>
 
@@ -76,16 +75,15 @@
                         </Grid>
 
                         <!-- Start minimized depends on tray support because it starts hidden to tray when available -->
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" IsVisible="{Binding IsTraySettingsVisible}">
+                        <Grid Classes="setting-row" ColumnDefinitions="*,Auto" ColumnSpacing="12" IsVisible="{Binding IsTraySettingsVisible}">
                             <StackPanel Grid.Column="0" Spacing="2">
                                 <TextBlock Text="{localization:Loc Settings_StartMinimized}"
-                                           FontWeight="Medium"
-                                           Foreground="{DynamicResource TextPrimaryBrush}"
-                                           TextWrapping="Wrap"/>
-                                <TextBlock Text="{localization:Loc Settings_StartMinimizedDescription}"
-                                            FontSize="12"
-                                            Foreground="{DynamicResource TextSecondaryBrush}"
-                                            TextWrapping="Wrap"/>
+                                           Classes="row-title"
+                                       TextWrapping="Wrap"/>
+                                <TextBlock Classes="field-hint" Text="{localization:Loc Settings_StartMinimizedDescription}"
+                                           
+                                           
+                                           />
                             </StackPanel>
 
                             <ToggleSwitch Grid.Column="1"
@@ -96,11 +94,10 @@
                         </Grid>
                         
                         <!-- Text Expansion -->
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <Grid Classes="setting-row" ColumnDefinitions="*,Auto" ColumnSpacing="12">
                             <TextBlock Grid.Column="0" 
                                        Text="{localization:Loc Settings_EnableTextExpansion}" 
-                                       FontWeight="Medium" 
-                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       Classes="row-title"
                                        TextWrapping="Wrap"
                                        VerticalAlignment="Center"/>
                                       
@@ -112,11 +109,10 @@
                         </Grid>
                         
                         <!-- Update Check -->
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" IsVisible="{Binding IsUpdateSettingsVisible}">
+                        <Grid Classes="setting-row" ColumnDefinitions="*,Auto" ColumnSpacing="12" IsVisible="{Binding IsUpdateSettingsVisible}">
                             <TextBlock Grid.Column="0" 
                                        Text="{localization:Loc Settings_CheckForUpdates}" 
-                                       FontWeight="Medium" 
-                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       Classes="row-title"
                                        TextWrapping="Wrap"
                                        VerticalAlignment="Center"/>
                                       
@@ -128,16 +124,15 @@
                         </Grid>
                         
                         <!-- Log Level -->
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <Grid Classes="setting-row" ColumnDefinitions="*,Auto" ColumnSpacing="12">
                             <StackPanel Grid.Column="0" Spacing="2">
                                 <TextBlock Text="{localization:Loc Settings_LogLevel}" 
-                                           FontWeight="Medium" 
-                                           Foreground="{DynamicResource TextPrimaryBrush}"
-                                           TextWrapping="Wrap"/>
-                                <TextBlock Text="{localization:Loc Settings_LogLevelDescription}" 
-                                            FontSize="12"
-                                            Foreground="{DynamicResource TextSecondaryBrush}"
-                                            TextWrapping="Wrap"/>
+                                           Classes="row-title"
+                                       TextWrapping="Wrap"/>
+                                <TextBlock Classes="field-hint" Text="{localization:Loc Settings_LogLevelDescription}" 
+                                           
+                                           
+                                           />
                             </StackPanel>
                             
                             <ComboBox Grid.Column="1"
@@ -148,16 +143,15 @@
                         </Grid>
 
                         <!-- Theme -->
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <Grid Classes="setting-row" ColumnDefinitions="*,Auto" ColumnSpacing="12">
                             <StackPanel Grid.Column="0" Spacing="2">
                                 <TextBlock Text="{localization:Loc Settings_Theme}" 
-                                           FontWeight="Medium" 
-                                           Foreground="{DynamicResource TextPrimaryBrush}"
-                                           TextWrapping="Wrap"/>
-                                <TextBlock Text="{localization:Loc Settings_ThemeDescription}" 
-                                             FontSize="12"
-                                             Foreground="{DynamicResource TextSecondaryBrush}"
-                                             TextWrapping="Wrap"/>
+                                           Classes="row-title"
+                                       TextWrapping="Wrap"/>
+                                <TextBlock Classes="field-hint" Text="{localization:Loc Settings_ThemeDescription}" 
+                                            
+                                            
+                                            />
                                 <Button Classes="secondary compact"
                                         Command="{Binding OpenThemesFolderCommand}"
                                         HorizontalAlignment="Left"
@@ -192,16 +186,15 @@
                             </Grid>
                         </Grid>
 
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <Grid Classes="setting-row" ColumnDefinitions="*,Auto" ColumnSpacing="12">
                             <StackPanel Grid.Column="0" Spacing="2">
                                 <TextBlock Text="{localization:Loc Settings_Language}"
-                                           FontWeight="Medium"
-                                           Foreground="{DynamicResource TextPrimaryBrush}"
-                                           TextWrapping="Wrap"/>
-                                <TextBlock Text="{localization:Loc Settings_LanguageDescription}"
-                                            FontSize="12"
-                                            Foreground="{DynamicResource TextSecondaryBrush}"
-                                            TextWrapping="Wrap"/>
+                                           Classes="row-title"
+                                       TextWrapping="Wrap"/>
+                                <TextBlock Classes="field-hint" Text="{localization:Loc Settings_LanguageDescription}"
+                                           
+                                           
+                                           />
                             </StackPanel>
 
                             <ComboBox Grid.Column="1"
@@ -221,9 +214,9 @@
 
 
                 <!-- Profile Management -->
-                <Border Background="{DynamicResource SurfaceColor}" CornerRadius="8" Padding="12">
+                <Border Classes="page-card">
                     <StackPanel Spacing="12">
-                        <TextBlock Text="{localization:Loc Settings_Profiles}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Classes="card-title" Text="{localization:Loc Settings_Profiles}"/>
 
                         <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
                             <ComboBox Grid.Column="0"
@@ -289,35 +282,28 @@
                 </Border>
 
                 <!-- Support Section -->
-                <Border Background="{DynamicResource SurfaceColor}" CornerRadius="8" Padding="12">
+                <Border Classes="page-card">
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,12,0">
-                            <TextBlock Text="{localization:Loc Settings_SupportTitle}" 
-                                      FontWeight="Bold" 
-                                      Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="{localization:Loc Settings_SupportDescription}" 
-                                      FontSize="12"
-                                      TextWrapping="Wrap"
-                                      Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Classes="card-title" Text="{localization:Loc Settings_SupportTitle}"/>
+                            <TextBlock Classes="field-hint" Text="{localization:Loc Settings_SupportDescription}" 
+                                     
+                                     
+                                     />
                         </StackPanel>
                         
                         <Button Grid.Column="1" 
                                 Command="{Binding OpenGitHub}"
                                 Classes="primary"
-                                Background="{DynamicResource PrimaryBrush}"
                                 VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{icons:AppIcon GitHub}"
-                                          Foreground="{DynamicResource TextOnPrimaryBrush}"
-                                          Width="16" Height="16"/>
+                                <PathIcon Data="{icons:AppIcon GitHub}" Width="16" Height="16"/>
                                 <TextBlock Text="{localization:Loc Settings_StarOnGitHub}" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </Grid>
                 </Border>
                 
-                <!-- Bottom Spacer to ensure scrolling works fully -->
-                <Rectangle Height="40" Fill="Transparent"/>
             </StackPanel>
         </ScrollViewer>
         

@@ -11,6 +11,7 @@ public sealed partial class ShortcutTaskEditor : ObservableObject
     [ObservableProperty] private string hotkeyString = string.Empty;
     [ObservableProperty] private double playbackSpeed = PlaybackOptions.DefaultSpeedMultiplier;
     [ObservableProperty] private bool isEnabled;
+    [ObservableProperty] private bool isSelected;
     [ObservableProperty] private bool loopEnabled;
     [ObservableProperty] private int repeatCount;
     [ObservableProperty] private int repeatDelayMs;

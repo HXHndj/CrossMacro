@@ -12,6 +12,7 @@ public sealed partial class ScheduledTaskEditor : ObservableObject
     [ObservableProperty] private ScheduleType type = ScheduleType.Interval;
     [ObservableProperty] private double playbackSpeed = PlaybackOptions.DefaultSpeedMultiplier;
     [ObservableProperty] private bool isEnabled;
+    [ObservableProperty] private bool isSelected;
     [ObservableProperty] private int intervalValue = 30;
     [ObservableProperty] private IntervalUnit intervalUnit = IntervalUnit.Seconds;
     [ObservableProperty] private bool useRandomIntervalDelay;

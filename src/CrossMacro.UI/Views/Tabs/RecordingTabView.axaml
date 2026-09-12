@@ -14,7 +14,7 @@
         <designVm:DesignRecordingViewModel/>
     </Design.DataContext>
 
-    <ScrollViewer Padding="10">
+    <ScrollViewer Padding="0">
         <StackPanel Spacing="20">
             <Grid ColumnDefinitions="2*,1.5*,*" RowDefinitions="Auto,Auto">
                 <!-- Labels Row -->
@@ -24,9 +24,7 @@
 
                 <!-- Status Indicator -->
                 <Border Grid.Row="1" Grid.Column="0"
-                       Background="{DynamicResource SurfaceColor}"
-                       CornerRadius="8"
-                       Padding="12,8"
+                       Classes="mini-card"
                        ClipToBounds="True"
                        VerticalAlignment="Stretch">
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
@@ -41,9 +39,7 @@
 
                 <!-- Event Count -->
                 <Border Grid.Row="1" Grid.Column="1"
-                       Background="{DynamicResource SurfaceColor}"
-                       CornerRadius="8"
-                       Padding="8,8"
+                       Classes="mini-card"
                        Margin="8,0,0,0"
                        ClipToBounds="True"
                        VerticalAlignment="Stretch">
@@ -69,9 +65,7 @@
 
                 <!-- Quick Stats -->
                 <Border Grid.Row="1" Grid.Column="2"
-                       Background="{DynamicResource SurfaceColor}"
-                       CornerRadius="8"
-                       Padding="12,8"
+                       Classes="mini-card"
                        Margin="8,0,0,0"
                        VerticalAlignment="Stretch">
                     <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -92,19 +86,13 @@
             </Grid>
 
             <!-- Recording Controls Panel -->
-            <Border Background="{DynamicResource SurfaceColor}" CornerRadius="12" Padding="16">
+            <Border Classes="page-card">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="{localization:Loc Recording_CaptureSettings}" 
-                              FontWeight="SemiBold" 
-                              Foreground="{DynamicResource TextSecondaryBrush}" 
-                              FontSize="12"/>
+                    <TextBlock Classes="card-title" Text="{localization:Loc Recording_CaptureSettings}"/>
 
                     <!-- Toggles -->
                     <Grid ColumnDefinitions="*,*">
-                        <Border Grid.Column="0" 
-                                Background="{DynamicResource BackgroundBrush}" 
-                                CornerRadius="6" 
-                                Padding="12,8" 
+                        <Border Classes="nested-panel" Grid.Column="0" 
                                 Margin="0,0,6,0">
                             <Grid ColumnDefinitions="*,Auto">
                                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
@@ -118,10 +106,7 @@
                             </Grid>
                         </Border>
 
-                        <Border Grid.Column="1" 
-                                Background="{DynamicResource BackgroundBrush}" 
-                                CornerRadius="6" 
-                                Padding="12,8" 
+                        <Border Classes="nested-panel" Grid.Column="1" 
                                 Margin="6,0,0,0">
                             <Grid ColumnDefinitions="*,Auto">
                                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
@@ -138,9 +123,7 @@
                     
                     <!-- Coordinate Settings -->
                     <StackPanel Spacing="8">
-                        <Border Background="{DynamicResource BackgroundBrush}" 
-                                CornerRadius="6" 
-                                Padding="12,8"
+                        <Border Classes="nested-panel" Background="{DynamicResource BackgroundBrush}"
                                 IsVisible="{Binding IsForceRelativeSupported}">
                             <Grid ColumnDefinitions="*,Auto,Auto">
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
@@ -148,25 +131,16 @@
                                     <StackPanel Spacing="2">
                                         <TextBlock Text="{localization:Loc Recording_ForceRelativeCoordinates}" FontWeight="Medium" VerticalAlignment="Center"/>
                                         <TextBlock Text="{localization:Loc Recording_ForceRelativeCoordinatesDescription}" 
-                                                  FontSize="10"
-                                                  Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                  Classes="field-hint"/>
                                     </StackPanel>
                                 </StackPanel>
 
                                 <!-- Help Tooltip -->
-                                <Border Grid.Column="1" 
+                                <Border Classes="help-badge" Grid.Column="1" 
                                         Margin="0,0,12,0" 
-                                        Background="{DynamicResource SurfaceHoverBrush}" 
-                                        CornerRadius="10" 
                                         Width="20" Height="20"
-                                        VerticalAlignment="Center"
                                         ToolTip.Tip="{localization:Loc Recording_ForceRelativeCoordinatesHelp}">
-                                    <TextBlock Text="?" 
-                                               HorizontalAlignment="Center" 
-                                               VerticalAlignment="Center" 
-                                               FontSize="12" 
-                                               FontWeight="Bold" 
-                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="?"/>
                                 </Border>
 
                                 <ToggleSwitch Grid.Column="2" 
@@ -177,9 +151,7 @@
                         </Border>
                         
                         <!-- Logical-relative recording option - only visible when Force Relative is enabled -->
-                        <Border Background="{DynamicResource BackgroundBrush}"
-                                CornerRadius="6"
-                                Padding="12,8"
+                        <Border Classes="nested-panel" Background="{DynamicResource BackgroundBrush}"
                                 Margin="24,0,0,0"
                                 IsVisible="{Binding ShowLogicalRelativeCoordinatesOption}">
                             <Grid ColumnDefinitions="*,Auto,Auto">
@@ -188,24 +160,15 @@
                                     <StackPanel Spacing="2">
                                         <TextBlock Text="{localization:Loc Recording_LogicalRelativeCoordinates}" FontWeight="Medium" VerticalAlignment="Center"/>
                                         <TextBlock Text="{localization:Loc Recording_LogicalRelativeCoordinatesDescription}"
-                                                   FontSize="10"
-                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                   Classes="field-hint"/>
                                     </StackPanel>
                                 </StackPanel>
 
-                                <Border Grid.Column="1"
+                                <Border Classes="help-badge" Grid.Column="1"
                                         Margin="0,0,12,0"
-                                        Background="{DynamicResource SurfaceHoverBrush}"
-                                        CornerRadius="10"
                                         Width="20" Height="20"
-                                        VerticalAlignment="Center"
                                         ToolTip.Tip="{localization:Loc Recording_LogicalRelativeCoordinatesHelp}">
-                                    <TextBlock Text="?"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"
-                                               FontSize="12"
-                                               FontWeight="Bold"
-                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="?"/>
                                 </Border>
 
                                 <ToggleSwitch Grid.Column="2"
@@ -218,9 +181,7 @@
                         </Border>
 
                         <!-- Skip 0,0 option - only visible when Force Relative is enabled -->
-                        <Border Background="{DynamicResource BackgroundBrush}" 
-                                CornerRadius="6" 
-                                Padding="12,8"
+                        <Border Classes="nested-panel" Background="{DynamicResource BackgroundBrush}"
                                 Margin="24,0,0,0"
                                 IsVisible="{Binding ShowSkipZeroZeroOption}">
                             <Grid ColumnDefinitions="*,Auto">
@@ -229,8 +190,7 @@
                                     <StackPanel Spacing="2">
                                         <TextBlock Text="{localization:Loc Recording_SkipInitialZeroZero}" FontWeight="Medium" VerticalAlignment="Center"/>
                                         <TextBlock Text="{localization:Loc Recording_SkipInitialZeroZeroDescription}" 
-                                                  FontSize="10"
-                                                  Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                  Classes="field-hint"/>
                                     </StackPanel>
                                 </StackPanel>
                                 <ToggleSwitch Grid.Column="1" 
@@ -263,8 +223,8 @@
                 </StackPanel>
             </Border>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
-                <PathIcon Data="{icons:AppIcon Tip}" Width="14" Height="14" Opacity="0.9"/>
+            <StackPanel Classes="footer-tip">
+                <PathIcon Data="{icons:AppIcon Tip}" Classes="caption-icon"/>
                 <TextBlock Text="{localization:Loc Recording_Tip}" Classes="caption"/>
             </StackPanel>
         </StackPanel>

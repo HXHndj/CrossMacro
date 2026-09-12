@@ -18,15 +18,11 @@
     </Design.DataContext>
 
     <Panel>
-        <ScrollViewer Padding="10,10,20,10">
+        <ScrollViewer Padding="0">
             <StackPanel Spacing="20">
                 <StackPanel Spacing="8">
                     <TextBlock Classes="label" Text="{localization:Loc Files_LoadedMacros}"/>
-                    <Border Background="{DynamicResource SurfaceColor}"
-                            BorderBrush="{DynamicResource SurfaceHoverColor}"
-                            BorderThickness="1"
-                            CornerRadius="12"
-                            Padding="8">
+                    <Border Classes="page-card compact">
                         <ListBox Classes="loaded-macro-list"
                                  ItemsSource="{Binding LoadedMacros}"
                                  SelectedItem="{Binding SelectedMacroItem}"
@@ -111,7 +107,7 @@
                     <TextBlock Classes="label" Text="{localization:Loc Files_SelectedMacro}"/>
                     <Grid ColumnDefinitions="*,12,Auto">
                         <StackPanel Grid.Column="0" Spacing="8">
-                            <TextBlock Classes="label" Text="{localization:Loc Files_MacroName}"/>
+                            <TextBlock Classes="field-label" Text="{localization:Loc Files_MacroName}"/>
                             <TextBox Text="{Binding MacroName}"
                                      PlaceholderText="{localization:Loc Files_MacroNamePlaceholder}"/>
                         </StackPanel>
@@ -119,7 +115,7 @@
                         <StackPanel Grid.Column="2"
                                     Spacing="8"
                                     IsVisible="{Binding ShowSequenceRepeatSettings}">
-                            <TextBlock Classes="label" Text="{localization:Loc Files_SequenceRepeat}"/>
+                            <TextBlock Classes="field-label" Text="{localization:Loc Files_SequenceRepeat}"/>
                             <NumericUpDown Value="{Binding SelectedSequenceRepeatCount, Converter={x:Static converters:NumericUpDownValueConverter.Instance}}"
                                            Width="136"
                                            Minimum="1"
@@ -160,7 +156,6 @@
                     </StackPanel>
                 </StackPanel>
 
-                <Rectangle Height="40" Fill="Transparent"/>
             </StackPanel>
         </ScrollViewer>
     </Panel>

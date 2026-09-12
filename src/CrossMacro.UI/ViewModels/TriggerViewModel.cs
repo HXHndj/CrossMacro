@@ -77,10 +77,13 @@ public partial class TriggerViewModel : ViewModelBase, IDisposable
         {
             if (field != value)
             {
+                var previous = field;
                 field?.PropertyChanged -= OnSelectedTaskPropertyChanged;
 
                 field = value;
                 field?.PropertyChanged += OnSelectedTaskPropertyChanged;
+                previous?.IsSelected = false;
+                field?.IsSelected = true;
                 AvailableWindowValues.Clear();
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(HasSelectedTask));

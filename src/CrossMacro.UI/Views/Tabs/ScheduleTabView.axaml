@@ -17,26 +17,21 @@
         <designVm:DesignScheduleViewModel/>
     </Design.DataContext>
 
-    <ScrollViewer Padding="10">
-        <StackPanel Spacing="16" Margin="0,0,0,50">
+    <ScrollViewer Padding="0">
+        <StackPanel Spacing="16">
 
             <!-- Task List Section -->
-            <Border Background="{DynamicResource SurfaceColor}" CornerRadius="12" Padding="16"
+            <Border Classes="page-card"
                     x:Name="TaskListBorder">
                 <StackPanel Spacing="12">
                     <Grid ColumnDefinitions="*,Auto,Auto">
-                        <TextBlock Grid.Column="0"
+                        <TextBlock Classes="card-title" Grid.Column="0"
                                   Text="{localization:Loc Schedule_Title}"
-                                  FontWeight="SemiBold"
-                                  Foreground="{DynamicResource TextSecondaryBrush}"
-                                  FontSize="12"
-                                  VerticalAlignment="Center"/>
-                        <TextBlock Grid.Column="1"
+VerticalAlignment="Center"/>
+                        <TextBlock Classes="caption" Grid.Column="1"
                                   Text="{Binding TaskCountText}"
                                   VerticalAlignment="Center"
-                                  Foreground="{DynamicResource TextSecondaryBrush}"
-                                  FontSize="12"
-                                  Margin="0,0,12,0"/>
+Margin="0,0,12,0"/>
                         <Button Grid.Column="2"
                                Command="{Binding AddTaskCommand}"
                                Background="{DynamicResource SurfaceHoverBrush}"
@@ -53,11 +48,8 @@
                     <ItemsControl ItemsSource="{Binding Tasks}">
                         <ItemsControl.ItemTemplate>
                              <DataTemplate x:DataType="vm:ScheduledTaskEditor">
-                                <Border Padding="10,8"
-                                        CornerRadius="8"
-                                        Margin="0,2"
-                                        Classes="row-item no-hover"
-                                        Background="{DynamicResource BackgroundBrush}">
+                                <Border Classes="task-row"
+                                        Classes.selected="{Binding IsSelected}">
                                     <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                                         <!-- Task Info (clickable area for selection) -->
                                         <Button Grid.Column="0"
@@ -123,15 +115,11 @@
             </Border>
 
             <!-- Task Settings Section (visible when task selected) -->
-            <Border Background="{DynamicResource SurfaceColor}"
-                    CornerRadius="12"
-                    Padding="16"
+            <Border Classes="page-card"
                     IsVisible="{Binding HasSelectedTask}">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="{localization:Loc Schedule_TaskSettings}"
-                              FontWeight="SemiBold"
-                              Foreground="{DynamicResource TextSecondaryBrush}"
-                              FontSize="12"/>
+                    <TextBlock Classes="card-title" Text="{localization:Loc Schedule_TaskSettings}"
+/>
 
                     <!-- Task Name -->
                     <StackPanel Spacing="4">
@@ -146,9 +134,7 @@
                             <TextBlock Grid.Column="0" Classes="label" Text="{localization:Loc Schedule_PlaybackSpeed}"/>
                             <TextBlock Grid.Column="1"
                                       Text="{Binding SelectedTask?.PlaybackSpeed, StringFormat='{}{0:0.0}x', FallbackValue='1.0x'}"
-                                      FontWeight="Medium"
-                                      FontSize="16"
-                                      Foreground="{DynamicResource PrimaryBrush}"/>
+                                      Classes="value-text"/>
                         </Grid>
                         <Slider Value="{Binding SelectedTask?.PlaybackSpeed, Mode=TwoWay, FallbackValue=1.0}"
                                Minimum="0.1"
@@ -212,9 +198,8 @@
             </Border>
 
             <!-- Interval Settings -->
-            <Border Background="{DynamicResource SurfaceColor}"
-                   CornerRadius="12"
-                   Padding="16">
+            <Border Classes="page-card"
+>
                 <Border.IsVisible>
                     <MultiBinding Converter="{x:Static BoolConverters.And}">
                         <Binding Path="HasSelectedTask" FallbackValue="False"/>
@@ -222,10 +207,8 @@
                     </MultiBinding>
                 </Border.IsVisible>
                 <StackPanel Spacing="12">
-                    <TextBlock Text="{localization:Loc Schedule_IntervalSettings}"
-                              FontWeight="SemiBold"
-                              Foreground="{DynamicResource TextSecondaryBrush}"
-                              FontSize="12"/>
+                    <TextBlock Classes="card-title" Text="{localization:Loc Schedule_IntervalSettings}"
+/>
                     <CheckBox Content="{localization:Loc Schedule_RandomizeInterval}"
                               IsChecked="{Binding SelectedTask?.UseRandomIntervalDelay, Mode=TwoWay}"/>
                     <StackPanel Spacing="4">
@@ -268,9 +251,8 @@
             </Border>
 
             <!-- DateTime Settings -->
-            <Border Background="{DynamicResource SurfaceColor}"
-                   CornerRadius="12"
-                   Padding="16">
+            <Border Classes="page-card"
+>
                 <Border.IsVisible>
                     <MultiBinding Converter="{x:Static BoolConverters.And}">
                         <Binding Path="HasSelectedTask"/>
@@ -278,10 +260,8 @@
                     </MultiBinding>
                 </Border.IsVisible>
                 <StackPanel Spacing="12">
-                    <TextBlock Text="{localization:Loc Schedule_DateTimeSettings}"
-                              FontWeight="SemiBold"
-                              Foreground="{DynamicResource TextSecondaryBrush}"
-                              FontSize="12"/>
+                    <TextBlock Classes="card-title" Text="{localization:Loc Schedule_DateTimeSettings}"
+/>
                     <TextBlock Text="{localization:Loc Schedule_RunAt}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                     <StackPanel Orientation="Vertical" Spacing="12" HorizontalAlignment="Left">
                         <DatePicker SelectedDate="{Binding ScheduledDate, Mode=TwoWay, FallbackValue={x:Null}}"
@@ -292,16 +272,15 @@
                                    HorizontalAlignment="Stretch"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="4">
-                        <PathIcon Data="{icons:AppIcon Tip}" Width="11" Height="11" Opacity="0.85"/>
-                        <TextBlock Text="{localization:Loc Schedule_RunOnceTip}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <PathIcon Data="{icons:AppIcon Tip}" Classes="caption-icon"/>
+                        <TextBlock Classes="field-hint" Text="{localization:Loc Schedule_RunOnceTip}"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
             <!-- Weekly Settings -->
-            <Border Background="{DynamicResource SurfaceColor}"
-                   CornerRadius="12"
-                   Padding="16">
+            <Border Classes="page-card"
+>
                 <Border.IsVisible>
                     <MultiBinding Converter="{x:Static BoolConverters.And}">
                         <Binding Path="HasSelectedTask"/>
@@ -309,10 +288,8 @@
                     </MultiBinding>
                 </Border.IsVisible>
                 <StackPanel Spacing="12">
-                    <TextBlock Text="{localization:Loc Schedule_WeeklySettings}"
-                              FontWeight="SemiBold"
-                              Foreground="{DynamicResource TextSecondaryBrush}"
-                              FontSize="12"/>
+                    <TextBlock Classes="card-title" Text="{localization:Loc Schedule_WeeklySettings}"
+/>
                     <StackPanel Spacing="4">
                         <TextBlock Text="{localization:Loc Schedule_RunOn}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                         <ComboBox ItemsSource="{Binding WeeklyPresetOptions}"
@@ -351,37 +328,30 @@
                                     HorizontalAlignment="Stretch"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="4">
-                        <PathIcon Data="{icons:AppIcon Tip}" Width="11" Height="11" Opacity="0.85"/>
-                        <TextBlock Text="{localization:Loc Schedule_WeeklyTip}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <PathIcon Data="{icons:AppIcon Tip}" Classes="caption-icon"/>
+                        <TextBlock Classes="field-hint" Text="{localization:Loc Schedule_WeeklyTip}"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
             <!-- Status Section -->
-            <Border Background="{DynamicResource SurfaceColor}"
-                   CornerRadius="12"
-                   Padding="16"
+            <Border Classes="page-card"
                    IsVisible="{Binding HasSelectedTask}">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="{localization:Loc Schedule_Status}"
-                              FontWeight="SemiBold"
-                              Foreground="{DynamicResource TextSecondaryBrush}"
-                              FontSize="12"/>
+                    <TextBlock Classes="card-title" Text="{localization:Loc Schedule_Status}"
+/>
                     <Grid ColumnDefinitions="100,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="4">
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{localization:Loc Schedule_LastRun}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Classes="caption" Text="{localization:Loc Schedule_LastRun}"/>
                         <TextBlock Grid.Row="0" Grid.Column="1"
-                                  Text="{Binding SelectedLastRunText}"
-                                  FontSize="12"/>
+                                  Text="{Binding SelectedLastRunText}"/>
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="{localization:Loc Schedule_NextRun}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Classes="caption" Text="{localization:Loc Schedule_NextRun}"/>
                         <TextBlock Grid.Row="1" Grid.Column="1"
-                                  Text="{Binding SelectedNextRunText}"
-                                  FontSize="12"/>
+                                  Text="{Binding SelectedNextRunText}"/>
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="{localization:Loc Schedule_StatusLabel}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Classes="caption" Text="{localization:Loc Schedule_StatusLabel}"/>
                         <TextBlock Grid.Row="2" Grid.Column="1"
-                                  Text="{Binding SelectedStatusText}"
-                                  FontSize="12"/>
+                                  Text="{Binding SelectedStatusText}"/>
                     </Grid>
                 </StackPanel>
             </Border>
@@ -398,20 +368,14 @@
             </Button>
 
             <!-- Empty State -->
-            <Border Background="{DynamicResource SurfaceColor}"
-                    CornerRadius="12"
-                    Padding="32"
+            <Border Classes="empty-state"
                     IsVisible="{Binding !HasSelectedTask}">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
-                    <PathIcon Data="{icons:AppIcon Clock}" Width="48" Height="48" Opacity="0.8" HorizontalAlignment="Center"/>
-                    <TextBlock Text="{localization:Loc Schedule_NoTaskSelected}"
-                              FontSize="16"
-                              FontWeight="Medium"
-                              HorizontalAlignment="Center"/>
-                    <TextBlock Text="{localization:Loc Schedule_SelectTaskHint}"
-                              FontSize="12"
-                              Foreground="{DynamicResource TextSecondaryBrush}"
-                              HorizontalAlignment="Center"/>
+                    <PathIcon Classes="empty-state-icon" Data="{icons:AppIcon Clock}" HorizontalAlignment="Center"/>
+                    <TextBlock Classes="empty-title" Text="{localization:Loc Schedule_NoTaskSelected}"/>
+                    <TextBlock Classes="caption"
+                              HorizontalAlignment="Center"
+                              Text="{localization:Loc Schedule_SelectTaskHint}"/>
                 </StackPanel>
             </Border>
 

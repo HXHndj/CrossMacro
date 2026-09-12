@@ -19,25 +19,20 @@
     </Design.DataContext>
 
     <Panel>
-        <ScrollViewer Padding="16">
-            <StackPanel Spacing="24">
+        <ScrollViewer Padding="0">
+            <StackPanel Spacing="16">
 
                 <!-- ADD NEW EXPANSION -->
-                <Border Background="{DynamicResource SurfaceColor}" CornerRadius="8" Padding="16">
+                <Border Classes="page-card">
                     <StackPanel Spacing="16">
-                        <TextBlock Text="{localization:Loc TextExpansion_AddNewExpansion}"
-                                   FontSize="12"
-                                   FontWeight="Bold"
-                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Classes="card-title" Text="{localization:Loc TextExpansion_AddNewExpansion}"/>
 
                         <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
                             <!-- Trigger -->
                             <StackPanel Grid.Row="0" Grid.Column="0" Spacing="6">
-                                <TextBlock Text="{localization:Loc TextExpansion_Trigger}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Classes="field-label" Text="{localization:Loc TextExpansion_Trigger}"/>
                                 <TextBox PlaceholderText="{localization:Loc TextExpansion_TriggerPlaceholder}"
-                                          Text="{Binding TriggerInput, FallbackValue=''}"
-                                         CornerRadius="6"
-                                         Padding="10"/>
+                                          Text="{Binding TriggerInput, FallbackValue=''}"/>
                             </StackPanel>
 
                             <!-- Arrow -->
@@ -51,7 +46,7 @@
 
                             <!-- Replacement -->
                             <StackPanel Grid.Row="0" Grid.Column="2" Spacing="6">
-                                <TextBlock Text="{localization:Loc TextExpansion_Replacement}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Classes="field-label" Text="{localization:Loc TextExpansion_Replacement}"/>
                                 <TextBox PlaceholderText="{localization:Loc TextExpansion_ReplacementPlaceholder}"
                                            Text="{Binding ReplacementInput, FallbackValue='', UpdateSourceTrigger=PropertyChanged}"
                                            AcceptsReturn="True"
@@ -59,17 +54,14 @@
                                            ScrollViewer.VerticalScrollBarVisibility="Auto"
                                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                            MinHeight="96"
-                                           MaxHeight="220"
-                                           CornerRadius="6"
-                                           Padding="10"/>
+                                           MaxHeight="220"/>
                             </StackPanel>
                             <!-- Insertion Mode -->
                             <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Spacing="6" Margin="0,16,0,0">
-                                <TextBlock Text="{localization:Loc TextExpansion_InsertionMode}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Classes="field-label" Text="{localization:Loc TextExpansion_InsertionMode}"/>
                                 <ComboBox ItemsSource="{Binding InsertionModes}"
                                           SelectedItem="{Binding SelectedInsertionMode}"
-                                          HorizontalAlignment="Stretch"
-                                          CornerRadius="6">
+                                          HorizontalAlignment="Stretch">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Converter={x:Static conv:TextExpansionConverters.InsertionModeDisplayText}}"/>
@@ -81,11 +73,10 @@
                             <!-- Paste Method -->
                             <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Spacing="6" Margin="0,12,0,0"
                                         IsVisible="{Binding IsPasteMethodSelectorVisible}">
-                                <TextBlock Text="{localization:Loc TextExpansion_PasteMethod}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Classes="field-label" Text="{localization:Loc TextExpansion_PasteMethod}"/>
                                 <ComboBox ItemsSource="{Binding PasteMethods}"
                                           SelectedItem="{Binding SelectedPasteMethod}"
-                                          HorizontalAlignment="Stretch"
-                                          CornerRadius="6">
+                                          HorizontalAlignment="Stretch">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Converter={x:Static conv:TextExpansionConverters.PasteMethodDisplayText}}"/>
@@ -97,11 +88,10 @@
                             <!-- Direct Typing Method -->
                             <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Spacing="6" Margin="0,12,0,0"
                                         IsVisible="{Binding IsDirectTypingMethodSelectorVisible}">
-                                <TextBlock Text="{localization:Loc TextExpansion_DirectTypingMethod}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Classes="field-label" Text="{localization:Loc TextExpansion_DirectTypingMethod}"/>
                                 <ComboBox ItemsSource="{Binding DirectTypingMethods}"
                                           SelectedItem="{Binding SelectedDirectTypingMethod}"
-                                          HorizontalAlignment="Stretch"
-                                          CornerRadius="6">
+                                          HorizontalAlignment="Stretch">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Converter={x:Static conv:TextExpansionConverters.DirectTypingMethodDisplayText}}"/>
@@ -120,22 +110,19 @@
                 </Border>
 
                 <!-- SAVED EXPANSIONS -->
-                <Border Background="{DynamicResource SurfaceColor}" CornerRadius="8" Padding="16" MinHeight="200"
+                <Border Classes="page-card"
+                        MinHeight="200"
                         IsVisible="{Binding HasExpansions, FallbackValue=False}">
                     <Grid RowDefinitions="Auto,*">
                         <!-- Header -->
                         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
-                            <TextBlock Text="{localization:Loc TextExpansion_SavedExpansions}"
+                            <TextBlock Classes="card-title"
                                        VerticalAlignment="Center"
-                                       FontSize="12"
-                                       FontWeight="Bold"
-                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                       Text="{localization:Loc TextExpansion_SavedExpansions}"/>
 
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                <TextBlock Text="{Binding ExpansionCountText}"
-                                           VerticalAlignment="Center"
-                                           Foreground="{DynamicResource TextSecondaryBrush}"
-                                           FontSize="12"/>
+                                <TextBlock Classes="caption" Text="{Binding ExpansionCountText}"
+                                           VerticalAlignment="Center"/>
                                 <!-- Trash icon could go here if implementing bulk delete -->
                             </StackPanel>
                         </Grid>
@@ -152,10 +139,7 @@
                         <ItemsControl Grid.Row="1" ItemsSource="{Binding Expansions}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="core:TextExpansionEntry">
-                                    <Border Background="Transparent"
-                                            BorderBrush="{DynamicResource SurfaceHoverBrush}"
-                                            BorderThickness="0,0,0,0"
-                                            Padding="0,12">
+                                    <Border Padding="0,12">
                                         <Grid ColumnDefinitions="Auto,*,Auto">
 
     <!-- Checkbox -->
@@ -187,27 +171,21 @@
                                                                FontSize="14"
                                                                TextWrapping="Wrap"/>
                                                     <StackPanel Orientation="Horizontal" Spacing="6">
-                                                         <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="4" Padding="4,2" HorizontalAlignment="Left">
-                                                             <TextBlock Text="{Binding InsertionMode, Converter={x:Static conv:TextExpansionConverters.InsertionModeDisplayText}}"
-                                                                        FontSize="10"
-                                                                        Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                         <Border Classes="chip" HorizontalAlignment="Left">
+                                                             <TextBlock Text="{Binding InsertionMode, Converter={x:Static conv:TextExpansionConverters.InsertionModeDisplayText}}"/>
                                                          </Border>
-                                                         <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="4" Padding="4,2" HorizontalAlignment="Left"
+                                                         <Border Classes="chip" HorizontalAlignment="Left"
                                                                  IsVisible="{Binding InsertionMode, Converter={x:Static conv:TextExpansionConverters.IsDirectTypingMode}, FallbackValue=False}">
-                                                             <TextBlock Text="{Binding DirectTypingMethod, Converter={x:Static conv:TextExpansionConverters.DirectTypingMethodDisplayText}}"
-                                                                        FontSize="10"
-                                                                        Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                             <TextBlock Text="{Binding DirectTypingMethod, Converter={x:Static conv:TextExpansionConverters.DirectTypingMethodDisplayText}}"/>
                                                          </Border>
-                                                         <Border Background="{DynamicResource SurfaceHoverBrush}" CornerRadius="4" Padding="4,2" HorizontalAlignment="Left">
+                                                         <Border Classes="chip" HorizontalAlignment="Left">
                                                             <Border.IsVisible>
                                                                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                                                                     <Binding Path="InsertionMode" Converter="{x:Static conv:TextExpansionConverters.IsPasteMode}" FallbackValue="False"/>
                                                                     <Binding Path="#Root.((vm:TextExpansionViewModel)DataContext)?.IsPasteMethodVisible" FallbackValue="False"/>
                                                                 </MultiBinding>
                                                             </Border.IsVisible>
-                                                            <TextBlock Text="{Binding Method, Converter={x:Static conv:TextExpansionConverters.PasteMethodDisplayText}}"
-                                                                       FontSize="10"
-                                                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                            <TextBlock Text="{Binding Method, Converter={x:Static conv:TextExpansionConverters.PasteMethodDisplayText}}"/>
                                                         </Border>
                                                     </StackPanel>
                                                 </StackPanel>
@@ -235,13 +213,10 @@
                 </Border>
 
                 <!-- Footer Info -->
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
+                <StackPanel Classes="footer-tip">
                     <PathIcon Data="{icons:AppIcon Tip}" Classes="caption-icon"/>
-                    <TextBlock Text="{localization:Loc TextExpansion_EnableInSettingsTip}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <TextBlock Text="{localization:Loc TextExpansion_EnableInSettingsTip}" Classes="caption"/>
                 </StackPanel>
-
-                <!-- NEW: Bottom Spacer -->
-                <Rectangle Height="40" Fill="Transparent"/>
 
             </StackPanel>
         </ScrollViewer>

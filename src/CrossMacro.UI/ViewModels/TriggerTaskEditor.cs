@@ -17,6 +17,7 @@ public sealed partial class TriggerTaskEditor : ObservableObject
     [ObservableProperty] private int? cooldownMs;
     [ObservableProperty] private int? debounceMs;
     [ObservableProperty] private bool isEnabled;
+    [ObservableProperty] private bool isSelected;
     [ObservableProperty] private DateTime? lastTriggeredTime;
     [ObservableProperty] private string? lastStatus;
 

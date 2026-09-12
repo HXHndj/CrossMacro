@@ -9,12 +9,12 @@
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         WindowDecorations="BorderOnly"
-        Background="{DynamicResource BackgroundColor}"
+        Background="{DynamicResource BackgroundBrush}"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaTitleBarHeightHint="-1">
 
-    <Border BorderBrush="{DynamicResource SurfaceHoverColor}" BorderThickness="1">
-        <StackPanel Spacing="20" Margin="24">
+    <Border Classes="dialog-card" BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="1">
+        <StackPanel Spacing="20">
             <!-- Header -->
             <TextBlock Name="TitleText"
                        Text="Dialog"

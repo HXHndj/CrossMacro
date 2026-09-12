@@ -97,6 +97,45 @@
         <Setter Property="Opacity" Value="0.8"/>
     </Style>
 
+    <!-- Type scale for page content (see Layout.axaml for containers).
+         card-title: section heading inside a card; must outrank body text.
+         row-title: left-side title of a setting row (label + trailing control).
+         field-label: small label above/beside an input; field-hint: helper text. -->
+    <Style Selector="TextBlock.card-title">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+
+    <Style Selector="TextBlock.row-title">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+
+    <Style Selector="TextBlock.field-label">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+    </Style>
+
+    <Style Selector="TextBlock.field-hint">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style Selector="TextBlock.mono">
+        <Setter Property="FontFamily" Value="Consolas, Courier New, monospace"/>
+    </Style>
+
+    <!-- Live numeric readout next to a slider/field (e.g. "1.0x" playback speed). -->
+    <Style Selector="TextBlock.value-text">
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+    </Style>
+
     <Style Selector="PathIcon.app-icon">
         <Setter Property="Width" Value="16"/>
         <Setter Property="Height" Value="16"/>

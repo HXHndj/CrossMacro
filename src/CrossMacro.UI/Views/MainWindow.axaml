@@ -202,7 +202,7 @@
                 <TransitioningContentControl Grid.Row="2"
                                            x:Name="MainContentControl"
                                            Content="{Binding CurrentPage}" 
-                                           Margin="16,0,16,16" 
+                                           Margin="16,12,16,16" 
                                            HorizontalAlignment="Stretch" 
                                            VerticalAlignment="Stretch">
                      <TransitioningContentControl.PageTransition>

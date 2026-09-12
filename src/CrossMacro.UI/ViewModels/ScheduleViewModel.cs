@@ -69,10 +69,13 @@ public partial class ScheduleViewModel : ViewModelBase, IDisposable
         {
             if (field != value)
             {
+                var previous = field;
                 field?.PropertyChanged -= OnSelectedTaskPropertyChanged;
 
                 field = value;
                 field?.PropertyChanged += OnSelectedTaskPropertyChanged;
+                previous?.IsSelected = false;
+                field?.IsSelected = true;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(HasSelectedTask));
                 OnPropertyChanged(nameof(SelectedMacroFilePath));

@@ -18,26 +18,21 @@
         <designVm:DesignTriggerViewModel/>
     </Design.DataContext>
 
-    <ScrollViewer Padding="10">
-        <StackPanel Spacing="16" Margin="0,0,0,50">
+    <ScrollViewer Padding="0">
+        <StackPanel Spacing="16">
 
             <!-- Trigger List Section -->
-            <Border Background="{DynamicResource SurfaceColor}" CornerRadius="12" Padding="16"
+            <Border Classes="page-card"
                     x:Name="TriggerListBorder">
                 <StackPanel Spacing="12">
                     <Grid ColumnDefinitions="*,Auto,Auto">
-                        <TextBlock Grid.Column="0"
+                        <TextBlock Classes="card-title" Grid.Column="0"
                                    Text="{localization:Loc Trigger_Title}"
-                                   FontWeight="SemiBold"
-                                   Foreground="{DynamicResource TextSecondaryBrush}"
-                                   FontSize="12"
-                                   VerticalAlignment="Center"/>
-                        <TextBlock Grid.Column="1"
+VerticalAlignment="Center"/>
+                        <TextBlock Classes="caption" Grid.Column="1"
                                    Text="{Binding TaskCountText}"
                                    VerticalAlignment="Center"
-                                   Foreground="{DynamicResource TextSecondaryBrush}"
-                                   FontSize="12"
-                                   Margin="0,0,12,0"/>
+Margin="0,0,12,0"/>
                         <Button Grid.Column="2"
                                 Command="{Binding AddTaskCommand}"
                                 Background="{DynamicResource SurfaceHoverBrush}"
@@ -54,11 +49,8 @@
                     <ItemsControl ItemsSource="{Binding Tasks}">
                         <ItemsControl.ItemTemplate>
                                  <DataTemplate x:DataType="vm:TriggerTaskEditor">
-                                <Border Padding="10,8"
-                                        CornerRadius="8"
-                                        Margin="0,2"
-                                        Classes="row-item no-hover"
-                                        Background="{DynamicResource BackgroundBrush}">
+                                <Border Classes="task-row"
+                                        Classes.selected="{Binding IsSelected}">
                                     <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                                         <!-- Trigger Info (clickable area for selection) -->
                                         <Button Grid.Column="0"
@@ -76,13 +68,8 @@
                                                            FontSize="13"
                                                            TextTrimming="CharacterEllipsis"/>
                                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                                    <Border Background="{DynamicResource SurfaceHoverBrush}"
-                                                            CornerRadius="4"
-                                                            Padding="6,2">
-                                                        <TextBlock Text="{Binding Field}"
-                                                                   FontSize="11"
-                                                                   FontFamily="Consolas, monospace"
-                                                                   Foreground="{DynamicResource PrimaryBrush}"/>
+                                                    <Border Classes="chip accent">
+                                                        <TextBlock Classes="mono" Text="{Binding Field}"/>
                                                     </Border>
                                                     <TextBlock Text="{Binding Value}"
                                                                FontSize="11"
@@ -135,19 +122,15 @@
             </Border>
 
             <!-- Trigger Settings Section (visible when trigger selected) -->
-            <Border Background="{DynamicResource SurfaceColor}"
-                    CornerRadius="12"
-                    Padding="16"
+            <Border Classes="page-card"
                     IsVisible="{Binding HasSelectedTask}">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="{localization:Loc Trigger_Settings}"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource TextSecondaryBrush}"
-                               FontSize="12"/>
+                    <TextBlock Classes="card-title" Text="{localization:Loc Trigger_Settings}"
+/>
 
                     <!-- Trigger Name -->
                     <StackPanel Spacing="4">
-                        <TextBlock Text="{localization:Loc Trigger_Name}" Classes="caption"/>
+                        <TextBlock Text="{localization:Loc Trigger_Name}" Classes="field-label"/>
                         <TextBox Text="{Binding SelectedTask.Name, Mode=TwoWay, FallbackValue=''}"
                                 PlaceholderText="{localization:Loc Trigger_NamePlaceholder}"/>
                     </StackPanel>
@@ -155,7 +138,7 @@
                     <!-- Field + Match Mode — side by side -->
                     <Grid ColumnDefinitions="*,8,*">
                         <StackPanel Grid.Column="0" Spacing="4">
-                            <TextBlock Text="{localization:Loc Trigger_Field}" Classes="caption"/>
+                            <TextBlock Text="{localization:Loc Trigger_Field}" Classes="field-label"/>
                             <ComboBox SelectedItem="{Binding SelectedTask.Field, Mode=TwoWay}"
                                        ItemsSource="{x:Static core:TriggerEnums.AvailableFields}"
                                       HorizontalAlignment="Stretch"/>
@@ -163,7 +146,7 @@
                         <!-- Match Mode (hidden when Field = None/Interval) -->
                         <StackPanel Grid.Column="2" Spacing="4"
                                     IsVisible="{Binding SelectedTask.Field, Converter={x:Static conv:TriggerTabConverters.NeedsMatchValueConverter}}">
-                            <TextBlock Text="{localization:Loc Trigger_MatchMode}" Classes="caption"/>
+                            <TextBlock Text="{localization:Loc Trigger_MatchMode}" Classes="field-label"/>
                             <ComboBox SelectedItem="{Binding SelectedTask.MatchMode, Mode=TwoWay}"
                                       ItemsSource="{x:Static core:TriggerEnums.AvailableMatchModes}"
                                       HorizontalAlignment="Stretch"/>
@@ -173,7 +156,7 @@
                     <!-- Match Value (hidden when Field = None/Interval) -->
                     <StackPanel Spacing="4"
                                 IsVisible="{Binding SelectedTask.Field, Converter={x:Static conv:TriggerTabConverters.NeedsMatchValueConverter}}">
-                        <TextBlock Text="{localization:Loc Trigger_Value}" Classes="caption"/>
+                        <TextBlock Text="{localization:Loc Trigger_Value}" Classes="field-label"/>
 
                         <!-- Primary: manual text entry -->
                         <Grid ColumnDefinitions="*,Auto">
@@ -203,13 +186,13 @@
                     <!-- Action + Fire Mode — side by side -->
                     <Grid ColumnDefinitions="*,8,*">
                         <StackPanel Grid.Column="0" Spacing="4">
-                            <TextBlock Text="{localization:Loc Trigger_Action}" Classes="caption"/>
+                            <TextBlock Text="{localization:Loc Trigger_Action}" Classes="field-label"/>
                             <ComboBox SelectedItem="{Binding SelectedTask.Action, Mode=TwoWay}"
                                        ItemsSource="{x:Static core:TriggerEnums.AvailableActions}"
                                       HorizontalAlignment="Stretch"/>
                         </StackPanel>
                         <StackPanel Grid.Column="2" Spacing="4">
-                            <TextBlock Text="{localization:Loc Trigger_FireMode}" Classes="caption"/>
+                            <TextBlock Text="{localization:Loc Trigger_FireMode}" Classes="field-label"/>
                             <ComboBox SelectedItem="{Binding SelectedTask.FireMode, Mode=TwoWay}"
                                        ItemsSource="{x:Static core:TriggerEnums.AvailableFireModes}"
                                       HorizontalAlignment="Stretch"/>
@@ -219,7 +202,7 @@
                     <!-- Target Profile (visible when Action = SwitchProfile) -->
                     <StackPanel Spacing="4"
                                 IsVisible="{Binding SelectedTask.Action, Converter={x:Static conv:TriggerTabConverters.IsSwitchProfileConverter}, FallbackValue=False}">
-                        <TextBlock Text="{localization:Loc Trigger_TargetProfile}" Classes="caption"/>
+                        <TextBlock Text="{localization:Loc Trigger_TargetProfile}" Classes="field-label"/>
                         <ComboBox SelectedItem="{Binding TargetProfileInfo, Mode=TwoWay}"
                                   ItemsSource="{Binding AvailableProfiles}"
                                   PlaceholderText="{localization:Loc Trigger_TargetProfilePlaceholder}">
@@ -234,7 +217,7 @@
                     <!-- Macro File (visible when Action = RunMacro) -->
                     <StackPanel Spacing="4"
                                 IsVisible="{Binding SelectedTask.Action, Converter={x:Static conv:TriggerTabConverters.IsRunMacroConverter}, FallbackValue=False}">
-                        <TextBlock Text="{localization:Loc Trigger_MacroFile}" Classes="caption"/>
+                        <TextBlock Text="{localization:Loc Trigger_MacroFile}" Classes="field-label"/>
                         <Grid ColumnDefinitions="*,Auto">
                             <TextBox Grid.Column="0"
                                      Text="{Binding SelectedTask.MacroFilePath, Mode=TwoWay}"
@@ -252,13 +235,13 @@
                     <!-- Debounce / Cooldown (0 = disabled) -->
                     <Grid ColumnDefinitions="*,8,*">
                         <StackPanel Grid.Column="0" Spacing="4">
-                            <TextBlock Text="{localization:Loc Trigger_DebounceMs}" Classes="caption"/>
+                            <TextBlock Text="{localization:Loc Trigger_DebounceMs}" Classes="field-label"/>
                             <NumericUpDown Value="{Binding SelectedTask.DebounceMs, Mode=TwoWay, Converter={x:Static converters:NumericUpDownValueConverter.Instance}}"
                                            Minimum="0" Maximum="2147483647" Increment="100" FormatString="0"
                                            PlaceholderText="0"/>
                         </StackPanel>
                         <StackPanel Grid.Column="2" Spacing="4">
-                            <TextBlock Text="{localization:Loc Trigger_CooldownMs}" Classes="caption"/>
+                            <TextBlock Text="{localization:Loc Trigger_CooldownMs}" Classes="field-label"/>
                             <NumericUpDown Value="{Binding SelectedTask.CooldownMs, Mode=TwoWay, Converter={x:Static converters:NumericUpDownValueConverter.Instance}}"
                                            Minimum="0" Maximum="2147483647" Increment="100" FormatString="0"
                                            PlaceholderText="0"/>
@@ -268,22 +251,18 @@
             </Border>
 
             <!-- Status Section -->
-            <Border Background="{DynamicResource SurfaceColor}"
-                    CornerRadius="12"
-                    Padding="16"
+            <Border Classes="page-card"
                     IsVisible="{Binding HasSelectedTask}">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="{localization:Loc Trigger_Status}"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource TextSecondaryBrush}"
-                               FontSize="12"/>
+                    <TextBlock Classes="card-title" Text="{localization:Loc Trigger_Status}"
+/>
                     <Grid ColumnDefinitions="100,*" RowDefinitions="Auto,Auto" RowSpacing="4">
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{localization:Loc Trigger_LastTriggered}" Classes="caption"/>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{localization:Loc Trigger_LastTriggered}" Classes="field-label"/>
                         <TextBlock Grid.Row="0" Grid.Column="1"
                                    Text="{Binding SelectedLastTriggeredText}"
                                    FontSize="12"/>
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="{localization:Loc Trigger_StatusLabel}" Classes="caption"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="{localization:Loc Trigger_StatusLabel}" Classes="field-label"/>
                         <TextBlock Grid.Row="1" Grid.Column="1"
                                    Text="{Binding SelectedStatusText}"
                                    FontSize="12"/>
@@ -303,16 +282,11 @@
             </Button>
 
             <!-- Empty State -->
-            <Border Background="{DynamicResource SurfaceColor}"
-                    CornerRadius="12"
-                    Padding="32"
+            <Border Classes="empty-state"
                     IsVisible="{Binding !HasSelectedTask}">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
-                    <PathIcon Data="{icons:AppIcon Keyboard}" Width="48" Height="48" Opacity="0.8" HorizontalAlignment="Center"/>
-                    <TextBlock Text="{localization:Loc Trigger_NoSelected}"
-                               FontSize="16"
-                               FontWeight="Medium"
-                               HorizontalAlignment="Center"/>
+                    <PathIcon Classes="empty-state-icon" Data="{icons:AppIcon Keyboard}" HorizontalAlignment="Center"/>
+                    <TextBlock Classes="empty-title" Text="{localization:Loc Trigger_NoSelected}"/>
                     <TextBlock Text="{localization:Loc Trigger_SelectHint}"
                                Classes="caption"
                                HorizontalAlignment="Center"/>

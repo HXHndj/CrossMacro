@@ -16,27 +16,25 @@
     </Design.DataContext>
 
     <Panel>
-        <ScrollViewer Padding="10">
+        <ScrollViewer Padding="0">
             <StackPanel Spacing="20">
                 <!-- Speed Control -->
-                <StackPanel Spacing="8">
+                <Border Classes="page-card">
+                    <StackPanel Spacing="12">
                     <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Grid.Column="0" Classes="label" Text="{localization:Loc Playback_PlaybackSpeed}"/>
-                        <TextBlock Grid.Column="1" Text="{Binding PlaybackSpeed, StringFormat='{}{0:0.0}x'}"
-                                  FontWeight="Medium"
-                                  FontSize="16"
-                                  Foreground="{DynamicResource PrimaryBrush}"/>
+                        <TextBlock Grid.Column="0" Classes="card-title" Text="{localization:Loc Playback_PlaybackSpeed}"/>
+                        <TextBlock Grid.Column="1" Classes="value-text" Text="{Binding PlaybackSpeed, StringFormat='{}{0:0.0}x'}"/>
                     </Grid>
                     <Slider Minimum="0.1" Maximum="10.0" Value="{Binding PlaybackSpeed}"
                             TickFrequency="0.1" IsSnapToTickEnabled="True"
                             IsEnabled="{Binding !IsPlaying}"/>
-                </StackPanel>
+                    </StackPanel>
+                </Border>
 
                 <!-- Motion fidelity -->
-                <StackPanel Spacing="10">
-                    <TextBlock Text="{localization:Loc Playback_MotionMode}"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <Border Classes="page-card">
+                    <StackPanel Spacing="12">
+                        <TextBlock Classes="card-title" Text="{localization:Loc Playback_MotionMode}"/>
 
                     <Grid RowDefinitions="Auto,Auto" RowSpacing="8">
                         <Grid Grid.Row="0" ColumnDefinitions="*,24,*">
@@ -73,7 +71,7 @@
                                     Spacing="4"
                                     IsVisible="{Binding ShowPrecisionMotionRate}">
                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                <TextBlock Classes="label"
+                                <TextBlock Classes="field-label"
                                            Text="{localization:Loc Playback_StrictSpeedMotionRate}"/>
                                 <TextBlock Classes="caption" Text="/ s"/>
                             </StackPanel>
@@ -92,7 +90,7 @@
                               IsVisible="{Binding ShowStrictSpeedMotionRate}">
                             <StackPanel Grid.Column="0" Spacing="4">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <TextBlock Classes="label"
+                                    <TextBlock Classes="field-label"
                                                Text="{localization:Loc Playback_StrictSpeedMotionRate}"/>
                                     <TextBlock Classes="caption" Text="/ s"/>
                                 </StackPanel>
@@ -108,7 +106,7 @@
 
                             <StackPanel Grid.Column="2" Spacing="4">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <TextBlock Classes="label"
+                                    <TextBlock Classes="field-label"
                                                Text="{localization:Loc Playback_MaximumMotionPathError}"/>
                                     <TextBlock Classes="caption" Text="(px)"/>
                                 </StackPanel>
@@ -123,10 +121,12 @@
                             </StackPanel>
                         </Grid>
                     </Grid>
-                </StackPanel>
+                    </StackPanel>
+                </Border>
 
                 <!-- Loop Controls -->
-                <StackPanel Spacing="12">
+                <Border Classes="page-card">
+                    <StackPanel Spacing="12">
                     <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
                         <CheckBox Grid.Row="0"
                                   Grid.Column="0"
@@ -147,7 +147,7 @@
                                     Margin="0,0,8,0"
                                     Spacing="4"
                                     IsVisible="{Binding IsLooping}">
-                            <TextBlock Classes="label" Text="{localization:Loc Playback_LoopCount}"/>
+                            <TextBlock Classes="field-label" Text="{localization:Loc Playback_LoopCount}"/>
                             <NumericUpDown Value="{Binding LoopCount, Converter={x:Static converters:NumericUpDownValueConverter.Instance}}" Minimum="0" Maximum="1000" FormatString="0" IsEnabled="{Binding !IsPlaying}"/>
                         </StackPanel>
 
@@ -156,7 +156,7 @@
                                     Margin="8,0,0,0"
                                     Spacing="4"
                                     IsVisible="{Binding ShowFixedLoopDelayInput}">
-                            <TextBlock Classes="label" Text="{localization:Loc Playback_LoopDelayMs}"/>
+                            <TextBlock Classes="field-label" Text="{localization:Loc Playback_LoopDelayMs}"/>
                             <NumericUpDown Value="{Binding LoopDelayMs, Converter={x:Static converters:NumericUpDownValueConverter.Instance}}" Minimum="0" Maximum="2147483647" Increment="100" FormatString="0" IsEnabled="{Binding !IsPlaying}"/>
                         </StackPanel>
 
@@ -165,21 +165,24 @@
                                     Margin="8,0,0,0"
                                     Spacing="4"
                                     IsVisible="{Binding ShowRandomLoopDelayInputs}">
-                            <TextBlock Classes="label" Text="{localization:Loc Playback_LoopDelayRangeMs}"/>
+                            <TextBlock Classes="field-label" Text="{localization:Loc Playback_LoopDelayRangeMs}"/>
                             <Grid ColumnDefinitions="*,8,*">
                                 <NumericUpDown Value="{Binding LoopDelayMinMs, Converter={x:Static converters:NumericUpDownValueConverter.Instance}}" Minimum="0" Maximum="2147483647" Increment="100" FormatString="0" IsEnabled="{Binding !IsPlaying}"/>
                                 <NumericUpDown Grid.Column="2" Value="{Binding LoopDelayMaxMs, Converter={x:Static converters:NumericUpDownValueConverter.Instance}}" Minimum="0" Maximum="2147483647" Increment="100" FormatString="0" IsEnabled="{Binding !IsPlaying}"/>
                             </Grid>
                         </StackPanel>
                     </Grid>
-                </StackPanel>
+                    </StackPanel>
+                </Border>
 
                 <!-- Countdown -->
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="label" Text="{localization:Loc Playback_CountdownSec}"/>
+                <Border Classes="page-card">
+                    <StackPanel Spacing="8">
+                        <TextBlock Classes="field-label" Text="{localization:Loc Playback_CountdownSec}"/>
                     <NumericUpDown Minimum="0" Maximum="2147483647" Value="{Binding CountdownSeconds, Converter={x:Static converters:NumericUpDownValueConverter.Instance}}"
                             Increment="1" FormatString="0" IsEnabled="{Binding !IsPlaying}"/>
-                </StackPanel>
+                    </StackPanel>
+                </Border>
 
                 <!-- Play Controls -->
                 <Grid ColumnDefinitions="*,*">
@@ -211,13 +214,10 @@
                      </Button>
                 </Grid>
 
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
+                <StackPanel Classes="footer-tip">
                     <PathIcon Data="{icons:AppIcon Tip}" Classes="caption-icon"/>
                     <TextBlock Text="{localization:Loc Playback_LoopTip}" Classes="caption"/>
                 </StackPanel>
-
-                <!-- NEW: Bottom Spacer -->
-                <Rectangle Height="40" Fill="Transparent"/>
 
             </StackPanel>
         </ScrollViewer>

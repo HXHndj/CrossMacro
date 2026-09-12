@@ -5,8 +5,61 @@
         <Setter Property="Background" Value="Transparent"/>
     </Style>
 
+    <!-- Scrollbars get a dedicated, always-reserved 12px gutter: page layout is identical
+         whether the bar is visible or not (the Fluent "*,Auto" column squeezed content
+         whenever a scrollbar appeared). Template mirrors the Fluent one minus the
+         auto-hide content-span behavior; AllowAutoHide stays off. -->
+    <Style Selector="ScrollViewer">
+        <Setter Property="AllowAutoHide" Value="False"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid ColumnDefinitions="*,12" RowDefinitions="*,12">
+                    <ScrollContentPresenter Name="PART_ContentPresenter"
+                                            Grid.Row="0"
+                                            Grid.Column="0"
+                                            Background="{TemplateBinding Background}"
+                                            HorizontalSnapPointsType="{TemplateBinding HorizontalSnapPointsType}"
+                                            VerticalSnapPointsType="{TemplateBinding VerticalSnapPointsType}"
+                                            HorizontalSnapPointsAlignment="{TemplateBinding HorizontalSnapPointsAlignment}"
+                                            VerticalSnapPointsAlignment="{TemplateBinding VerticalSnapPointsAlignment}"
+                                            Padding="{TemplateBinding Padding}"
+                                            ScrollViewer.IsScrollInertiaEnabled="{TemplateBinding IsScrollInertiaEnabled}">
+                        <ScrollContentPresenter.GestureRecognizers>
+                            <ScrollGestureRecognizer CanHorizontallyScroll="{Binding CanHorizontallyScroll, ElementName=PART_ContentPresenter}"
+                                                     CanVerticallyScroll="{Binding CanVerticallyScroll, ElementName=PART_ContentPresenter}"
+                                                     IsScrollInertiaEnabled="{Binding (ScrollViewer.IsScrollInertiaEnabled), ElementName=PART_ContentPresenter}"
+                                                     Offset="{Binding Offset, ElementName=PART_ContentPresenter}"
+                                                     Viewport="{Binding Viewport, ElementName=PART_ContentPresenter}"
+                                                     Extent="{Binding Extent, ElementName=PART_ContentPresenter}"/>
+                        </ScrollContentPresenter.GestureRecognizers>
+                    </ScrollContentPresenter>
+                    <ScrollBar Name="PART_HorizontalScrollBar"
+                               Orientation="Horizontal"
+                               Grid.Row="1"/>
+                    <ScrollBar Name="PART_VerticalScrollBar"
+                               Orientation="Vertical"
+                               Grid.Column="1"/>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Resting (collapsed) state: render the thumb at full slot width instead of the
+         theme's shrink transform so the idle bar stays visible and easier to grab.
+         The expanded state (track + page buttons + full opacity) is untouched. -->
+    <Style Selector="ScrollBar[IsExpanded=False] /template/ Thumb">
+        <Setter Property="RenderTransform" Value="none"/>
+    </Style>
+
     <Style Selector="ScrollBar:vertical">
         <Setter Property="Width" Value="10"/>
+    </Style>
+
+    <!-- Fluent's track rectangle has square corners by default; round it to follow the
+         app's rounded design language (visible when the bar is expanded). -->
+    <Style Selector="ScrollBar /template/ Rectangle#TrackRect">
+        <Setter Property="RadiusX" Value="5"/>
+        <Setter Property="RadiusY" Value="5"/>
     </Style>
 
     <Style Selector="ScrollBar:horizontal">
@@ -59,7 +112,7 @@
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="CornerRadius" Value="8"/>
         <Setter Property="Padding" Value="12,8"/>
     </Style>
 
@@ -113,9 +166,9 @@
 
     <!-- ComboBox Popup Style -->
     <Style Selector="ComboBox /template/ Popup Border">
-        <Setter Property="Background" Value="{DynamicResource SurfaceColor}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource SurfaceHoverColor}"/>
-        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SurfaceHoverBrush}"/>
+        <Setter Property="CornerRadius" Value="8"/>
     </Style>
 
     <Style Selector="ComboBoxItem">
@@ -145,7 +198,7 @@
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="CornerRadius" Value="8"/>
     </Style>
 
     <Style Selector="TimePicker:pointerover">
@@ -162,8 +215,8 @@
 
     <!-- TimePicker Flyout/Popup Style -->
     <Style Selector="TimePickerPresenter">
-        <Setter Property="Background" Value="{DynamicResource SurfaceColor}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource SurfaceHoverColor}"/>
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SurfaceHoverBrush}"/>
     </Style>
 
     <!-- DatePicker Style -->
@@ -172,7 +225,7 @@
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="CornerRadius" Value="8"/>
     </Style>
 
     <Style Selector="DatePicker:pointerover">
@@ -189,8 +242,8 @@
 
     <!-- DatePicker Flyout/Calendar Style -->
     <Style Selector="DatePickerPresenter">
-        <Setter Property="Background" Value="{DynamicResource SurfaceColor}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource SurfaceHoverColor}"/>
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SurfaceHoverBrush}"/>
     </Style>
 
     <Style Selector="CalendarDayButton:pointerover /template/ ContentPresenter">

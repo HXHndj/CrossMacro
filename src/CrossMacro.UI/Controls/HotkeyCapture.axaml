@@ -10,7 +10,7 @@
              x:Name="Root"
              Focusable="True">
     <Border x:Name="HotkeyBorder"
-            CornerRadius="6" 
+            CornerRadius="8"
             Padding="10,6,10,6"
             Cursor="Hand"
             PointerPressed="OnPointerPressed">

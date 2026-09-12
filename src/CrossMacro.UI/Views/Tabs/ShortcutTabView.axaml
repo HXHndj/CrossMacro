@@ -17,26 +17,21 @@
         <designVm:DesignShortcutViewModel/>
     </Design.DataContext>
 
-    <ScrollViewer Padding="10">
-        <StackPanel Spacing="16" Margin="0,0,0,50">
+    <ScrollViewer Padding="0">
+        <StackPanel Spacing="16">
             
             <!-- Shortcut List Section -->
-            <Border Background="{DynamicResource SurfaceColor}" CornerRadius="12" Padding="16"
+            <Border Classes="page-card"
                     x:Name="ShortcutListBorder">
                 <StackPanel Spacing="12">
                     <Grid ColumnDefinitions="*,Auto,Auto">
-                        <TextBlock Grid.Column="0"
+                        <TextBlock Classes="card-title" Grid.Column="0"
                                   Text="{localization:Loc Shortcut_Title}" 
-                                  FontWeight="SemiBold" 
-                                  Foreground="{DynamicResource TextSecondaryBrush}" 
-                                  FontSize="12"
-                                  VerticalAlignment="Center"/>
-                        <TextBlock Grid.Column="1"
+VerticalAlignment="Center"/>
+                        <TextBlock Classes="caption" Grid.Column="1"
                                   Text="{Binding TaskCountText}"
                                   VerticalAlignment="Center"
-                                  Foreground="{DynamicResource TextSecondaryBrush}"
-                                  FontSize="12"
-                                  Margin="0,0,12,0"/>
+Margin="0,0,12,0"/>
                         <Button Grid.Column="2" 
                                Command="{Binding AddTaskCommand}"
                                Background="{DynamicResource SurfaceHoverBrush}"
@@ -53,11 +48,8 @@
                     <ItemsControl ItemsSource="{Binding Tasks}">
                         <ItemsControl.ItemTemplate>
                               <DataTemplate x:DataType="vm:ShortcutTaskEditor">
-                                <Border Padding="10,8" 
-                                        CornerRadius="8" 
-                                        Margin="0,2"
-                                        Classes="row-item no-hover"
-                                        Background="{DynamicResource BackgroundBrush}">
+                                <Border Classes="task-row"
+                                        Classes.selected="{Binding IsSelected}">
                                     <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                                         <!-- Shortcut Info (clickable area for selection) -->
                                         <Button Grid.Column="0" 
@@ -75,14 +67,9 @@
                                                           FontSize="13"
                                                           TextTrimming="CharacterEllipsis"/>
                                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                                    <Border Background="{DynamicResource SurfaceHoverBrush}" 
-                                                            CornerRadius="4" 
-                                                            Padding="6,2"
+                                                    <Border Classes="chip accent"
                                                             IsVisible="{Binding HotkeyString, Converter={x:Static StringConverters.IsNotNullOrEmpty}, FallbackValue=False}">
-                                                        <TextBlock Text="{Binding HotkeyString, FallbackValue=''}" 
-                                                                   FontSize="11" 
-                                                                   FontFamily="Consolas, monospace"
-                                                                   Foreground="{DynamicResource PrimaryBrush}"/>
+                                                        <TextBlock Classes="mono" Text="{Binding HotkeyString, FallbackValue=''}"/>
                                                     </Border>
                                                     <TextBlock Text="{Binding MacroFilePath}"
                                                                FontSize="11" 
@@ -135,26 +122,22 @@
             </Border>
             
             <!-- Shortcut Settings Section (visible when shortcut selected) -->
-            <Border Background="{DynamicResource SurfaceColor}" 
-                    CornerRadius="12" 
-                    Padding="16"
+            <Border Classes="page-card"
                     IsVisible="{Binding HasSelectedTask}">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="{localization:Loc Shortcut_Settings}" 
-                              FontWeight="SemiBold" 
-                              Foreground="{DynamicResource TextSecondaryBrush}" 
-                              FontSize="12"/>
+                    <TextBlock Classes="card-title" Text="{localization:Loc Shortcut_Settings}" 
+/>
                     
                     <!-- Shortcut Name -->
                     <StackPanel Spacing="4">
-                        <TextBlock Text="{localization:Loc Shortcut_Name}" Classes="caption"/>
+                        <TextBlock Text="{localization:Loc Shortcut_Name}" Classes="field-label"/>
                           <TextBox Text="{Binding SelectedTask?.Name, Mode=TwoWay, FallbackValue=''}"
                                 PlaceholderText="{localization:Loc Shortcut_NamePlaceholder}"/>
                     </StackPanel>
                     
                     <!-- Hotkey Capture -->
                     <StackPanel Spacing="4">
-                         <TextBlock Text="{localization:Loc Shortcut_Trigger}" Classes="caption"/>
+                         <TextBlock Text="{localization:Loc Shortcut_Trigger}" Classes="field-label"/>
                          <controls:HotkeyCapture x:Name="HotkeyInput"
                                                 Hotkey="{Binding SelectedHotkeyString, Mode=TwoWay, FallbackValue=''}"
                                                 LocalizationService="{Binding LocalizationService}"
@@ -232,13 +215,10 @@
                     
                     <!-- Macro File -->
                     <StackPanel Spacing="4">
-                        <TextBlock Text="{localization:Loc Shortcut_MacroFile}" Classes="caption"/>
+                        <TextBlock Text="{localization:Loc Shortcut_MacroFile}" Classes="field-label"/>
                         <Grid ColumnDefinitions="*,Auto">
-                            <Border Grid.Column="0" 
-                                   Background="{DynamicResource BackgroundBrush}" 
-                                   CornerRadius="6" 
-                                   Padding="12,8"
-                                   Margin="0,0,8,0">
+                            <Border Classes="nested-panel" Grid.Column="0" 
+Margin="0,0,8,0">
                                 <TextBlock Text="{Binding SelectedMacroFileName}" 
                                           VerticalAlignment="Center"
                                           TextTrimming="CharacterEllipsis"
@@ -257,7 +237,7 @@
                     <!-- Focused Window Scope -->
                     <StackPanel Spacing="8">
                         <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Grid.Column="0" Text="{localization:Loc Shortcut_WindowScope}" Classes="caption"/>
+                            <TextBlock Grid.Column="0" Text="{localization:Loc Shortcut_WindowScope}" Classes="field-label"/>
                             <Button Grid.Column="1"
                                     Classes="secondary"
                                     Command="{Binding AddWindowRuleCommand}">
@@ -316,22 +296,18 @@
             </Border>
             
             <!-- Status Section -->
-            <Border Background="{DynamicResource SurfaceColor}" 
-                   CornerRadius="12" 
-                   Padding="16"
+            <Border Classes="page-card"
                    IsVisible="{Binding HasSelectedTask}">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="{localization:Loc Shortcut_Status}" 
-                              FontWeight="SemiBold" 
-                              Foreground="{DynamicResource TextSecondaryBrush}"
-                              FontSize="12"/>
+                    <TextBlock Classes="card-title" Text="{localization:Loc Shortcut_Status}" 
+/>
                     <Grid ColumnDefinitions="100,*" RowDefinitions="Auto,Auto" RowSpacing="4">
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{localization:Loc Shortcut_LastTriggered}" Classes="caption"/>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{localization:Loc Shortcut_LastTriggered}" Classes="field-label"/>
                         <TextBlock Grid.Row="0" Grid.Column="1" 
                                   Text="{Binding SelectedLastTriggeredText}" 
                                   FontSize="12"/>
                         
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="{localization:Loc Shortcut_StatusLabel}" Classes="caption"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="{localization:Loc Shortcut_StatusLabel}" Classes="field-label"/>
                         <TextBlock Grid.Row="1" Grid.Column="1" 
                                   Text="{Binding SelectedStatusText}" 
                                   FontSize="12"/>
@@ -351,16 +327,11 @@
             </Button>
             
             <!-- Empty State -->
-            <Border Background="{DynamicResource SurfaceColor}" 
-                    CornerRadius="12" 
-                    Padding="32"
+            <Border Classes="empty-state"
                     IsVisible="{Binding !HasSelectedTask}">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
-                    <PathIcon Data="{icons:AppIcon Keyboard}" Width="48" Height="48" Opacity="0.8" HorizontalAlignment="Center"/>
-                    <TextBlock Text="{localization:Loc Shortcut_NoSelected}" 
-                              FontSize="16" 
-                              FontWeight="Medium"
-                              HorizontalAlignment="Center"/>
+                    <PathIcon Classes="empty-state-icon" Data="{icons:AppIcon Keyboard}" HorizontalAlignment="Center"/>
+                    <TextBlock Classes="empty-title" Text="{localization:Loc Shortcut_NoSelected}"/>
                     <TextBlock Text="{localization:Loc Shortcut_SelectHint}" 
                               Classes="caption"
                               HorizontalAlignment="Center"/>
